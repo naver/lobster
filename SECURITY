@@ -1,0 +1,10 @@
+# Security Policy
+
+## Notes
+
+- Lobster does not have TLS applied in internal network. Be careful when using public IPs
+- Lobster does not encrypt local storage data.
+
+## Reporting a Vulnerability
+
+Please report any security issues to seungha.lee@navercorp.com

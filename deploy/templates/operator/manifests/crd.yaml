@@ -1,0 +1,245 @@
+{{- if .Values.operator }}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.14.0
+  name: lobstersinks.lobster.io
+spec:
+  group: lobster.io
+  names:
+    kind: LobsterSink
+    listKind: LobsterSinkList
+    plural: lobstersinks
+    singular: lobstersink
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: LobsterSink is the Schema for the lobstersinks API.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: LobsterSinkSpec defines the desired state of LobsterSink.
+            properties:
+              description:
+                description: Description of this custom resource
+                type: string
+              limit:
+                type: integer
+              logExportRules:
+                description: Rules for exporting logs
+                items:
+                  properties:
+                    basicBucket:
+                      description: Settings required to export logs to basic bucket
+                      properties:
+                        destination:
+                          description: Address to export logs
+                          type: string
+                        rootPath:
+                          description: Root directory to store logs within external
+                            storage
+                          type: string
+                        timeLayoutOfSubDirectory:
+                          description: An option(default `2006-01`) that sets the
+                            name of the sub-directory following `{Root path}` to a
+                            time-based layout
+                          type: string
+                      type: object
+                    description:
+                      description: Description of this rule
+                      type: string
+                    filter:
+                      description: Generate metrics from logs by specifying the target
+                        or log content
+                      properties:
+                        clusters:
+                          description: Filter logs only for specific Clusters
+                          items:
+                            type: string
+                          type: array
+                        containers:
+                          description: Filter logs only for specific Containers
+                          items:
+                            type: string
+                          type: array
+                        exclude:
+                          description: Filter only logs that do not match the re2
+                            expression(https://github.com/google/re2/wiki/Syntax)
+                          type: string
+                        include:
+                          description: Filter only logs that match the re2 expression(https://github.com/google/re2/wiki/Syntax)
+                          type: string
+                        labels:
+                          description: Filter logs only for specific Pod labels
+                          items:
+                            additionalProperties:
+                              type: string
+                            type: object
+                          type: array
+                        namespace:
+                          description: Filter logs only for specific Namespace
+                          type: string
+                        pods:
+                          description: Filter logs only for specific Pods
+                          items:
+                            type: string
+                          type: array
+                        setNames:
+                          description: Filter logs only for specific ReplicaSets/StatefulSets
+                          items:
+                            type: string
+                          type: array
+                        sources:
+                          description: Filter logs only for specific Sources
+                          items:
+                            properties:
+                              path:
+                                type: string
+                              type:
+                                type: string
+                            type: object
+                          type: array
+                      type: object
+                    interval:
+                      description: Interval to export logs
+                      type: string
+                    name:
+                      description: Rule name
+                      type: string
+                    s3Bucket:
+                      description: Settings required to export logs to S3 bucket
+                      properties:
+                        accessKey:
+                          description: S3 bucket access key
+                          type: string
+                        bucketName:
+                          description: S3 bucket name
+                          type: string
+                        destination:
+                          description: S3 Address to export logs
+                          type: string
+                        region:
+                          description: S3 region
+                          type: string
+                        rootPath:
+                          description: Root directory to store logs within external
+                            storage
+                          type: string
+                        secretKey:
+                          description: S3 bucket secret key
+                          type: string
+                        tags:
+                          additionalProperties:
+                            type: string
+                          description: Tags for objects to be stored
+                          type: object
+                        timeLayoutOfSubDirectory:
+                          description: An option(default `2006-01`) that sets the
+                            name of the sub-directory following `{Root path}` to a
+                            time-based layout
+                          type: string
+                      type: object
+                  type: object
+                type: array
+              logMetricRules:
+                description: Rules for generating log metrics
+                items:
+                  properties:
+                    description:
+                      description: Description of this rule
+                      type: string
+                    filter:
+                      description: Generate metrics from logs by specifying the target
+                        or log content
+                      properties:
+                        clusters:
+                          description: Filter logs only for specific Clusters
+                          items:
+                            type: string
+                          type: array
+                        containers:
+                          description: Filter logs only for specific Containers
+                          items:
+                            type: string
+                          type: array
+                        exclude:
+                          description: Filter only logs that do not match the re2
+                            expression(https://github.com/google/re2/wiki/Syntax)
+                          type: string
+                        include:
+                          description: Filter only logs that match the re2 expression(https://github.com/google/re2/wiki/Syntax)
+                          type: string
+                        labels:
+                          description: Filter logs only for specific Pod labels
+                          items:
+                            additionalProperties:
+                              type: string
+                            type: object
+                          type: array
+                        namespace:
+                          description: Filter logs only for specific Namespace
+                          type: string
+                        pods:
+                          description: Filter logs only for specific Pods
+                          items:
+                            type: string
+                          type: array
+                        setNames:
+                          description: Filter logs only for specific ReplicaSets/StatefulSets
+                          items:
+                            type: string
+                          type: array
+                        sources:
+                          description: Filter logs only for specific Sources
+                          items:
+                            properties:
+                              path:
+                                type: string
+                              type:
+                                type: string
+                            type: object
+                          type: array
+                      type: object
+                    name:
+                      description: Rule name
+                      type: string
+                  type: object
+                type: array
+              timezone:
+                type: string
+              type:
+                description: Type that distinguishes logMetricRules and logExportRules
+                type: string
+            type: object
+          status:
+            description: LobsterSinkStatus defines the observed state of LobsterSink.
+            properties:
+              init:
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+{{- end }}

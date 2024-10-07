@@ -1,0 +1,16 @@
+{{- if .Values.syncer }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: lobster-syncer
+  labels:
+    app: lobster-syncer
+spec:
+  ports:
+    - port: {{ .Values.syncer.options.serverPort }}
+      protocol: TCP
+      name: http
+      targetPort: {{ .Values.syncer.options.serverPort }}
+  selector:
+    app: lobster-syncer
+{{- end }}

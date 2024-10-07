@@ -1,0 +1,448 @@
+definitions:
+  v1.BasicBucket:
+    properties:
+      destination:
+        description: Address to export logs
+        type: string
+      rootPath:
+        description: Root directory to store logs within external storage
+        type: string
+      timeLayoutOfSubDirectory:
+        default: 2006-01
+        description: An option(default `2006-01`) that sets the name of the sub-directory
+          following `{Root path}` to a time-based layout
+        type: string
+    type: object
+  v1.Filter:
+    properties:
+      clusters:
+        description: Filter logs only for specific Clusters
+        items:
+          type: string
+        type: array
+      containers:
+        description: Filter logs only for specific Containers
+        items:
+          type: string
+        type: array
+      exclude:
+        description: Filter only logs that do not match the re2 expression(https://github.com/google/re2/wiki/Syntax)
+        type: string
+      include:
+        description: Filter only logs that match the re2 expression(https://github.com/google/re2/wiki/Syntax)
+        type: string
+      labels:
+        description: Filter logs only for specific Pod labels
+        items:
+          additionalProperties:
+            type: string
+          type: object
+        type: array
+      namespace:
+        description: Filter logs only for specific Namespace
+        type: string
+      pods:
+        description: Filter logs only for specific Pods
+        items:
+          type: string
+        type: array
+      setNames:
+        description: Filter logs only for specific ReplicaSets/StatefulSets
+        items:
+          type: string
+        type: array
+      sources:
+        description: Filter logs only for specific Sources
+        items:
+          $ref: '#/definitions/v1.Source'
+        type: array
+    type: object
+  v1.LogExportRule:
+    properties:
+      basicBucket:
+        allOf:
+        - $ref: '#/definitions/v1.BasicBucket'
+        description: Settings required to export logs to basic bucket
+      description:
+        description: Description of this rule
+        type: string
+      filter:
+        allOf:
+        - $ref: '#/definitions/v1.Filter'
+        description: Generate metrics from logs by specifying the target or log content
+      interval:
+        description: Interval to export logs
+        example: time duration(e.g. 1m)
+        type: string
+      name:
+        description: Rule name
+        type: string
+      s3Bucket:
+        allOf:
+        - $ref: '#/definitions/v1.S3Bucket'
+        description: Settings required to export logs to S3 bucket
+    type: object
+  v1.LogMetricRule:
+    properties:
+      description:
+        description: Description of this rule
+        type: string
+      filter:
+        allOf:
+        - $ref: '#/definitions/v1.Filter'
+        description: Generate metrics from logs by specifying the target or log content
+      name:
+        description: Rule name
+        type: string
+    type: object
+  v1.S3Bucket:
+    properties:
+      accessKey:
+        description: S3 bucket access key
+        type: string
+      bucketName:
+        description: S3 bucket name
+        type: string
+      destination:
+        description: S3 Address to export logs
+        type: string
+      region:
+        description: S3 region
+        type: string
+      rootPath:
+        description: Root directory to store logs within external storage
+        type: string
+      secretKey:
+        description: S3 bucket secret key
+        type: string
+      tags:
+        allOf:
+        - $ref: '#/definitions/v1.Tags'
+        description: Tags for objects to be stored
+      timeLayoutOfSubDirectory:
+        default: 2006-01
+        description: An option(default `2006-01`) that sets the name of the sub-directory
+          following `{Root path}` to a time-based layout
+        type: string
+    type: object
+  v1.Sink:
+    properties:
+      description:
+        type: string
+      logExportRules:
+        items:
+          $ref: '#/definitions/v1.LogExportRule'
+        type: array
+      logMetricRules:
+        items:
+          $ref: '#/definitions/v1.LogMetricRule'
+        type: array
+      name:
+        type: string
+      namespace:
+        type: string
+      type:
+        type: string
+    type: object
+  v1.Source:
+    properties:
+      path:
+        type: string
+      type:
+        type: string
+    type: object
+  v1.Tags:
+    additionalProperties:
+      type: string
+    type: object
+info:
+  contact: {}
+  description: Descriptions of Lobster log-sink management APIs
+  title: Lobster Operator APIs document
+  version: "1.0"
+paths:
+  /api/v1/namespaces/{namespace}/sinks/{name}:
+    get:
+      parameters:
+      - description: namespace name
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: sink name
+        in: path
+        name: name
+        type: string
+      - description: sink type (logMetricRules, logExportRules)
+        in: query
+        name: type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/v1.Sink'
+            type: array
+        "400":
+          description: Invalid parameters
+          schema:
+            type: string
+        "405":
+          description: Method not allowed
+          schema:
+            type: string
+        "500":
+          description: Failed to get sink
+          schema:
+            type: string
+      summary: List sinks
+      tags:
+      - Get
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: namespace name
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: sink name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: sink contentd; Each content in array must be unique
+        in: body
+        name: sink
+        required: true
+        schema:
+          $ref: '#/definitions/v1.Sink'
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "201":
+          description: Created successfully
+          schema:
+            type: string
+        "400":
+          description: Invalid parameters
+          schema:
+            type: string
+        "405":
+          description: Method not allowed
+          schema:
+            type: string
+        "422":
+          description: Restricted by limits
+          schema:
+            type: string
+        "500":
+          description: Failed to get sink content
+          schema:
+            type: string
+      summary: Put log sink
+      tags:
+      - Put
+  /api/v1/namespaces/{namespace}/sinks/{name}/{type}:
+    delete:
+      deprecated: true
+      parameters:
+      - description: namespace name
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: sink name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: deprecated;sink type (logMetricRules, logExportRules)
+        in: path
+        name: type
+        type: string
+      - description: deprecated;metric rule name to delete
+        in: query
+        name: ruleName
+        type: string
+      - description: deprecated;bucket name to delete
+        in: query
+        name: bucketName
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Invalid parameters
+          schema:
+            type: string
+        "404":
+          description: Not found
+          schema:
+            type: string
+        "405":
+          description: Method not allowed
+          schema:
+            type: string
+        "500":
+          description: Failed to delete sink
+          schema:
+            type: string
+      summary: Delete sink
+      tags:
+      - Delete
+    get:
+      deprecated: true
+      parameters:
+      - description: namespace name
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: sink name
+        in: path
+        name: name
+        type: string
+      - description: deprecated;sink type (logMetricRules, logExportRules)
+        in: path
+        name: type
+        type: string
+      - description: sink type (logMetricRules, logExportRules)
+        in: query
+        name: type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/v1.Sink'
+            type: array
+        "400":
+          description: Invalid parameters
+          schema:
+            type: string
+        "405":
+          description: Method not allowed
+          schema:
+            type: string
+        "500":
+          description: Failed to get sink
+          schema:
+            type: string
+      summary: List sinks
+      tags:
+      - Get
+    put:
+      consumes:
+      - application/json
+      deprecated: true
+      parameters:
+      - description: namespace name
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: sink name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: deprecated;sink type (logMetricRules, logExportRules)
+        in: path
+        name: type
+        type: string
+      - description: sink contentd; Each content in array must be unique
+        in: body
+        name: sink
+        required: true
+        schema:
+          $ref: '#/definitions/v1.Sink'
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "201":
+          description: Created successfully
+          schema:
+            type: string
+        "400":
+          description: Invalid parameters
+          schema:
+            type: string
+        "405":
+          description: Method not allowed
+          schema:
+            type: string
+        "422":
+          description: Restricted by limits
+          schema:
+            type: string
+        "500":
+          description: Failed to get sink content
+          schema:
+            type: string
+      summary: Put log sink
+      tags:
+      - Put
+  /api/v1/namespaces/{namespace}/sinks/{name}/rules/{rule}:
+    delete:
+      parameters:
+      - description: namespace name
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: sink name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: log export rule name to delete
+        in: path
+        name: rule
+        type: string
+      - description: deprecated;metric rule name to delete
+        in: query
+        name: ruleName
+        type: string
+      - description: deprecated;bucket name to delete
+        in: query
+        name: bucketName
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Invalid parameters
+          schema:
+            type: string
+        "404":
+          description: Not found
+          schema:
+            type: string
+        "405":
+          description: Method not allowed
+          schema:
+            type: string
+        "500":
+          description: Failed to delete sink
+          schema:
+            type: string
+      summary: Delete sink
+      tags:
+      - Delete
+swagger: "2.0"

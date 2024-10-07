@@ -1,0 +1,29 @@
+# Install Lobster-global-query to query lobster installed in multiple clusters.
+# 
+# This value file configures the installation of the components below.
+# 1. lobster global query deployment/service
+#
+# Please replace the default value of each field with the value needed in your environment.
+#
+
+namespace: default
+priorityClassName: null
+
+global_query:
+  service:
+    annotations: {}
+  pod:
+    annotations: 
+      prometheus.io/scrape: "true"
+    replicas: 1
+    affinity: {}
+    tolerations: []
+  container:
+    image: quay.io/lobster/logsys/lobster-global-query
+    resources: {}
+  options:
+    printLog: true
+    serverPort: 80
+    metricPort: 8081
+    lobsterQueries: 
+    - "local|lobster-query:80" # format: {cluster name}|{address}

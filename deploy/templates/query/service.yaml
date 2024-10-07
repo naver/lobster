@@ -1,0 +1,57 @@
+{{- if .Values.query }}
+apiVersion: v1
+kind: Service
+metadata:
+  annotations: {{ (default dict .Values.query.service.annotations) | toYaml | nindent 4 }}
+  name: lobster-query
+  labels:
+    app: lobster-query
+spec:
+  ports:
+    - port: {{ .Values.query.options.serverPort }}
+      protocol: TCP
+      name: http
+      targetPort: {{ .Values.query.options.serverPort }}
+  selector:
+    app: lobster-query
+  type: LoadBalancer
+
+---
+
+{{- $root := . -}}
+{{- range $i, $v := until (int .Values.query.options.modulus) }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: lobster-query-shard-{{ $i }}
+  labels:
+    app: lobster-query-shard-{{ $i }}
+spec:
+  ports:
+    - port: {{ $root.Values.query.options.serverPort }}
+      protocol: TCP
+      name: http
+      targetPort: {{ $root.Values.query.options.serverPort }}
+  selector:
+    shard: query-{{ $i }}
+  type: ClusterIP
+
+---
+{{- end }}
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: lobster-query-headless
+  labels:
+    app: lobster-query-headless
+spec:
+  ports:
+    - port: {{ .Values.query.options.serverPort }}
+      protocol: TCP
+      name: http
+      targetPort: {{ .Values.query.options.serverPort }}
+  clusterIP: None
+  selector:
+    app: lobster-query
+{{- end }}

@@ -1,0 +1,44 @@
+{{- if .Values.global_query }}
+{{- $root := . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lobster-global-query
+  labels:
+    app: lobster-global-query
+spec:
+  replicas: {{ .Values.global_query.pod.replicas }}
+  selector:
+    matchLabels:
+      app: lobster-global-query
+  template:
+    metadata:
+      labels:
+        purpose: logging
+        app: lobster-global-query
+      annotations: {{ (default dict .Values.global_query.pod.annotations) | toYaml | nindent 8 }}
+    spec:
+      priorityClassName: {{ .Values.priorityClassName }}
+      serviceAccountName: default
+      affinity: {{ (default dict .Values.global_query.pod.affinity) | toYaml | nindent 8 }}
+      containers:
+        - name: global-query
+          image: {{ required "this value is required" .Values.global_query.container.image }}:{{ .Chart.AppVersion }}
+          imagePullPolicy: Always
+          args:
+          - --logtostderr={{ .Values.global_query.options.printLog }}
+          - --server.port={{ .Values.global_query.options.serverPort }}
+          - --server.metricsPort={{ .Values.global_query.options.metricPort }}
+          {{- range $i, $lobsterQuery := .Values.global_query.options.lobsterQueries }}
+          - --global.lobsterQueryAddress={{ $lobsterQuery }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.global_query.options.serverPort }}
+              protocol: TCP
+            - name: http-metrics
+              containerPort: {{ .Values.global_query.options.metricPort }}
+              protocol: TCP
+          resources: {{ (default dict .Values.global_query.container.resources) | toYaml | nindent 12 }}
+      tolerations: {{ (default list .Values.global_query.pod.tolerations) | toYaml | nindent 8 }}
+{{- end }}

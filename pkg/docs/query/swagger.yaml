@@ -1,0 +1,459 @@
+definitions:
+  github_com_naver_lobster_pkg_lobster_model.Sample:
+    properties:
+      lines:
+        type: integer
+      size:
+        type: integer
+      timestamp:
+        type: string
+    type: object
+  model.Chunk:
+    properties:
+      cluster:
+        type: string
+      container:
+        type: string
+      id:
+        type: string
+      labels:
+        $ref: '#/definitions/model.Labels'
+      line:
+        type: integer
+      namespace:
+        type: string
+      pod:
+        type: string
+      podUid:
+        type: string
+      setName:
+        type: string
+      size:
+        type: integer
+      source:
+        $ref: '#/definitions/model.Source'
+      startedAt:
+        type: string
+      storeAddr:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  model.Entry:
+    properties:
+      cluster:
+        type: string
+      container:
+        type: string
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      message:
+        type: string
+      namespace:
+        type: string
+      pod:
+        type: string
+      sourcePath:
+        type: string
+      sourceType:
+        type: string
+      stream:
+        type: string
+      tag:
+        type: string
+      time:
+        type: string
+    type: object
+  model.Labels:
+    additionalProperties:
+      type: string
+    type: object
+  model.PageInfo:
+    description: Page inforamtion.
+    properties:
+      current:
+        type: integer
+      hasNext:
+        type: boolean
+      isPartialContents:
+        description: partial logs are returned
+        type: boolean
+      total:
+        type: integer
+    type: object
+  model.Series:
+    description: 'Name: "{cluster}_{namespace}_{pod}_{container}_{source}-{file number}".'
+    properties:
+      chunk_key:
+        type: string
+      lines:
+        type: integer
+      name:
+        type: string
+      samples:
+        items:
+          $ref: '#/definitions/github_com_naver_lobster_pkg_lobster_model.Sample'
+        type: array
+      size:
+        type: integer
+    type: object
+  model.Source:
+    properties:
+      path:
+        type: string
+      type:
+        type: string
+    type: object
+  query.Request:
+    properties:
+      attachment:
+        default: false
+        type: boolean
+      burst:
+        description: The number of logs that can be returned in one page and this
+          can be greater or less than burst
+        type: integer
+      clusters:
+        description: Get chunks belongs to clusters
+        items:
+          type: string
+        type: array
+      container:
+        description: Use internally
+        type: string
+      containers:
+        description: Get chunks belongs to namespace and containers
+        items:
+          type: string
+        type: array
+      end:
+        description: End time for query
+        type: string
+      exclude:
+        type: string
+      id:
+        description: Use internally
+        type: string
+      include:
+        description: Regular expression to search logs
+        type: string
+      labels:
+        description: Get chunks belongs to namespaces and labels
+        items:
+          $ref: '#/definitions/model.Labels'
+        type: array
+      local:
+        default: false
+        description: Use internally
+        type: boolean
+      namespace:
+        description: Use internally
+        type: string
+      namespaces:
+        description: Get chunks belongs to namespaces
+        items:
+          type: string
+        type: array
+      page:
+        description: The page number for the returned logs
+        type: integer
+      pod:
+        description: Use internally
+        type: string
+      pod_uid:
+        description: Use internally
+        type: string
+      pods:
+        description: Get chunks belongs to namespace and pods
+        items:
+          type: string
+        type: array
+      setName:
+        description: Use internally
+        type: string
+      setNames:
+        description: Get chunks belongs to namespace and set names(replicaset/statefulset)
+        items:
+          type: string
+        type: array
+      source:
+        allOf:
+        - $ref: '#/definitions/model.Source'
+        description: Use internally
+      sources:
+        description: Get chunks belongs to namespace and log source
+        items:
+          $ref: '#/definitions/model.Source'
+        type: array
+      start:
+        description: Start time for query
+        type: string
+    type: object
+  query.Response:
+    description: Response wrapping series and logs from store.
+    properties:
+      contents:
+        description: logs in string
+        type: string
+      pageInfo:
+        allOf:
+        - $ref: '#/definitions/model.PageInfo'
+        description: page information
+      series:
+        description: Array contains Series.
+        items:
+          $ref: '#/definitions/model.Series'
+        type: array
+    type: object
+  query.ResponseEntries:
+    description: Response wrapping series and logs from querier.
+    properties:
+      contents:
+        description: log entries
+        items:
+          $ref: '#/definitions/model.Entry'
+        type: array
+      pageInfo:
+        allOf:
+        - $ref: '#/definitions/model.PageInfo'
+        description: page information
+      series:
+        description: Array contains Series.
+        items:
+          $ref: '#/definitions/model.Series'
+        type: array
+    type: object
+info:
+  contact: {}
+  description: Descriptions of Lobster query APIs
+  title: Lobster API document
+  version: "1.0"
+paths:
+  /api/{version}/logs:
+    post:
+      description: Get metadata of logs for conditions
+      parameters:
+      - description: v1 or v2
+        in: path
+        name: version
+        required: true
+        type: string
+      - description: request parameters
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/query.Request'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Chunk'
+            type: array
+        "204":
+          description: No chunks
+          schema:
+            type: string
+        "400":
+          description: Invalid parameters
+          schema:
+            type: string
+        "405":
+          description: Method not allowed
+          schema:
+            type: string
+        "429":
+          description: too many requests
+          schema:
+            type: string
+        "500":
+          description: Failed to read logs
+          schema:
+            type: string
+      summary: Get metadata of logs
+      tags:
+      - Post
+  /api/{version}/logs/export:
+    post:
+      description: Export logs for conditions
+      parameters:
+      - description: v1 or v2
+        in: path
+        name: version
+        required: true
+        type: string
+      - description: request parameters
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/query.Request'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "204":
+          description: No chunks
+          schema:
+            type: string
+        "400":
+          description: Invalid parameters
+          schema:
+            type: string
+        "405":
+          description: Method not allowed
+          schema:
+            type: string
+        "429":
+          description: too many requests
+          schema:
+            type: string
+        "500":
+          description: Failed to read logs
+          schema:
+            type: string
+      summary: Export logs within range
+      tags:
+      - Post
+  /api/{version}/logs/series:
+    post:
+      description: Get series for conditions
+      parameters:
+      - description: v1 or v2
+        in: path
+        name: version
+        required: true
+        type: string
+      - description: request parameters
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/query.Request'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/query.Response'
+        "204":
+          description: No chunks
+          schema:
+            type: string
+        "400":
+          description: Invalid parameters
+          schema:
+            type: string
+        "405":
+          description: Method not allowed
+          schema:
+            type: string
+        "429":
+          description: too many requests
+          schema:
+            type: string
+        "500":
+          description: Failed to read logs
+          schema:
+            type: string
+      summary: Get series within range
+      tags:
+      - Post
+  /api/v1/logs/range:
+    post:
+      description: Get logs for conditions
+      parameters:
+      - description: request parameters
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/query.Request'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/query.Response'
+        "204":
+          description: No chunks
+          schema:
+            type: string
+        "400":
+          description: Invalid parameters
+          schema:
+            type: string
+        "405":
+          description: Method not allowed
+          schema:
+            type: string
+        "429":
+          description: too many requests
+          schema:
+            type: string
+        "500":
+          description: Failed to read logs
+          schema:
+            type: string
+        "501":
+          description: Not supported version
+          schema:
+            type: string
+      summary: Get logs within range
+      tags:
+      - Post
+  /api/v2/logs/range:
+    post:
+      description: Get logs for conditions
+      parameters:
+      - description: request parameters
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/query.Request'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/query.ResponseEntries'
+        "204":
+          description: No chunks
+          schema:
+            type: string
+        "400":
+          description: Invalid parameters
+          schema:
+            type: string
+        "405":
+          description: Method not allowed
+          schema:
+            type: string
+        "429":
+          description: too many requests
+          schema:
+            type: string
+        "500":
+          description: Failed to read logs
+          schema:
+            type: string
+        "501":
+          description: Not supported version
+          schema:
+            type: string
+      summary: Get logs within range
+      tags:
+      - Post
+swagger: "2.0"

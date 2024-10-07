@@ -1,0 +1,40 @@
+{{- if .Values.store }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: lobster-store
+  namespace: {{ .Values.namespace }}
+  labels:
+    purpose: logging
+    app: lobster-store
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: lobster-store
+  namespace: {{ .Values.namespace }}
+rules:
+- apiGroups: [""]
+  resources:
+  - nodes/proxy
+  verbs:
+  - 'get'
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: lobster-store
+  namespace: {{ .Values.namespace }}
+roleRef:
+  kind: ClusterRole
+  name: lobster-store
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: lobster-store
+  namespace: {{ .Values.namespace }}
+{{- end }}

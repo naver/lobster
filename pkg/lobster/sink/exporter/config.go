@@ -1,0 +1,43 @@
+/*
+ * Copyright (c) 2024-present NAVER Corp
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package exporter
+
+import (
+	"flag"
+	"time"
+)
+
+type config struct {
+	InspectInterval *time.Duration
+	DataPath        *string
+	Burst           *int64
+	MaxLookback     *time.Duration
+}
+
+func setup() config {
+	inspectInterval := flag.Duration("sink.exporter.inspectInterval", time.Minute, "Log file inspection & sync interval")
+	dataPath := flag.String("sink.exporter.dataPath", "/var/lobster", "Database path to store receipts")
+	burst := flag.Int64("sink.exporter.burst", 1000000, "Provide lines in and out of busrt per page")
+	maxLookback := flag.Duration("sink.exporter.maxLookback", time.Hour, "Limits the time when getting old receipts")
+
+	return config{
+		InspectInterval: inspectInterval,
+		DataPath:        dataPath,
+		Burst:           burst,
+		MaxLookback:     maxLookback,
+	}
+}

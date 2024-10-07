@@ -1,0 +1,173 @@
+<!--
+ Copyright (c) 2024-present NAVER Corp
+ 
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Home</title>
+        <link type="text/css" rel="stylesheet" href="https://cdn.jsdelivr.net/gh/alumuko/vanilla-datetimerange-picker@latest/dist/vanilla-datetimerange-picker.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link type="text/css" rel="stylesheet" href="static/css/home.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/paginationjs/2.1.4/pagination.css"/>
+        <link rel="stylesheet" href="https://naver.github.io/billboard.js/release/latest/dist/theme/datalab.min.css">
+        <link rel="stylesheet" href="static/css/virtual-select.min.css" />
+        <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js" type="text/javascript"></script>
+        <script src="https://cdn.jsdelivr.net/gh/alumuko/vanilla-datetimerange-picker@latest/dist/vanilla-datetimerange-picker.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/paginationjs/2.1.4/pagination.min.js"></script>
+        <script src="https://naver.github.io/billboard.js/release/latest/dist/billboard.pkgd.min.js"></script>
+        <script src="./static/js/virtual-select.min.js"></script>
+        <script src="./static/js/home.js"></script>
+    </head>
+    <body>
+        <div class="searchWrap">
+            <div class="search">
+                <p class="title">Lobster</p>
+                <input type="text" class="searchTerm" id="include" placeholder="Include...">
+                <input type="text" class="searchTerm" id="exclude" placeholder="Exclude...">
+                <div class="buttons">
+                    <button type="submit" class="searchTxtButton" onclick="setFilter()"><i class="fa fa-search"></i></button>
+                    <button type="submit" class="searchRangeButton" id="datetimerange"><i class="fa fa-calendar"></i></button>
+                    <button type="submit" class="searchRefreshButton" onclick="refreshRange()"><i class="fa fa-refresh"></i></button>
+                </div>
+            </div>
+        </div>
+        <div class="histogramWrap">
+            <div id="historgram" height="100%"></div>
+        </div>
+        
+        <div class="controlWrap">
+            <div class="spinnerWrap" id="spinnerWrap">
+                <div class="spinner"></div>
+            </div>
+            <div class="panel">
+                <table>
+                    <tr><td>Namespaces</td></tr>
+                    <tr class="panelRow">
+                        <td class="panelRow">
+                            <select multiple class="panelSelect" name="namespaces" id="namespaces">
+                                {{- range $key, $value := .Namespaces }}
+                                <option value="{{ $key }}">{{ $key }}</option>
+                                {{- end }}
+                            </select>
+                        </td>
+                    </tr>
+                    <tr><td>Clusters</td></tr>
+                    <tr class="panelRow">
+                        <td class="panelRow">
+                            <select multiple class="panelSelect" name="clusters" id="clusters">
+                                {{- range $key, $value := .Clusters }}
+                                <option value="{{ $key }}">{{ $key }}</option>
+                                {{- end }}
+                            </select>
+                        </td>
+                    </tr>
+                    <tr><td>Labels</td></tr>
+                    <tr class="panelRow">
+                        <td class="panelRow">
+                            <select multiple class="panelSelect" name="labels" id="labels">
+                                {{- range $key, $value := .Labels }}
+                                <option value="{{ $key }}">{{ $key }}</option>
+                                {{- end }}
+                            </select>
+                        </td>
+                    </tr>
+                    <tr><td>Sets</td></tr>
+                    <tr class="panelRow">
+                        <td class="panelRow">
+                            <select multiple class="panelSelect" name="setNames" id="setNames">
+                                {{- range $key, $value := .SetNames }}
+                                <option value="{{ $key }}">{{ $key }}</option>
+                                {{- end }}
+                            </select>
+                        </td>
+                    </tr>
+                    <tr><td>Pods</td></tr>
+                    <tr class="panelRow">
+                    <td class="panelRow">
+                        <select multiple class="panelSelect" name="pods" id="pods">
+                            {{- range $key, $value := .Pods }}
+                            <option value="{{ $key }}">{{ $key }}</option>
+                            {{- end }}
+                        </select>
+                    </td>
+                    </tr>
+                    <tr><td>Containers</td></tr>
+                    <tr class="panelRow">
+                    <td class="panelRow">
+                        <select multiple class="panelSelect" name="containers" id="containers">
+                            {{- range $key, $value := .Containers }}
+                            <option value="{{ $key }}">{{ $key }}</option>
+                            {{- end }}
+                        </select>
+                    </td>
+                    </tr>
+                    <tr><td>Sources</td></tr>
+                    <tr class="panelRow">
+                    <td class="panelRow">
+                        <select multiple class="panelSelect" name="sources" id="sources">
+                            {{- range $key, $value := .Sources }}
+                            <option value="{{ $key }}">{{ $key }}</option>
+                            {{- end }}
+                        </select>
+                    </td>
+                    </tr>
+                    <tr><td>Page</td></tr>
+                    <tr>
+                    <td>
+                        <form >
+                            <input id= "pager" type="number" min="1" max="{{ .TotalPage }}" style="width: 50%;font-size: 15" onChange="setPage(this.value)">
+                            <label style="width:50%;font-size: 15px">/ {{ .TotalPage }}</label>
+                        </form>
+                    </td>
+                    </tr>
+                    <tr><td></td></tr>
+                    <tr>
+                    <td>
+                        {{if .IsPartialContents}}
+                        <span class="badge-partial-contents">Partial contents(too much logs)</span>
+                        {{end}}
+                    </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="contentsWrap">
+                <textarea class="contents"  cols="300" rows="30" wrap="off">{{ btoa .Contents }}</textarea>
+            </div>
+        </div>
+        
+        <script>
+            VirtualSelect.init({
+              ele: 'select',
+              multiple: true,
+              showValueAsTags: true,
+              maxWidth: '230px',
+              placeholder: 'select...'
+            });
+            
+            ids = ['namespaces', 'clusters','labels', 'setNames', 'pods', 'containers','sources']
+    
+            ids.forEach(function(target){
+                document.querySelector('#'.concat(target)).addEventListener('beforeClose', onChange);
+                document.querySelector('#'.concat(target)).addEventListener('reset', onReset);
+            });
+            document.getElementById('spinnerWrap').style.display='none';
+        </script>
+        <script>
+            {{- .HistogramScript }}
+        </script>
+    </body>
+</html>

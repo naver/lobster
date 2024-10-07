@@ -1,0 +1,671 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Descriptions of Lobster log-sink management APIs",
+        "title": "Lobster Operator APIs document",
+        "contact": {},
+        "version": "1.0"
+    },
+    "paths": {
+        "/api/v1/namespaces/{namespace}/sinks/{name}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Get"
+                ],
+                "summary": "List sinks",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "namespace name",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "sink name",
+                        "name": "name",
+                        "in": "path"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sink type (logMetricRules, logExportRules)",
+                        "name": "type",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/v1.Sink"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid parameters",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "405": {
+                        "description": "Method not allowed",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to get sink",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Put"
+                ],
+                "summary": "Put log sink",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "namespace name",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "sink name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "sink contentd; Each content in array must be unique",
+                        "name": "sink",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.Sink"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "201": {
+                        "description": "Created successfully",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid parameters",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "405": {
+                        "description": "Method not allowed",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "422": {
+                        "description": "Restricted by limits",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to get sink content",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/namespaces/{namespace}/sinks/{name}/rules/{rule}": {
+            "delete": {
+                "tags": [
+                    "Delete"
+                ],
+                "summary": "Delete sink",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "namespace name",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "sink name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "log export rule name to delete",
+                        "name": "rule",
+                        "in": "path"
+                    },
+                    {
+                        "type": "string",
+                        "description": "deprecated;metric rule name to delete",
+                        "name": "ruleName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "deprecated;bucket name to delete",
+                        "name": "bucketName",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid parameters",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "405": {
+                        "description": "Method not allowed",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to delete sink",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/namespaces/{namespace}/sinks/{name}/{type}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Get"
+                ],
+                "summary": "List sinks",
+                "deprecated": true,
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "namespace name",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "sink name",
+                        "name": "name",
+                        "in": "path"
+                    },
+                    {
+                        "type": "string",
+                        "description": "deprecated;sink type (logMetricRules, logExportRules)",
+                        "name": "type",
+                        "in": "path"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sink type (logMetricRules, logExportRules)",
+                        "name": "type",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/v1.Sink"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid parameters",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "405": {
+                        "description": "Method not allowed",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to get sink",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Put"
+                ],
+                "summary": "Put log sink",
+                "deprecated": true,
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "namespace name",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "sink name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "deprecated;sink type (logMetricRules, logExportRules)",
+                        "name": "type",
+                        "in": "path"
+                    },
+                    {
+                        "description": "sink contentd; Each content in array must be unique",
+                        "name": "sink",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.Sink"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "201": {
+                        "description": "Created successfully",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid parameters",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "405": {
+                        "description": "Method not allowed",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "422": {
+                        "description": "Restricted by limits",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to get sink content",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Delete"
+                ],
+                "summary": "Delete sink",
+                "deprecated": true,
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "namespace name",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "sink name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "deprecated;sink type (logMetricRules, logExportRules)",
+                        "name": "type",
+                        "in": "path"
+                    },
+                    {
+                        "type": "string",
+                        "description": "deprecated;metric rule name to delete",
+                        "name": "ruleName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "deprecated;bucket name to delete",
+                        "name": "bucketName",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid parameters",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "405": {
+                        "description": "Method not allowed",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to delete sink",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "v1.BasicBucket": {
+            "type": "object",
+            "properties": {
+                "destination": {
+                    "description": "Address to export logs",
+                    "type": "string"
+                },
+                "rootPath": {
+                    "description": "Root directory to store logs within external storage",
+                    "type": "string"
+                },
+                "timeLayoutOfSubDirectory": {
+                    "description": "An option(default `2006-01`) that sets the name of the sub-directory following `{Root path}` to a time-based layout",
+                    "type": "string",
+                    "default": "2006-01"
+                }
+            }
+        },
+        "v1.Filter": {
+            "type": "object",
+            "properties": {
+                "clusters": {
+                    "description": "Filter logs only for specific Clusters",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "containers": {
+                    "description": "Filter logs only for specific Containers",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "exclude": {
+                    "description": "Filter only logs that do not match the re2 expression(https://github.com/google/re2/wiki/Syntax)",
+                    "type": "string"
+                },
+                "include": {
+                    "description": "Filter only logs that match the re2 expression(https://github.com/google/re2/wiki/Syntax)",
+                    "type": "string"
+                },
+                "labels": {
+                    "description": "Filter logs only for specific Pod labels",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "namespace": {
+                    "description": "Filter logs only for specific Namespace",
+                    "type": "string"
+                },
+                "pods": {
+                    "description": "Filter logs only for specific Pods",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "setNames": {
+                    "description": "Filter logs only for specific ReplicaSets/StatefulSets",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "sources": {
+                    "description": "Filter logs only for specific Sources",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.Source"
+                    }
+                }
+            }
+        },
+        "v1.LogExportRule": {
+            "type": "object",
+            "properties": {
+                "basicBucket": {
+                    "description": "Settings required to export logs to basic bucket",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.BasicBucket"
+                        }
+                    ]
+                },
+                "description": {
+                    "description": "Description of this rule",
+                    "type": "string"
+                },
+                "filter": {
+                    "description": "Generate metrics from logs by specifying the target or log content",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.Filter"
+                        }
+                    ]
+                },
+                "interval": {
+                    "description": "Interval to export logs",
+                    "type": "string",
+                    "example": "time duration(e.g. 1m)"
+                },
+                "name": {
+                    "description": "Rule name",
+                    "type": "string"
+                },
+                "s3Bucket": {
+                    "description": "Settings required to export logs to S3 bucket",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.S3Bucket"
+                        }
+                    ]
+                }
+            }
+        },
+        "v1.LogMetricRule": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "description": "Description of this rule",
+                    "type": "string"
+                },
+                "filter": {
+                    "description": "Generate metrics from logs by specifying the target or log content",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.Filter"
+                        }
+                    ]
+                },
+                "name": {
+                    "description": "Rule name",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.S3Bucket": {
+            "type": "object",
+            "properties": {
+                "accessKey": {
+                    "description": "S3 bucket access key",
+                    "type": "string"
+                },
+                "bucketName": {
+                    "description": "S3 bucket name",
+                    "type": "string"
+                },
+                "destination": {
+                    "description": "S3 Address to export logs",
+                    "type": "string"
+                },
+                "region": {
+                    "description": "S3 region",
+                    "type": "string"
+                },
+                "rootPath": {
+                    "description": "Root directory to store logs within external storage",
+                    "type": "string"
+                },
+                "secretKey": {
+                    "description": "S3 bucket secret key",
+                    "type": "string"
+                },
+                "tags": {
+                    "description": "Tags for objects to be stored",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.Tags"
+                        }
+                    ]
+                },
+                "timeLayoutOfSubDirectory": {
+                    "description": "An option(default `2006-01`) that sets the name of the sub-directory following `{Root path}` to a time-based layout",
+                    "type": "string",
+                    "default": "2006-01"
+                }
+            }
+        },
+        "v1.Sink": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "logExportRules": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.LogExportRule"
+                    }
+                },
+                "logMetricRules": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.LogMetricRule"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "namespace": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.Source": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.Tags": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        }
+    }
+}

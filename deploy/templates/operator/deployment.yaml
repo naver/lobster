@@ -1,0 +1,43 @@
+{{- if .Values.operator }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lobster-operator
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: lobster-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lobster-operator
+  template:
+    metadata:
+      labels:
+        purpose: logging
+        app: lobster-operator
+      annotations: {{ (default dict .Values.operator.pod.annotations) | toYaml | nindent 8 }}
+    spec:
+      priorityClassName: {{ .Values.priorityClassName }}
+      affinity: {{ (default dict .Values.operator.pod.affinity) | toYaml | nindent 8 }}
+      serviceAccountName: lobster-operator
+      containers:
+        - name: operator
+          image: {{ required "this value is required" .Values.operator.container.image }}:{{ .Chart.AppVersion }}
+          imagePullPolicy: Always
+          args:
+          - --zap-log-level=info
+          - --addr=:{{ .Values.operator.options.serverPort }}
+          ports:
+            - name: http-metrics
+              containerPort: {{ .Values.operator.options.metricPort }}
+              protocol: TCP
+            - name: http-probe
+              containerPort: {{ .Values.operator.options.probePort }}
+              protocol: TCP
+            - name: http
+              containerPort: {{ .Values.operator.options.serverPort }}
+              protocol: TCP
+          resources: {{ (default dict .Values.operator.container.resources) | toYaml | nindent 12 }}
+      tolerations: {{ (default list .Values.operator.pod.tolerations) | toYaml | nindent 8 }}
+{{- end }}

@@ -1,0 +1,117 @@
+{{- if .Values.store }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: lobster-store
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: lobster-store
+spec:
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 10
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: lobster-store
+  template:
+    metadata:
+      labels:
+        purpose: logging
+        app: lobster-store
+      annotations: {{ (default dict .Values.store.pod.annotations) | toYaml | nindent 8 }}
+    spec:
+      affinity: {{ (default dict .Values.store.pod.affinity) | toYaml | nindent 8 }}
+      tolerations:
+      - effect: NoSchedule
+        operator: Exists
+      serviceAccountName: lobster-store
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      securityContext:
+        runAsGroup: 0
+        runAsUser: 0
+      priorityClassName: {{ .Values.priorityClassName }}
+      containers:
+        - name: store
+          image: {{ required "this value is required" .Values.store.container.image }}:{{ .Chart.AppVersion }}
+          imagePullPolicy: Always
+          args:
+          - --logtostderr={{ .Values.store.options.printlog | default true}}
+          - --server.port={{ .Values.store.options.serverPort }}
+          - --model.clusterName={{ .Values.cluster }}
+          - --sink.lobsterSyncerAddress={{ .Values.store.options.lobsterSyncerAddress }}
+          - --client.hostName=$(NODE_NAME)
+          - --distributor.matchLookbackMin={{ .Values.store.options.matchLookbackMin }}
+          - --store.storeRootPath={{ .Values.store.options.storeRootPath }}
+          - --distributor.stdstreamLogRootPath={{ .Values.store.options.stdstreamLogRootPath }}
+          - --distributor.emptyDirLogRootPath={{ .Values.store.options.emptyDirLogRootPath }}
+          env:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          volumeMounts:
+            - name: host-container-logs
+              mountPath: {{ .Values.store.options.stdstreamLogRootPath }}
+              readOnly: true
+            - name: data
+              mountPath: {{ .Values.store.options.storeHostPath }}
+            - name: dev
+              mountPath: /dev
+            - mountPath: {{ .Values.store.options.emptyDirLogRootPath }}
+              name: host-emptdir
+          ports:
+            - name: http
+              containerPort: {{ .Values.store.options.serverPort }}
+              protocol: TCP
+            - name: http-metrics
+              containerPort: {{ .Values.store.options.metricPort }}
+              protocol: TCP
+          resources: {{ (default dict .Values.store.container.resources) | toYaml | nindent 12 }}
+        {{- if .Values.exporter }}
+        - name: exporter
+          image: {{ required "this value is required" .Values.exporter.container.image }}:{{ .Chart.AppVersion }}
+          imagePullPolicy: Always
+          args:
+          - --logtostderr={{ .Values.exporter.options.printLog }}
+          - --server.port={{ .Values.exporter.options.serverPort }}
+          - --server.metricsPort={{ .Values.exporter.options.metricPort }}
+          - --sink.lobsterSyncerAddress={{ .Values.exporter.options.lobsterSyncerAddress }}
+          - --client.hostName=$(NODE_NAME)
+          - --model.clusterName={{ .Values.cluster }}
+          - --sink.exporter.dataPath={{ .Values.store.options.storeHostPath }}
+          env:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.store.options.storeHostPath }}
+            - name: host-container-logs
+              mountPath: {{ .Values.store.options.stdstreamLogRootPath }}
+              readOnly: true
+          ports:
+            - name: http
+              containerPort: {{ .Values.exporter.options.serverPort }}
+              protocol: TCP
+            - name: http-metrics
+              containerPort: {{ .Values.exporter.options.metricPort }}
+              protocol: TCP
+          resources: {{ (default dict .Values.exporter.container.resources) | toYaml | nindent 12 }}
+        {{- end }}
+      volumes:
+        - name: host-container-logs
+          hostPath:
+            path: {{ .Values.store.options.stdstreamLogRootPath }}
+        - name: data
+          hostPath:
+            path: {{ .Values.store.options.storeHostPath }}
+        - name: host-emptdir
+          hostPath:
+            path: {{ .Values.store.options.emptyDirLogRootPath }}
+        - name: dev
+          hostPath:
+            path: /dev
+{{- end }}

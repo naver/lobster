@@ -1,0 +1,103 @@
+# Install Lobster components that support log collection, query serving and log sink(export/metric)
+#
+# This value file configures the installation of the components below.
+# 1. lobster query deployment/services
+# 2. lobster store daemonset (with the exporter as a sidecar)
+# 3. lobster syncer deployment/service
+# 4. loggen deployment (optional)
+#
+# Please replace the default value of each field with the value needed in your environment.
+#
+
+namespace: default
+priorityClassName: null
+cluster: local # replaced during deployment
+
+query:
+  service:
+    annotations: {}
+  pod:
+    annotations: 
+      prometheus.io/scrape: "true"
+    replicas: 1
+    affinity: {}
+    tolerations: []
+  container:
+    image: quay.io/lobster/logsys/lobster-query
+    resources: {}
+  options:
+    printLog: true
+    modulus: 1
+    serverPort: 80
+    metricPort: 8081
+
+store:
+  pod:
+    annotations: 
+      prometheus.io/scrape: "true"
+    affinity: {}
+  container:
+    image: quay.io/lobster/logsys/lobster-store
+    resources: {}
+  options:
+    printLog: true
+    serverPort: 11110
+    metricPort: 8881
+    pushPort: 80
+    lobsterSyncerAddress: lobster-syncer:80
+    storeRootPath: /var/lobster/log
+    storeHostPath: /var/lobster
+    stdstreamLogRootPath: /var/log/pods
+    emptyDirLogRootPath: /var/lib/kubelet
+    matchLookbackMin: 1m
+
+exporter:
+  container:
+    image: quay.io/lobster/logsys/lobster-exporter
+    resources:
+      limits:
+        cpu: 4
+        memory: 8Gi
+      requests:
+        cpu: 0.1
+        memory: 1Gi
+  options:
+    printLog: true
+    serverPort: 11120
+    metricPort: 8882
+    pushPort: 80
+    lobsterSyncerAddress: lobster-syncer:80
+  
+syncer:
+  service:
+    annotations: {}
+  pod:
+    replicas: 1
+    affinity: {}
+    tolerations: []
+  container:
+    image: quay.io/lobster/logsys/lobster-syncer
+    resources: {}
+  options:
+    printLog: true
+    ruleStore: lobster-operator:80
+    serverPort: 80
+    metricPort: 8081
+
+loggen:
+  pod:
+    annotations: 
+      prometheus.io/scrape: "true"
+    affinity: {}
+    tolerations: []
+  container:
+    image: quay.io/lobster/logsys/loggen
+    resources: {}
+  options:
+    metricPort: 8080
+    lobsterQueryEndpoint: lobster-query:80
+
+log_rotate:
+  container:
+    image: quay.io/lobster/logsys/logrotate:2.0.0
+    resources: {}

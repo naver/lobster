@@ -1,0 +1,21 @@
+{{- if .Values.operator }}
+apiVersion: v1
+kind: Service
+metadata:
+  annotations: {{ (default dict .Values.operator.service.annotations) | toYaml | nindent 4 }}
+  labels:
+    app: lobster-operator
+  name: lobster-operator
+  namespace: {{ .Values.namespace }}
+spec:
+  type: LoadBalancer
+  ports:
+  - name: http-metrics
+    port: {{ .Values.operator.options.metricPort }}
+    targetPort: {{ .Values.operator.options.metricPort }}
+  - name: http
+    port: {{ .Values.operator.options.serverPort }}
+    targetPort: {{ .Values.operator.options.serverPort }}
+  selector:
+    app: lobster-operator
+{{- end }}

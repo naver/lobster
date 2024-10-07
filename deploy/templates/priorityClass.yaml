@@ -1,0 +1,9 @@
+{{- if .Values.priorityClassName }}
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: {{ .Values.priorityClassName }}
+value: 40000
+globalDefault: false
+description: "allocate lobster pods"
+{{- end }}

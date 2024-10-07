@@ -1,0 +1,69 @@
+# Install Lobster components that support log collection and query serving.
+#
+# This value file configures the installation of the components below.
+# 1. lobster query deployment/services
+# 2. lobster store daemonset
+# 3. loggen deployment (optional)
+#
+# Please replace the default value of each field with the value needed in your environment.
+#
+
+namespace: default
+priorityClassName: null
+cluster: local # specify cluster name
+    
+query:
+  service:
+    annotations: {}
+  pod:
+    annotations: 
+      prometheus.io/scrape: "true"
+    replicas: 1
+    affinity: {}
+    tolerations: []
+  container:
+    image: quay.io/lobster/logsys/lobster-query
+    resources: {}
+  options:
+    printLog: true
+    modulus: 1
+    serverPort: 80
+    metricPort: 8081
+
+store:
+  pod:
+    annotations: 
+      prometheus.io/scrape: "true"
+    affinity: {}
+  container:
+    image: quay.io/lobster/logsys/lobster-store
+    resources: {}
+  options:
+    printLog: true
+    serverPort: 11110
+    metricPort: 8881
+    pushPort: 80
+    lobsterSyncerAddress: lobster-syncer:80
+    storeRootPath: /var/lobster/log
+    storeHostPath: /var/lobster
+    stdstreamLogRootPath: /var/log/pods
+    emptyDirLogRootPath: /var/lib/kubelet
+    matchLookbackMin: 1m
+
+loggen:
+  pod:
+    annotations: 
+      prometheus.io/scrape: "true"
+    affinity: {}
+    tolerations: []
+  container:
+    image: quay.io/lobster/logsys/loggen
+    resources: {}
+  options:
+    metricPort: 8080
+    lobsterQueryEndpoint: lobster-query:80
+
+log_rotate:
+  container:
+    image: quay.io/lobster/logsys/logrotate:2.0.0
+    resources: {}

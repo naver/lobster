@@ -1,0 +1,82 @@
+{{- if .Values.loggen }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loggen
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: loggen
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loggen
+  template:
+    metadata:
+      labels:
+        app: loggen
+        purpose: logging
+      annotations: {{ (default dict .Values.loggen.pod.annotations) | toYaml | nindent 8 }}
+    spec:
+      priorityClassName: {{ .Values.priorityClassName }}
+      affinity: {{ (default dict .Values.loggen.pod.affinity) | toYaml | nindent 8 }}
+      serviceAccountName: default
+      containers:
+        - name: loggen
+          image: {{ required "this value is required" .Values.loggen.container.image }}:{{ .Chart.AppVersion }}
+          imagePullPolicy: Always
+          args:
+          - --gen.size=100
+          - --gen.renamedFileLogPath=/renamed/loggen.log
+          - --serverAddr=:{{ .Values.loggen.options.metricPort }}
+          - --inspector.lobsterQueryEndpoint={{ .Values.loggen.options.lobsterQueryEndpoint }}
+          ports:
+            - name: http-metrics
+              containerPort: {{ .Values.loggen.options.metricPort }}
+              protocol: TCP
+          resources: {{ (default dict .Values.loggen.container.resources) | toYaml | nindent 12 }}
+          volumeMounts:
+          - name: renamed
+            mountPath: /renamed
+          env:
+          - name: POD
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: CONTAINER
+            value: loggen
+        - env:
+          - name: LOGS_DIRECTORIES
+            value: /renamed
+          - name: LOGROTATE_CRONSCHEDULE
+            value: 0 */1 * * * ?
+          - name: LOGROTATE_MODE
+            value: create 0600
+          - name: LOGROTATE_SIZE
+            value: 5k
+          - name: LOGROTATE_COPIES
+            value: "3"
+          - name: LOGROTATE_COMPRESSION
+            value: compress
+          - name: LOGROTATE_STATUSFILE
+            value: /status/logrotate.status
+          image: {{ required "this value is required" .Values.log_rotate.container.image }}
+          imagePullPolicy: IfNotPresent
+          name: logrotate
+          resources: {{ (default dict .Values.log_rotate.container.resources) | toYaml | nindent 12 }}
+          volumeMounts:
+          - name: status
+            mountPath: /status
+          - name: renamed 
+            mountPath: /renamed
+      volumes:
+      - name: renamed
+        emptyDir: {}
+      - name: status
+        emptyDir: {}
+      tolerations: {{ (default list .Values.loggen.pod.tolerations) | toYaml | nindent 8 }}
+{{- end }}

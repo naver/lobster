@@ -1,0 +1,34 @@
+{{- if .Values.operator }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - lobster.io
+  resources:
+  - lobstersinks
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - lobster.io
+  resources:
+  - lobstersinks/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - lobster.io
+  resources:
+  - lobstersinks/status
+  verbs:
+  - get
+  - patch
+  - update
+{{- end }}

@@ -1,0 +1,18 @@
+{{- if .Values.global_query }}
+apiVersion: v1
+kind: Service
+metadata:
+  annotations: {{ (default dict .Values.global_query.service.annotations) | toYaml | nindent 4 }}
+  name: lobster-global-query
+  labels:
+    app: lobster-global-query
+spec:
+  ports:
+    - port: {{ .Values.global_query.options.serverPort }}
+      protocol: TCP
+      name: http
+      targetPort: {{ .Values.global_query.options.serverPort }}
+  selector:
+    app: lobster-global-query
+  type: LoadBalancer
+{{- end }}

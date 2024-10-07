@@ -1,0 +1,35 @@
+{{- if .Values.syncer }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lobster-syncer
+  labels:
+    app: lobster-syncer
+spec:
+  replicas: {{ .Values.syncer.pod.replicas }}
+  selector:
+    matchLabels:
+      app: lobster-syncer
+  template:
+    metadata:
+      labels:
+        purpose: logging
+        app: lobster-syncer
+    spec:
+      priorityClassName: {{ .Values.priorityClassName }}
+      affinity: {{ (default dict .Values.syncer.pod.affinity) | toYaml | nindent 8 }}
+      containers:
+        - name: syncer
+          image: {{ required "this value is required" .Values.syncer.container.image }}:{{ .Chart.AppVersion }}
+          imagePullPolicy: Always
+          args:
+          - --logtostderr={{ .Values.syncer.options.printLog }}
+          - --server.port={{ .Values.syncer.options.serverPort }}
+          - --syncer.lobsterSinkOperator={{ .Values.syncer.options.ruleStore }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.syncer.options.serverPort }}
+              protocol: TCP
+          resources: {{ (default dict .Values.syncer.container.resources) | toYaml | nindent 12 }}
+      tolerations: {{ (default list .Values.syncer.pod.tolerations) | toYaml | nindent 8 }}
+{{- end }}

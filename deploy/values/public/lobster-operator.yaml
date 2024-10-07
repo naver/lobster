@@ -1,0 +1,30 @@
+# Install Lobster-operator to define log sinks(export/metric)
+#
+# This value file configures the installation of the components below.
+# 1. Lobster operator deployment/service
+# 2. LobsterSink custom resource define
+# 3. Role base access to get LobsterSink custom resources
+#
+# Please replace the default value of each field with the value needed in your environment.
+#
+
+namespace: default
+priorityClassName: null
+
+operator:
+  service:
+    annotations: {}
+  pod:
+    replicas: 1
+    annotations: 
+      prometheus.io/scrape: "true"
+    affinity: {}
+    tolerations: []
+  container:
+    image: quay.io/lobster/logsys/lobster-operator
+    resources: {}
+  options:
+    printLog: true
+    serverPort: 80
+    probePort: 8081
+    metricPort: 8082

@@ -1,0 +1,50 @@
+{{- if .Values.query }}
+{{- $root := . -}}
+{{- range $i, $v := until (int .Values.query.options.modulus) }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lobster-query-{{ $i }}
+  labels:
+    app: lobster-query
+    shard: query-{{ $i }}
+spec:
+  replicas: {{ $root.Values.query.pod.replicas }}
+  selector:
+    matchLabels:
+      app: lobster-query
+      shard: query-{{ $i }}
+  template:
+    metadata:
+      labels:
+        purpose: logging
+        app: lobster-query
+        shard: query-{{ $i }}
+      annotations:
+        {{ (default dict $root.Values.query.pod.annotations) | toYaml | nindent 8 }}
+    spec:
+      priorityClassName: {{ $root.Values.priorityClassName }}
+      affinity: {{ (default dict $root.Values.query.pod.affinity) | toYaml | nindent 8 }}
+      containers:
+        - name: query
+          image: {{ required "this value is required" $root.Values.query.container.image }}:{{ $root.Chart.AppVersion }}
+          imagePullPolicy: Always
+          args:
+          - --logtostderr={{ $root.Values.query.options.printLog }}
+          - --server.port={{ $root.Values.query.options.serverPort }}
+          - --server.metricsPort={{ $root.Values.query.options.metricPort }}
+          - --querier.member.id={{ $i }}
+          - --querier.member.modulus={{ $root.Values.query.options.modulus }}
+          - --querier.member.lookup-service-prefix=lobster-query-shard
+          ports:
+            - name: http
+              containerPort: {{ $root.Values.query.options.serverPort }}
+              protocol: TCP
+            - name: http-metrics
+              containerPort: {{ $root.Values.query.options.metricPort }}
+              protocol: TCP
+          resources: {{ (default dict $root.Values.query.container.resources) | toYaml | nindent 12 }}
+      tolerations: {{ (default list $root.Values.query.pod.tolerations) | toYaml | nindent 8 }}
+---
+{{- end }}
+{{- end }}
