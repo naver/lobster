@@ -278,51 +278,6 @@ paths:
       summary: Get metadata of logs
       tags:
       - Post
-  /api/{version}/logs/export:
-    post:
-      description: Export logs for conditions
-      parameters:
-      - description: v1 or v2
-        in: path
-        name: version
-        required: true
-        type: string
-      - description: request parameters
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/query.Request'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "204":
-          description: No chunks
-          schema:
-            type: string
-        "400":
-          description: Invalid parameters
-          schema:
-            type: string
-        "405":
-          description: Method not allowed
-          schema:
-            type: string
-        "429":
-          description: too many requests
-          schema:
-            type: string
-        "500":
-          description: Failed to read logs
-          schema:
-            type: string
-      summary: Export logs within range
-      tags:
-      - Post
   /api/{version}/logs/series:
     post:
       description: Get series for conditions
