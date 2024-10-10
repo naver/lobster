@@ -95,7 +95,7 @@ $(GOLANGCI_LINTER): $(LOCALBIN)
 .PHONY: swag
 swag: $(SWAG) ## Install swag if necessary.
 $(SWAG): $(LOCALBIN)
-	GOBIN=$(LOCALBIN) go install github.com/swaggo/swag/cmd/swag@$(SWAG_VERSION)
+	@GOBIN=$(LOCALBIN) go install github.com/swaggo/swag/cmd/swag@$(SWAG_VERSION)
 
 .PHONY: widdershins
 widdershins: ## Install widdershins if necessary.
