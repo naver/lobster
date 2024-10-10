@@ -93,9 +93,9 @@ $(GOLANGCI_LINTER): $(LOCALBIN)
 	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(LOCALBIN) $(GOLANGCI_LINT_TOOLS_VERSION)
 
 .PHONY: swag
-swag: ## Install swag if necessary.
+swag: $(SWAG) ## Install swag if necessary.
 $(SWAG): $(LOCALBIN)
-	@GOBIN=$(LOCALBIN) go install github.com/swaggo/swag/cmd/swag@$(SWAG_VERSION)
+	GOBIN=$(LOCALBIN) go install github.com/swaggo/swag/cmd/swag@$(SWAG_VERSION)
 
 .PHONY: widdershins
 widdershins: ## Install widdershins if necessary.
