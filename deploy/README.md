@@ -11,7 +11,7 @@ Please replace the default value of each field with the value needed in your env
 Change the `namespace` and `value` to suit your installation purpose.
 
 ```bash
-helm upgrade --namespace {namespace} --install lobster ./deploy -f ./deploy/public/{value}.yaml 
+helm upgrade --namespace {namespace} --install lobster ./deploy -f ./deploy/values/public/{value}.yaml 
 ```
 
 ## helm values
