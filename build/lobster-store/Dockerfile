@@ -27,7 +27,8 @@ RUN mkdir -p /web/static/js
 RUN mkdir -p /web/static/docs
 RUN apk upgrade && apk add --no-cache libc6-compat git tcpdump bash vim iptables curl tzdata libcap iproute2 && cp /usr/share/zoneinfo/Asia/Seoul /etc/localtime && echo "Asia/Seoul" > /etc/timezone
 RUN /usr/sbin/setcap cap_net_bind_service=+ep /bin/lobster
-USER irteam
+RUN addgroup -g 10000 lobster && adduser -u 10000 -S lobster -G lobster
+USER lobster
 
 COPY web/* /web
 COPY web/static/css/*.css /web/static/css
