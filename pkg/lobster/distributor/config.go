@@ -22,13 +22,14 @@ import (
 )
 
 type config struct {
-	StdstreamLogRootPath *string
-	EmptyDirLogRootPath  *string
-	FileInspectInterval  *time.Duration
-	FileInspectMaxStale  *time.Duration
-	TailFileMaxStale     *time.Duration
-	MatchLookbackMin     *time.Duration
-	MetricsInterval      *time.Duration
+	StdstreamLogRootPath   *string
+	EmptyDirLogRootPath    *string
+	FileInspectInterval    *time.Duration
+	FileInspectMaxStale    *time.Duration
+	TailFileMaxStale       *time.Duration
+	MatchLookbackMin       *time.Duration
+	MetricsInterval        *time.Duration
+	ShouldUpdateLogMatcher *bool
 }
 
 func setup() config {
@@ -39,14 +40,16 @@ func setup() config {
 	tailFileMaxStale := flag.Duration("distributor.tailFileMaxStale", 5*time.Second, "Decide how old files to look up to tailing")
 	matchLookbackMin := flag.Duration("distributor.matchLookbackMin", 10*time.Second, "Determine how old the logs will be in metrics")
 	metricsInterval := flag.Duration("distributor.metricsInterval", 5*time.Second, "metrics production interval")
+	shouldUpdateLogMatcher := flag.Bool("distributor.shouldUpdateLogMatcher", false, "When using the log sink function, set it to true for periodic log sink rule update")
 
 	return config{
-		StdstreamLogRootPath: stdstreamLogRootPath,
-		EmptyDirLogRootPath:  emptyDirLogRootPath,
-		FileInspectInterval:  fileInspectInterval,
-		FileInspectMaxStale:  fileInspectMaxStale,
-		TailFileMaxStale:     tailFileMaxStale,
-		MatchLookbackMin:     matchLookbackMin,
-		MetricsInterval:      metricsInterval,
+		StdstreamLogRootPath:   stdstreamLogRootPath,
+		EmptyDirLogRootPath:    emptyDirLogRootPath,
+		FileInspectInterval:    fileInspectInterval,
+		FileInspectMaxStale:    fileInspectMaxStale,
+		TailFileMaxStale:       tailFileMaxStale,
+		MatchLookbackMin:       matchLookbackMin,
+		MetricsInterval:        metricsInterval,
+		ShouldUpdateLogMatcher: shouldUpdateLogMatcher,
 	}
 }
