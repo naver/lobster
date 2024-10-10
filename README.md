@@ -10,7 +10,7 @@ The main thing is the need for storage with different life cycles.
 
 The main concepts of Lobster are:
 - Supports logs for all containers in Kubernetes that are rotated and relocated
-- Supports the ability to view multiple logs from a single endpoint based on time
+- Supports the ability to view multiple logs from a single endpoint based on time and Kubernetes objects
 - Supports easy installation using the node disk without having to build separate storage for the log system in the Kubernetes environment
 
 For more information, please refer to the documents below.
