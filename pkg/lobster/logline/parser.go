@@ -86,10 +86,6 @@ func ParseLogMessage(str string) (string, error) {
 }
 
 func ParseTimestamp(str string) (time.Time, error) {
-	if err := checkTimestamp(str); err != nil {
-		return time.Time{}, err
-	}
-
 	switch *conf.LogFormat {
 	case LogFormatText:
 		return getTimestampInTextLogLine(str)
@@ -169,6 +165,10 @@ func getLogMessageInJsonLogLine(str string) (string, error) {
 }
 
 func getTimestampInTextLogLine(str string) (time.Time, error) {
+	if len(str) < MinTimestampLen || !(str[4] == '-' && str[7] == '-' && str[10] == 'T' && str[13] == ':' && str[16] == ':') {
+		return time.Time{}, fmt.Errorf("could not parse improper input %s", str)
+	}
+
 	year := (((int(str[0])-'0')*10+int(str[1])-'0')*10+int(str[2])-'0')*10 + int(str[3]) - '0'
 	month := time.Month((int(str[5])-'0')*10 + int(str[6]) - '0')
 	day := (int(str[8])-'0')*10 + int(str[9]) - '0'
@@ -223,14 +223,6 @@ func interpretLocalOffset(offset string) (int, int) {
 	return int(offset[1]-'0')*10 + int(offset[2]-'0')*op, int(offset[3+colonOffset]-'0')*10 + int(offset[4+colonOffset]-'0')*op
 }
 
-func checkTimestamp(str string) error {
-	if len(str) < MinTimestampLen || !(str[4] == '-' && str[7] == '-' && str[10] == 'T' && str[13] == ':' && str[16] == ':') {
-		return fmt.Errorf("could not parse improper input %s", str)
-	}
-
-	return nil
-}
-
 func getTimestampInJsonLogLine(str string) (time.Time, error) {
 	matches := regexpTime.FindStringSubmatch(str)
 	if len(matches) < 2 {
@@ -242,7 +234,7 @@ func getTimestampInJsonLogLine(str string) (time.Time, error) {
 		return time.Time{}, err
 	}
 
-	return t, nil
+	return t.Local(), nil
 }
 
 func ParseLogMessageTest(str, format string) (string, error) {
@@ -253,14 +245,14 @@ func ParseLogMessageTest(str, format string) (string, error) {
 }
 
 func ParseTimestampTest(str, format string) (time.Time, error) {
-	if err := checkTimestamp(str); err != nil {
-		return time.Time{}, err
+	switch format {
+	case LogFormatText:
+		return getTimestampInTextLogLine(str)
+	case LogFormatJson:
+		return getTimestampInJsonLogLine(str)
 	}
 
-	if format == LogFormatText {
-		return getTimestampInTextLogLine(str)
-	}
-	return getTimestampInJsonLogLine(str)
+	return time.Time{}, errors.New("unsupported logline.format")
 }
 
 func HasProperLogLine(f model.LogFile) bool {
