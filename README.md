@@ -19,6 +19,7 @@ For more information, please refer to the documents below.
 
 > I'm preparing public images to make it easier to use lobster.
 
+- [Tutorial: Lobster on minikube](./docs/tutorial.md)
 - [Build](./docs/build.md)
 - [Deployment](./docs/deployment.md)
 - [Design](./docs/design/README.md)
