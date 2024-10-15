@@ -9,6 +9,8 @@
 - There are various container runtimes in minikube. \
   In this tutorial, you can run Lobster according to the runtime environment.
 
+---
+
 ### Build images in the local registry
 
 > Provision of public images is under legal review. \
@@ -35,6 +37,8 @@ localhost:5000/lobster-global-query                                 vX.X.X      
 localhost:5000/lobster-query                                        vX.X.X      ...
 localhost:5000/lobster-store                                        vX.X.X      ...
 ```
+
+---
 
 ### Run the Lobster
 
