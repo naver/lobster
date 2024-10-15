@@ -9,8 +9,8 @@ Components:
   - [lobster-query](./design/lobster_query.md), [lobster-store](./design/lobster_store.md)
 - [Cluster with log sink](../deploy/values/public/lobster-cluster_logsink-extension.yaml)
   -  [lobster-query](./design/lobster_query.md), [lobster-store](./design/lobster_store.md), [lobster-syncer](./design/log_sink.md)
+  - [Log sink operator](../deploy/values/public/lobster-operator.yaml)
 - [Global querier](../deploy/values/public/lobster-global-query.yaml)
-- [Log sink operator](../deploy/values/public/lobster-operator.yaml)
 - Optional: [loggen](./design/loggen.md)(live test)
 
 Combinations:
