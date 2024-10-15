@@ -97,3 +97,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ```
+
+### Special thanks
+
+- [albamc](https://github.com/albamc)
+- [bluemir](https://github.com/bluemir)
+- [griphus](https://github.com/griphus)
+- [Naruu](https://github.com/Naruu)
+- [upgle](https://github.com/upgle)
+- [wizpalm](https://github.com/wizpalm)
+- [youngshwang](https://github.com/youngshwang)
+- [81shinez](https://github.com/81shinez)
