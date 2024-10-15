@@ -43,7 +43,7 @@ func NewConfig() Config {
 		LogGenerationInterval: flag.Duration("gen.interval", time.Second, "interval to generate logs"),
 		LogSize:               flag.Int("gen.size", 1, "size of each log"),
 		LogLines:              flag.Int("gen.lines", 1, "number of lines per interval"),
-		RenamedFileLogPath:    flag.String("gen.renamedFileLogPath", "/renamed/loggen.log", "file path"),
+		RenamedFileLogPath:    flag.String("gen.renamedFileLogPath", "", "file path"),
 		LobsterQueryEndpoint:  flag.String("inspector.lobsterQueryEndpoint", "lobster-query:8080", "lobster to query"),
 		Interval:              flag.Duration("inspector.interval", 10*time.Second, "interval to generate logs"),
 		WarmUpWait:            flag.Duration("inspector.warmupWait", 20*time.Second, "wait before running inspector"),

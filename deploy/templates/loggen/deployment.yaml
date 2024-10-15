@@ -27,7 +27,6 @@ spec:
           imagePullPolicy: Always
           args:
           - --gen.size=100
-          - --gen.renamedFileLogPath=/renamed/loggen.log
           - --serverAddr=:{{ .Values.loggen.options.metricPort }}
           - --inspector.lobsterQueryEndpoint={{ .Values.loggen.options.lobsterQueryEndpoint }}
           ports:
@@ -35,9 +34,6 @@ spec:
               containerPort: {{ .Values.loggen.options.metricPort }}
               protocol: TCP
           resources: {{ (default dict .Values.loggen.container.resources) | toYaml | nindent 12 }}
-          volumeMounts:
-          - name: renamed
-            mountPath: /renamed
           env:
           - name: POD
             valueFrom:
@@ -49,34 +45,5 @@ spec:
                 fieldPath: metadata.namespace
           - name: CONTAINER
             value: loggen
-        - env:
-          - name: LOGS_DIRECTORIES
-            value: /renamed
-          - name: LOGROTATE_CRONSCHEDULE
-            value: 0 */1 * * * ?
-          - name: LOGROTATE_MODE
-            value: create 0600
-          - name: LOGROTATE_SIZE
-            value: 5k
-          - name: LOGROTATE_COPIES
-            value: "3"
-          - name: LOGROTATE_COMPRESSION
-            value: compress
-          - name: LOGROTATE_STATUSFILE
-            value: /status/logrotate.status
-          image: {{ required "this value is required" .Values.log_rotate.container.image }}
-          imagePullPolicy: IfNotPresent
-          name: logrotate
-          resources: {{ (default dict .Values.log_rotate.container.resources) | toYaml | nindent 12 }}
-          volumeMounts:
-          - name: status
-            mountPath: /status
-          - name: renamed 
-            mountPath: /renamed
-      volumes:
-      - name: renamed
-        emptyDir: {}
-      - name: status
-        emptyDir: {}
       tolerations: {{ (default list .Values.loggen.pod.tolerations) | toYaml | nindent 8 }}
 {{- end }}
