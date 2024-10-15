@@ -45,6 +45,10 @@ helm upgrade --install --debug lobster_cluster -f ./deploy/values/public/lobster
 ```
 
 #### Cluster with log sink
+
+- `Log metrics` can be scraped by [prometheus](https://github.com/prometheus/prometheus), where service discovery is performed based on `prometheus.io/scrape: "true"` annotations in kubernetes
+- For more details about prometheus & service discovery, please refer to  https://prometheus.io/docs/prometheus/latest/configuration/configuration/#kubernetes_sd_config
+
 ```bash
 helm upgrade --install --debug lobster_cluster -f ./deploy/values/public/lobster-cluster_logsink-extension.yaml 
 helm upgrade --install --debug lobster_operator -f ./deploy/values/public/lobster-operator.yaml 
