@@ -23,7 +23,7 @@ spec:
       serviceAccountName: default
       containers:
         - name: loggen
-          image: {{ required "this value is required" .Values.loggen.container.image }}:{{ .Chart.AppVersion }}
+          image: {{ required "this value is required" .Values.registry }}/loggen:{{ .Chart.AppVersion }}
           imagePullPolicy: Always
           args:
           - --gen.size=100

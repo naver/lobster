@@ -8,6 +8,8 @@
 
 namespace: default
 priorityClassName: null
+loglineFormat: text # json | text ; Values ​​may vary depending on runtime configuration
+registry: quay.io/lobster/lobster
 
 global_query:
   service:
@@ -19,7 +21,6 @@ global_query:
     affinity: {}
     tolerations: []
   container:
-    image: quay.io/lobster/logsys/lobster-global-query
     resources: {}
   options:
     printLog: true

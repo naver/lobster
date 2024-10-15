@@ -10,6 +10,7 @@
 
 namespace: default
 priorityClassName: null
+registry: quay.io/lobster/lobster
 
 operator:
   service:
@@ -21,7 +22,6 @@ operator:
     affinity: {}
     tolerations: []
   container:
-    image: quay.io/lobster/logsys/lobster-operator
     resources: {}
   options:
     printLog: true

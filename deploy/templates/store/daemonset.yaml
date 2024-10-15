@@ -34,7 +34,7 @@ spec:
       priorityClassName: {{ .Values.priorityClassName }}
       containers:
         - name: store
-          image: {{ required "this value is required" .Values.store.container.image }}:{{ .Chart.AppVersion }}
+          image: {{ required "this value is required" .Values.registry }}/lobster-store:{{ .Chart.AppVersion }}
           imagePullPolicy: Always
           args:
           - --logtostderr={{ .Values.store.options.printlog | default true}}
@@ -42,8 +42,9 @@ spec:
           - --model.clusterName={{ .Values.cluster }}
           - --sink.lobsterSyncerAddress={{ .Values.store.options.lobsterSyncerAddress }}
           - --client.hostName=$(NODE_NAME)
-          - --distributor.matchLookbackMin={{ .Values.store.options.matchLookbackMin }}
+          - --logline.format={{ .Values.loglineFormat | default "text" }}
           - --store.storeRootPath={{ .Values.store.options.storeRootPath }}
+          - --distributor.matchLookbackMin={{ .Values.store.options.matchLookbackMin }}
           - --distributor.stdstreamLogRootPath={{ .Values.store.options.stdstreamLogRootPath }}
           - --distributor.emptyDirLogRootPath={{ .Values.store.options.emptyDirLogRootPath }}
           env:
@@ -52,6 +53,11 @@ spec:
               fieldRef:
                 fieldPath: spec.nodeName
           volumeMounts:
+            {{- if .Values.store.options.dockerLogPath }}
+            - name: host-docker-container-logs
+              mountPath: {{ .Values.store.options.dockerLogPath }}
+              readOnly: true
+            {{- end }}
             - name: host-container-logs
               mountPath: {{ .Values.store.options.stdstreamLogRootPath }}
               readOnly: true
@@ -60,7 +66,7 @@ spec:
             - name: dev
               mountPath: /dev
             - mountPath: {{ .Values.store.options.emptyDirLogRootPath }}
-              name: host-emptdir
+              name: host-emptydir
           ports:
             - name: http
               containerPort: {{ .Values.store.options.serverPort }}
@@ -71,7 +77,7 @@ spec:
           resources: {{ (default dict .Values.store.container.resources) | toYaml | nindent 12 }}
         {{- if .Values.exporter }}
         - name: exporter
-          image: {{ required "this value is required" .Values.exporter.container.image }}:{{ .Chart.AppVersion }}
+          image: {{ required "this value is required" .Values.registry }}/lobster-exporter:{{ .Chart.AppVersion }}
           imagePullPolicy: Always
           args:
           - --logtostderr={{ .Values.exporter.options.printLog }}
@@ -80,6 +86,7 @@ spec:
           - --sink.lobsterSyncerAddress={{ .Values.exporter.options.lobsterSyncerAddress }}
           - --client.hostName=$(NODE_NAME)
           - --model.clusterName={{ .Values.cluster }}
+          - --logline.format={{ .Values.loglineFormat | default "text" }}
           - --sink.exporter.dataPath={{ .Values.store.options.storeHostPath }}
           env:
           - name: NODE_NAME
@@ -89,6 +96,11 @@ spec:
           volumeMounts:
             - name: data
               mountPath: {{ .Values.store.options.storeHostPath }}
+            {{- if .Values.store.options.dockerLogPath }}
+            - name: host-docker-container-logs
+              mountPath: {{ .Values.store.options.dockerLogPath }}
+              readOnly: true
+            {{- end }}
             - name: host-container-logs
               mountPath: {{ .Values.store.options.stdstreamLogRootPath }}
               readOnly: true
@@ -102,13 +114,18 @@ spec:
           resources: {{ (default dict .Values.exporter.container.resources) | toYaml | nindent 12 }}
         {{- end }}
       volumes:
+        {{- if .Values.store.options.dockerLogPath }}
+        - name: host-docker-container-logs
+          hostPath:
+            path: {{ .Values.store.options.dockerLogPath }}
+        {{- end }}
         - name: host-container-logs
           hostPath:
             path: {{ .Values.store.options.stdstreamLogRootPath }}
         - name: data
           hostPath:
             path: {{ .Values.store.options.storeHostPath }}
-        - name: host-emptdir
+        - name: host-emptydir
           hostPath:
             path: {{ .Values.store.options.emptyDirLogRootPath }}
         - name: dev

@@ -23,14 +23,15 @@ spec:
       affinity: {{ (default dict .Values.global_query.pod.affinity) | toYaml | nindent 8 }}
       containers:
         - name: global-query
-          image: {{ required "this value is required" .Values.global_query.container.image }}:{{ .Chart.AppVersion }}
+          image: {{ required "this value is required" .Values.registry }}/lobster-global-query:{{ .Chart.AppVersion }}
           imagePullPolicy: Always
           args:
           - --logtostderr={{ .Values.global_query.options.printLog }}
           - --server.port={{ .Values.global_query.options.serverPort }}
           - --server.metricsPort={{ .Values.global_query.options.metricPort }}
+          - --logline.format={{ .Values.loglineFormat | default "text" }}
           {{- range $i, $lobsterQuery := .Values.global_query.options.lobsterQueries }}
-          - --global.lobsterQueryAddress={{ $lobsterQuery }}
+          - --global.lobsterQuery={{ $lobsterQuery }}
           {{- end }}
           ports:
             - name: http

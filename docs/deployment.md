@@ -32,26 +32,26 @@ Combinations:
 
 ### Deploying with helm charts
 
+- The container log format may have different default settings depending on the container runtime
+  - You can check it out in the [Tutorial: Lobster on minikube](tutorial.md)
+- Depending on the container runtime(according to your environment), you may need to add the helm arguments below.
+  - `--set loglineFormat=text` with continerd (default)
+  - `--set loglineFormat=json` with docker
 
 #### Cluster basic
 
 ```bash
-helm upgrade --install --debug -f ./deploy/values/public/lobster-cluster_basic.yaml 
+helm upgrade --install --debug lobster_cluster -f ./deploy/values/public/lobster-cluster_basic.yaml 
 ```
 
 #### Cluster with log sink
 ```bash
-helm upgrade --install --debug -f ./deploy/values/public/lobster-cluster_logsink-extension.yaml 
+helm upgrade --install --debug lobster_cluster -f ./deploy/values/public/lobster-cluster_logsink-extension.yaml 
+helm upgrade --install --debug lobster_operator -f ./deploy/values/public/lobster-operator.yaml 
 ```
 
 #### Global querier
 
 ```bash
-helm upgrade --install --debug -f ./deploy/values/public/lobster-global-query.yaml
-```
-
-#### Log sink operator
-
-```bash
-helm upgrade --install --debug -f ./deploy/values/public/lobster-operator.yaml 
+helm upgrade --install --debug lobster_global_query -f ./deploy/values/public/lobster-global-query.yaml
 ```

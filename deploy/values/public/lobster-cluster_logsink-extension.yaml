@@ -12,6 +12,8 @@
 namespace: default
 priorityClassName: null
 cluster: local # replaced during deployment
+loglineFormat: text # json | text ; Values ​​may vary depending on runtime configuration
+registry: quay.io/lobster/lobster
 
 query:
   service:
@@ -23,7 +25,6 @@ query:
     affinity: {}
     tolerations: []
   container:
-    image: quay.io/lobster/logsys/lobster-query
     resources: {}
   options:
     printLog: true
@@ -37,7 +38,6 @@ store:
       prometheus.io/scrape: "true"
     affinity: {}
   container:
-    image: quay.io/lobster/logsys/lobster-store
     resources: {}
   options:
     printLog: true
@@ -50,10 +50,11 @@ store:
     stdstreamLogRootPath: /var/log/pods
     emptyDirLogRootPath: /var/lib/kubelet
     matchLookbackMin: 1m
+    shouldUpdateLogMatcher: true
+    dockerLogPath: /var/lib/docker
 
 exporter:
   container:
-    image: quay.io/lobster/logsys/lobster-exporter
     resources:
       limits:
         cpu: 4
@@ -76,7 +77,6 @@ syncer:
     affinity: {}
     tolerations: []
   container:
-    image: quay.io/lobster/logsys/lobster-syncer
     resources: {}
   options:
     printLog: true
@@ -91,7 +91,6 @@ loggen:
     affinity: {}
     tolerations: []
   container:
-    image: quay.io/lobster/logsys/loggen
     resources: {}
   options:
     metricPort: 8080
@@ -99,5 +98,4 @@ loggen:
 
 log_rotate:
   container:
-    image: quay.io/lobster/logsys/logrotate:2.0.0
     resources: {}

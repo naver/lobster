@@ -23,7 +23,7 @@ spec:
       serviceAccountName: lobster-operator
       containers:
         - name: operator
-          image: {{ required "this value is required" .Values.operator.container.image }}:{{ .Chart.AppVersion }}
+          image: {{ required "this value is required" .Values.registry }}/lobster-operator:{{ .Chart.AppVersion }}
           imagePullPolicy: Always
           args:
           - --zap-log-level=info

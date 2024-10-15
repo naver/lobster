@@ -20,7 +20,7 @@ spec:
       affinity: {{ (default dict .Values.syncer.pod.affinity) | toYaml | nindent 8 }}
       containers:
         - name: syncer
-          image: {{ required "this value is required" .Values.syncer.container.image }}:{{ .Chart.AppVersion }}
+          image: {{ required "this value is required" .Values.registry }}/lobster-syncer:{{ .Chart.AppVersion }}
           imagePullPolicy: Always
           args:
           - --logtostderr={{ .Values.syncer.options.printLog }}

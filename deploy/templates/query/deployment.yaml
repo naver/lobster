@@ -27,7 +27,7 @@ spec:
       affinity: {{ (default dict $root.Values.query.pod.affinity) | toYaml | nindent 8 }}
       containers:
         - name: query
-          image: {{ required "this value is required" $root.Values.query.container.image }}:{{ $root.Chart.AppVersion }}
+          image: {{ required "this value is required" $root.Values.registry }}/lobster-query:{{ $root.Chart.AppVersion }}
           imagePullPolicy: Always
           args:
           - --logtostderr={{ $root.Values.query.options.printLog }}
@@ -36,6 +36,7 @@ spec:
           - --querier.member.id={{ $i }}
           - --querier.member.modulus={{ $root.Values.query.options.modulus }}
           - --querier.member.lookup-service-prefix=lobster-query-shard
+          - --logline.format={{ $root.Values.loglineFormat | default "text" }}
           ports:
             - name: http
               containerPort: {{ $root.Values.query.options.serverPort }}
