@@ -104,6 +104,6 @@ Forwarding from 127.0.0.1:8080 -> 80
 Forwarding from [::1]:8080 -> 80
 ```
 
-[](./images/tutorial.gif)
+![](./images/tutorial.gif)
 
 For more features, please refer to the [deployment guide](deployment.md).
