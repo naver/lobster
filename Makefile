@@ -35,7 +35,7 @@ vet: ## Run go vet against code.
 
 .PHONY: lint
 lint: golangci-linter
-	$(GOLANGCI_LINTER) run --verbose
+	$(GOLANGCI_LINTER) run --verbose --config .golangci.yml
 
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
