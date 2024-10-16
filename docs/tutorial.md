@@ -18,7 +18,7 @@
 
 #### 1. Setup registry in minikube
 
-See https://minikube.sigs.k8s.io/docs/handbook/registry/
+- See https://minikube.sigs.k8s.io/docs/handbook/registry/
 
 #### 2. Push registry
 
