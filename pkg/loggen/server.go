@@ -26,6 +26,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+// test
+
 const serverTimeout = 10 * time.Second
 
 func RunServer(serverAddr string, stopChan chan struct{}) {
