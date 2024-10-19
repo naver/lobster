@@ -39,7 +39,7 @@ lint: golangci-linter
 
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
-	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./pkg/operator/..." output:dir=deploy/templates/operator/manifests
+	$(CONTROLLER_GEN) rbac:roleName=lobster-operator crd webhook paths="./pkg/operator/..." output:dir=deploy/templates/operator/manifests
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
