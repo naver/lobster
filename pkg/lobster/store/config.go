@@ -37,7 +37,7 @@ type config struct {
 func setup() config {
 	retentionSize := flag.Int64("store.retentionSize", (1 << 31), "Max retention size per container logs")
 	retentionTime := flag.Duration("store.retentionTime", 7*24*time.Hour, "Max retention time to keep logs")
-	storeRootPath := flag.String("store.storeRootPath", "/var/lobster/log   ", "Path to read/write blocks")
+	storeRootPath := flag.String("store.storeRootPath", "/var/lobster/log", "Path to read/write blocks")
 	blockSize := flag.Int64("store.blockSize", (1 << 20), "Block size")
 	softLimitRatioForDisk := flag.Float64("store.softLimitForDisk", 0.5, "Size limit of log files")
 	softLimitRatioForBlocks := flag.Float64("store.softLimitRatioForBlocks", 0.9, "Ratio of reduction of blocks")
