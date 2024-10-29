@@ -48,7 +48,7 @@ store:
     storeRootPath: /var/lobster/log
     storeHostPath: /var/lobster
     stdstreamLogRootPath: /var/log/pods
-    emptyDirLogRootPath: /var/lib/kubelet
+    emptyDirLogRootPath: /var/lib/kubelet/pods
     matchLookbackMin: 1m
     shouldUpdateLogMatcher: true
     dockerLogPath: /var/lib/docker
