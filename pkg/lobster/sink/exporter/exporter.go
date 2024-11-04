@@ -35,6 +35,7 @@ import (
 	"github.com/naver/lobster/pkg/lobster/sink/order"
 	"github.com/naver/lobster/pkg/lobster/store"
 	"github.com/naver/lobster/pkg/lobster/util"
+	"github.com/pkg/errors"
 
 	sinkV1 "github.com/naver/lobster/pkg/operator/api/v1"
 )
@@ -248,7 +249,12 @@ func parseStart(data []byte) (time.Time, error) {
 func parseEnd(data []byte) (time.Time, error) {
 	index := bytes.LastIndexAny(data[:len(data)-2], "\n")
 	if index < 0 {
-		return time.Time{}, fmt.Errorf("failed to parse end")
+		t, err := logline.ParseTimestamp(string(data))
+		if err != nil {
+			return time.Time{}, errors.Wrap(err, "failed to parse end")
+		}
+
+		return t, nil
 	}
 
 	return logline.ParseTimestamp(string(data[index+1:]))
