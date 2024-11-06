@@ -20,6 +20,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+
+	_ "net/http/pprof"
 )
 
 func Router() *mux.Router {
@@ -27,6 +29,7 @@ func Router() *mux.Router {
 	router.Path("/health").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write([]byte("ok"))
 	})
+	router.PathPrefix("/debug/pprof/").Handler(http.DefaultServeMux)
 
 	return router
 }

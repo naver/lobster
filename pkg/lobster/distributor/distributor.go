@@ -89,7 +89,7 @@ func (d *Distributor) Run(stopChan chan struct{}) {
 				}
 
 				if len(podMap) == 0 {
-					continue
+					panic("no pods found")
 				}
 
 				d.updateLabelsInChunks(podMap)
@@ -101,7 +101,7 @@ func (d *Distributor) Run(stopChan chan struct{}) {
 				}
 
 				if len(logfiles) == 0 {
-					continue
+					panic("no log files found")
 				}
 
 				fileMap := d.extractFileMap(logfiles, *conf.FileInspectMaxStale)

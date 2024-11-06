@@ -68,10 +68,7 @@ func LoadLogfiles(path string, labelFunc LabelFunc, parseFunc ParseFunc) ([]mode
 			}
 		}
 
-		labels, err := labelFunc(pf.Name())
-		if err != nil && !os.IsNotExist(err) {
-			glog.Error(err)
-		}
+		labels, _ := labelFunc(pf.Name())
 
 		for i := 0; i < len(logfilesOfPod); i++ {
 			logfilesOfPod[i].Labels = labels

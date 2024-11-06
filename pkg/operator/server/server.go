@@ -34,6 +34,8 @@ import (
 
 	"github.com/naver/lobster/pkg/operator/server/controller"
 	"github.com/naver/lobster/pkg/operator/server/handler"
+
+	_ "net/http/pprof"
 )
 
 //	@title			Lobster Operator APIs document
@@ -78,6 +80,7 @@ func setupRouter(sinkClient client.Client, logger logr.Logger) *mux.Router {
 	router.Path("/health").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write([]byte("ok"))
 	})
+	router.PathPrefix("/debug/pprof/").Handler(http.DefaultServeMux)
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("/static/"))))
 	router.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
 		httpSwagger.URL("/web/static/docs/swagger.json"),
