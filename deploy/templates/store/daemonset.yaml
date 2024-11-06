@@ -47,6 +47,7 @@ spec:
           - --distributor.matchLookbackMin={{ .Values.store.options.matchLookbackMin }}
           - --distributor.stdstreamLogRootPath={{ .Values.store.options.stdstreamLogRootPath }}
           - --distributor.emptyDirLogRootPath={{ .Values.store.options.emptyDirLogRootPath }}
+          - --distributor.shouldUpdateLogMatcher={{ .Values.store.options.shouldUpdateLogMatcher }}
           env:
           - name: NODE_NAME
             valueFrom:
