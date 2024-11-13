@@ -30,7 +30,7 @@ When there is a log request, `Lobster global query` requests `Chunk` from `Lobst
 The part that collects the results and responds is the same as `Lobster query`.
 For APIs, please refer to the [API documentation](../apis/global_query_apis.md).
 
-![multiple_clusters](../images/overview_multiple_clusters.png)
+![multiple_clusters](../images/overview_multi-clusters.png)
 
 ### Web page
 
