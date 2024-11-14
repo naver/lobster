@@ -32,7 +32,7 @@ var (
 )
 
 func init() {
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 20; i++ {
 		suffix := fmt.Sprintf("-%d", i)
 		chunk, _ := model.NewChunk(model.LogFile{
 			Labels:    map[string]string{"label": "label" + suffix},
@@ -186,9 +186,9 @@ func TestMatchMultipleLabels(t *testing.T) {
 		matchedLabelString := matched.Labels.String()
 
 		for _, labelString := range expectedLabelStrings {
-			if strings.Contains(matchedLabelString, labelString) {
+			if matchedLabelString == labelString {
 				hasProperLabel = true
-				break
+				break // escape this to check 'or condition'
 			}
 		}
 
