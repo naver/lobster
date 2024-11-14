@@ -40,6 +40,16 @@ func (l Labels) Pairs() []string {
 	return kvs
 }
 
+func (l Labels) PairKeyMap() map[string]bool {
+	pairKeyMap := map[string]bool{}
+
+	for k, v := range l {
+		pairKeyMap[fmt.Sprintf("%s%s%s", k, LabelKeyValueDelimiter, v)] = true
+	}
+
+	return pairKeyMap
+}
+
 func (l Labels) String() string {
 	return strings.Join(l.Pairs(), LabelsDelimiter)
 }

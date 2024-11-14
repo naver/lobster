@@ -17,14 +17,12 @@
 package querier
 
 import (
-	"strings"
-
 	"github.com/naver/lobster/pkg/lobster/model"
 	"github.com/naver/lobster/pkg/lobster/query"
 )
 
-type keyFunc func(model.Chunk) string
-type seekFunc func(map[string]bool, string) bool
+type keyFunc func(model.Chunk) interface{}
+type seekFunc func(map[string]bool, interface{}) bool
 
 type chunkMatcher struct {
 	predicates []predicate
@@ -47,9 +45,11 @@ func labelMatchers(req query.Request) []matcher {
 	matchers := []matcher{}
 
 	for _, label := range req.Labels {
-		if len(label) > 0 {
-			matchers = append(matchers, newMatcher(label.Pairs(), seekByKeyValue, func(c model.Chunk) string { return c.Labels.String() }))
+		if len(label) == 0 {
+			continue
 		}
+
+		matchers = append(matchers, newMatcher(label.Pairs(), seekByKeyValuePairMap, func(c model.Chunk) interface{} { return c.Labels.PairKeyMap() }))
 	}
 
 	return matchers
@@ -59,23 +59,23 @@ func nameMatchers(req query.Request) []matcher {
 	matchers := []matcher{}
 
 	if len(req.Clusters) > 0 {
-		matchers = append(matchers, newMatcher(req.Clusters, seekByKey, func(c model.Chunk) string { return c.Cluster }))
+		matchers = append(matchers, newMatcher(req.Clusters, seekByKeyString, func(c model.Chunk) interface{} { return c.Cluster }))
 	}
 	if len(req.SetNames) > 0 {
-		matchers = append(matchers, newMatcher(req.SetNames, seekByKey, func(c model.Chunk) string { return c.SetName }))
+		matchers = append(matchers, newMatcher(req.SetNames, seekByKeyString, func(c model.Chunk) interface{} { return c.SetName }))
 	}
 	if len(req.Pods) > 0 {
-		matchers = append(matchers, newMatcher(req.Pods, seekByKey, func(c model.Chunk) string { return c.Pod }))
+		matchers = append(matchers, newMatcher(req.Pods, seekByKeyString, func(c model.Chunk) interface{} { return c.Pod }))
 	}
 	if len(req.Containers) > 0 {
-		matchers = append(matchers, newMatcher(req.Containers, seekByKey, func(c model.Chunk) string { return c.Container }))
+		matchers = append(matchers, newMatcher(req.Containers, seekByKeyString, func(c model.Chunk) interface{} { return c.Container }))
 	}
 	if len(req.Sources) > 0 {
 		sources := []string{}
 		for _, source := range req.Sources {
 			sources = append(sources, source.String())
 		}
-		matchers = append(matchers, newMatcher(sources, seekByKey, func(c model.Chunk) string { return c.Source.String() }))
+		matchers = append(matchers, newMatcher(sources, seekByKeyString, func(c model.Chunk) interface{} { return c.Source.String() }))
 	}
 
 	return matchers
@@ -104,6 +104,7 @@ func newMatcher(values []string, seekFunc seekFunc, keyFunc keyFunc) matcher {
 		if len(t) == 0 {
 			continue
 		}
+
 		requestedData[t] = true
 	}
 
@@ -114,16 +115,16 @@ func (m matcher) isMatched(chunk model.Chunk) bool {
 	return m.seekFunc(m.requestedData, m.keyFunc(chunk))
 }
 
-func seekByKey(requestedData map[string]bool, key string) bool {
-	_, ok := requestedData[key]
-	return ok
+func seekByKeyString(requestedData map[string]bool, key interface{}) bool {
+	return requestedData[key.(string)]
 }
 
-func seekByKeyValue(requestedData map[string]bool, keyValues string) bool {
+func seekByKeyValuePairMap(requestedData map[string]bool, keyValuesPairMap interface{}) bool {
 	matchedCnt := 0
+	converted := keyValuesPairMap.(map[string]bool)
 
-	for kv := range requestedData {
-		if strings.Contains(keyValues, kv) {
+	for keyValuePair := range requestedData {
+		if converted[keyValuePair] {
 			matchedCnt = matchedCnt + 1
 		}
 	}
