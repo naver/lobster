@@ -81,9 +81,9 @@ func setupRouter(sinkClient client.Client, logger logr.Logger) *mux.Router {
 		_, _ = w.Write([]byte("ok"))
 	})
 	router.PathPrefix("/debug/pprof/").Handler(http.DefaultServeMux)
-	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("/static/"))))
+	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("/web/static/"))))
 	router.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
-		httpSwagger.URL("/web/static/docs/swagger.json"),
+		httpSwagger.URL("/static/docs/swagger.json"),
 	))
 
 	ctrl := controller.SinkController{Client: sinkClient, MaxContent: conf.MaxContent, Logger: logger}
