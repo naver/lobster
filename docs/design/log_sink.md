@@ -134,4 +134,4 @@ spec:
      - https://pkg.go.dev/time#example-Time.Format
      - https://go.dev/src/time/format.go
 
-![overview_multi-clusters-with-logsink](../images/overview_multi-clusters-with-logsink.png)
+![overview_multi-cluster-with-logsink](../images/overview_multi-cluster-with-logsink.png)

@@ -57,18 +57,18 @@ See more in [Lobster store](./docs/design/lobster_query.md) and [Lobster query](
 
 ![overview_single-cluster](./docs/images/overview_single-cluster.png)
 
-#### Multi-clusters version
+#### Multi-cluster version
 
 - `Lobster global query` requests to the `Lobster query` of each cluster to obtain the chunks containing an address of `Lobster store`
 - `Lobster global query` queries each `Lobster store` directly based on the chunks and it responds by aggregating the query results
 
 See more in [Lobster query](./docs/design/lobster_query.md) document.
 
-![overview_multi-clusters](./docs/images/overview_multi-clusters.png)
+![overview_multi-cluster](./docs/images/overview_multi-cluster.png)
 
-#### Multi-clusters with log sink version
+#### Multi-cluster with log sink version
 
-It goes a bit further from `Multi-clusters model` and supports `Log sink`
+It goes a bit further from `Multi-cluster model` and supports `Log sink`
 
 - `Log sink` is the action of exporting logs to external storage or creating metrics
 - `Lobster operator` defines `Log sink custom resources` and manages settings for log export/metric
@@ -77,7 +77,7 @@ It goes a bit further from `Multi-clusters model` and supports `Log sink`
 
 See more in [Log sink](./docs/design/log_sink.md) document.
 
-![overview_multi-clusters-with-logsink](./docs/images/overview_multi-clusters-with-logsink.png)
+![overview_multi-cluster-with-logsink](./docs/images/overview_multi-cluster-with-logsink.png)
 
 ### License
 
