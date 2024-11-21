@@ -84,6 +84,10 @@ func (e *LogExporter) Run(stopChan chan struct{}) {
 				continue
 			}
 
+			if len(podMap) == 0 {
+				panic("no pods found")
+			}
+
 			e.store.InitChunks()
 			if err := e.sinkManager.Update(helper.FilterChunksByExistingPods(e.store.GetChunks(), podMap), current.Add(-*conf.InspectInterval), current); err != nil {
 				glog.Error(err)
