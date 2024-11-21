@@ -29,7 +29,6 @@ func main() {
 	var (
 		sets = []loggen.Stub{
 			loggen.StdstreamStub{},
-			loggen.RenamedFileStub{},
 		}
 		conf     = loggen.NewConfig()
 		stopChan = make(chan struct{}, 1)
