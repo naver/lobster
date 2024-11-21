@@ -172,10 +172,7 @@ paths:
       - description: sink name
         in: path
         name: name
-        type: string
-      - description: sink type (logMetricRules, logExportRules)
-        in: query
-        name: type
+        required: true
         type: string
       produces:
       - application/json
@@ -214,153 +211,6 @@ paths:
         in: path
         name: name
         required: true
-        type: string
-      - description: sink contentd; Each content in array must be unique
-        in: body
-        name: sink
-        required: true
-        schema:
-          $ref: '#/definitions/v1.Sink'
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "201":
-          description: Created successfully
-          schema:
-            type: string
-        "400":
-          description: Invalid parameters
-          schema:
-            type: string
-        "405":
-          description: Method not allowed
-          schema:
-            type: string
-        "422":
-          description: Restricted by limits
-          schema:
-            type: string
-        "500":
-          description: Failed to get sink content
-          schema:
-            type: string
-      summary: Put log sink
-      tags:
-      - Put
-  /api/v1/namespaces/{namespace}/sinks/{name}/{type}:
-    delete:
-      deprecated: true
-      parameters:
-      - description: namespace name
-        in: path
-        name: namespace
-        required: true
-        type: string
-      - description: sink name
-        in: path
-        name: name
-        required: true
-        type: string
-      - description: deprecated;sink type (logMetricRules, logExportRules)
-        in: path
-        name: type
-        type: string
-      - description: deprecated;metric rule name to delete
-        in: query
-        name: ruleName
-        type: string
-      - description: deprecated;bucket name to delete
-        in: query
-        name: bucketName
-        type: string
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "400":
-          description: Invalid parameters
-          schema:
-            type: string
-        "404":
-          description: Not found
-          schema:
-            type: string
-        "405":
-          description: Method not allowed
-          schema:
-            type: string
-        "500":
-          description: Failed to delete sink
-          schema:
-            type: string
-      summary: Delete sink
-      tags:
-      - Delete
-    get:
-      deprecated: true
-      parameters:
-      - description: namespace name
-        in: path
-        name: namespace
-        required: true
-        type: string
-      - description: sink name
-        in: path
-        name: name
-        type: string
-      - description: deprecated;sink type (logMetricRules, logExportRules)
-        in: path
-        name: type
-        type: string
-      - description: sink type (logMetricRules, logExportRules)
-        in: query
-        name: type
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/v1.Sink'
-            type: array
-        "400":
-          description: Invalid parameters
-          schema:
-            type: string
-        "405":
-          description: Method not allowed
-          schema:
-            type: string
-        "500":
-          description: Failed to get sink
-          schema:
-            type: string
-      summary: List sinks
-      tags:
-      - Get
-    put:
-      consumes:
-      - application/json
-      deprecated: true
-      parameters:
-      - description: namespace name
-        in: path
-        name: namespace
-        required: true
-        type: string
-      - description: sink name
-        in: path
-        name: name
-        required: true
-        type: string
-      - description: deprecated;sink type (logMetricRules, logExportRules)
-        in: path
-        name: type
         type: string
       - description: sink contentd; Each content in array must be unique
         in: body
@@ -412,14 +262,7 @@ paths:
       - description: log export rule name to delete
         in: path
         name: rule
-        type: string
-      - description: deprecated;metric rule name to delete
-        in: query
-        name: ruleName
-        type: string
-      - description: deprecated;bucket name to delete
-        in: query
-        name: bucketName
+        required: true
         type: string
       responses:
         "200":

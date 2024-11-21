@@ -92,7 +92,6 @@ func setupRouter(sinkClient client.Client, logger logr.Logger) *mux.Router {
 	routerV1 := router.PathPrefix(handler.PathApi).Subrouter()
 	routerV1.Handle(handler.PathSinks, handler.SinkHandler{Ctrl: ctrl, Logger: logger})
 	routerV1.Handle(handler.PathSpecificSink, handler.SinkHandler{Ctrl: ctrl, Logger: logger})
-	routerV1.Handle(handler.PathSinkContents, handler.SinkHandler{Ctrl: ctrl, Logger: logger})
 	routerV1.Handle(handler.PathSinkContentsRule, handler.SinkHandler{Ctrl: ctrl, Logger: logger}).Methods(http.MethodDelete)
 
 	return router

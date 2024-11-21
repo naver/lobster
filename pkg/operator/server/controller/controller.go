@@ -161,7 +161,7 @@ func (c SinkController) Delete(namespace, name string) error {
 	})
 }
 
-func (c SinkController) DeleteContent(namespace, name, ruleName, bucketName string) error {
+func (c SinkController) DeleteContent(namespace, name, ruleName string) error {
 	ctx, cancel := context.WithTimeout(context.TODO(), defaultTimeout)
 	defer cancel()
 

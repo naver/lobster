@@ -37,17 +37,13 @@ const (
 	PathSinks            = "/namespaces/{namespace}/sinks"
 	PathSpecificSink     = "/namespaces/{namespace}/sinks/{name}"
 	PathSinkContentsRule = "/namespaces/{namespace}/sinks/{name}/rules/{rule}"
-
-	PathSinkContents = "/namespaces/{namespace}/sinks/{name}/{type}" // deprecated
 )
 
 type sinkParam struct {
-	Namespace  string
-	Name       string
-	Type       string
-	Rule       string
-	RuleName   string
-	BucketName string // deprecated
+	Namespace string
+	Name      string
+	Type      string
+	Rule      string
 }
 
 type SinkHandler struct {
@@ -79,19 +75,16 @@ func (h SinkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // handleGet
 //
-//	@Summary			List sinks
-//	@Tags				Get
-//	@Produce			json
-//	@Param				namespace	path		string	true	"namespace name"
-//	@Param				name		path		string	false	"sink name"
-//	@Param				type		path		string	false	"deprecated;sink type (logMetricRules, logExportRules)"
-//	@Param				type		query		string	false	"sink type (logMetricRules, logExportRules)"
-//	@Success			200			{object}	[]v1.Sink
-//	@Failure			400			{string}	string	"Invalid parameters"
-//	@Failure			405			{string}	string	"Method not allowed"
-//	@Failure			500			{string}	string	"Failed to get sink"
-//	@DeprecatedRouter	/api/v1/namespaces/{namespace}/sinks/{name}/{type} [get]
-//	@Router				/api/v1/namespaces/{namespace}/sinks/{name} [get]
+//	@Summary	List sinks
+//	@Tags		Get
+//	@Produce	json
+//	@Param		namespace	path		string	true	"namespace name"
+//	@Param		name		path		string	true	"sink name"
+//	@Success	200			{object}	[]v1.Sink
+//	@Failure	400			{string}	string	"Invalid parameters"
+//	@Failure	405			{string}	string	"Method not allowed"
+//	@Failure	500			{string}	string	"Failed to get sink"
+//	@Router		/api/v1/namespaces/{namespace}/sinks/{name} [get]
 func (h SinkHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 	p, err := parseParam(r)
 	if err != nil {
@@ -118,21 +111,19 @@ func (h SinkHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 
 // handlePut
 //
-//	@Summary			Put log sink
-//	@Tags				Put
-//	@Accept				json
-//	@Param				namespace	path		string	true	"namespace name"
-//	@Param				name		path		string	true	"sink name"
-//	@Param				type		path		string	false	"deprecated;sink type (logMetricRules, logExportRules)"
-//	@Param				sink		body		v1.Sink	true	"sink contentd; Each content in array must be unique"
-//	@Success			200			{string}	string	""
-//	@Success			201			{string}	string	"Created successfully"
-//	@Failure			400			{string}	string	"Invalid parameters"
-//	@Failure			422			{string}	string	"Restricted by limits"
-//	@Failure			405			{string}	string	"Method not allowed"
-//	@Failure			500			{string}	string	"Failed to get sink content"
-//	@DeprecatedRouter	/api/v1/namespaces/{namespace}/sinks/{name}/{type} [put]
-//	@Router				/api/v1/namespaces/{namespace}/sinks/{name} [put]
+//	@Summary	Put log sink
+//	@Tags		Put
+//	@Accept		json
+//	@Param		namespace	path		string	true	"namespace name"
+//	@Param		name		path		string	true	"sink name"
+//	@Param		sink		body		v1.Sink	true	"sink contentd; Each content in array must be unique"
+//	@Success	200			{string}	string	""
+//	@Success	201			{string}	string	"Created successfully"
+//	@Failure	400			{string}	string	"Invalid parameters"
+//	@Failure	422			{string}	string	"Restricted by limits"
+//	@Failure	405			{string}	string	"Method not allowed"
+//	@Failure	500			{string}	string	"Failed to get sink content"
+//	@Router		/api/v1/namespaces/{namespace}/sinks/{name} [put]
 func (h SinkHandler) handlePut(w http.ResponseWriter, r *http.Request) {
 	p, err := parseParam(r)
 	if err != nil {
@@ -154,7 +145,6 @@ func (h SinkHandler) handlePut(w http.ResponseWriter, r *http.Request) {
 	sink := v1.Sink{
 		Namespace: p.Namespace,
 		Name:      p.Name,
-		Type:      p.Type, // TODO: remove this
 	}
 	if err := json.Unmarshal(data, &sink); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -176,23 +166,19 @@ func (h SinkHandler) handlePut(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// handleDelete
+// handleDeleteRule
 //
-//	@Summary			Delete sink
-//	@Tags				Delete
-//	@Param				namespace	path		string	true	"namespace name"
-//	@Param				name		path		string	true	"sink name"
-//	@Param				type		path		string	false	"deprecated;sink type (logMetricRules, logExportRules)"
-//	@Param				rule		path		string	false	"log export rule name to delete"
-//	@Param				ruleName	query		string	false	"deprecated;metric rule name to delete"
-//	@Param				bucketName	query		string	false	"deprecated;bucket name to delete"
-//	@Success			200			{string}	string	""
-//	@Failure			400			{string}	string	"Invalid parameters"
-//	@Failure			404			{string}	string	"Not found"
-//	@Failure			405			{string}	string	"Method not allowed"
-//	@Failure			500			{string}	string	"Failed to delete sink"
-//	@DeprecatedRouter	/api/v1/namespaces/{namespace}/sinks/{name}/{type} [delete]
-//	@Router				/api/v1/namespaces/{namespace}/sinks/{name}/rules/{rule} [delete]
+//	@Summary	Delete sink
+//	@Tags		Delete
+//	@Param		namespace	path		string	true	"namespace name"
+//	@Param		name		path		string	true	"sink name"
+//	@Param		rule		path		string	true	"log export rule name to delete"
+//	@Success	200			{string}	string	""
+//	@Failure	400			{string}	string	"Invalid parameters"
+//	@Failure	404			{string}	string	"Not found"
+//	@Failure	405			{string}	string	"Method not allowed"
+//	@Failure	500			{string}	string	"Failed to delete sink"
+//	@Router		/api/v1/namespaces/{namespace}/sinks/{name}/rules/{rule} [delete]
 func (h SinkHandler) handleDelete(w http.ResponseWriter, r *http.Request) {
 	p, err := parseParam(r)
 	if err != nil {
@@ -212,7 +198,7 @@ func (h SinkHandler) handleDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.Ctrl.DeleteContent(p.Namespace, p.Name, p.Rule, p.BucketName); err != nil {
+	if err := h.Ctrl.DeleteContent(p.Namespace, p.Name, p.Rule); err != nil {
 		handleError(w, err)
 	}
 }
@@ -220,22 +206,10 @@ func (h SinkHandler) handleDelete(w http.ResponseWriter, r *http.Request) {
 func parseParam(r *http.Request) (sinkParam, error) {
 	vars := mux.Vars(r)
 	p := sinkParam{
-		Namespace:  vars["namespace"],
-		Name:       vars["name"],
-		Type:       vars["type"], // TODO: UI에서 type 제거 후 path 대신 query param을 쓰도록 변경(get에서만 사용)
-		Rule:       vars["rule"],
-		RuleName:   r.URL.Query().Get("ruleName"),   // TODO: /rule path 사용 후 제거
-		BucketName: r.URL.Query().Get("bucketName"), // TODO: /rule path 사용 후 제거
-	}
-
-	// TODO: UI에서 query param 대신 path를 쓰도록 변경 후 제거
-	if len(p.Rule) == 0 {
-		p.Rule = p.RuleName
-	}
-
-	// TODO: UI에서 type 제거 후 path 대신 query param을 쓰도록 변경 후 제거
-	if len(p.Type) == 0 {
-		p.Type = r.URL.Query().Get("type")
+		Namespace: vars["namespace"],
+		Name:      vars["name"],
+		Rule:      vars["rule"],
+		Type:      r.URL.Query().Get("type"),
 	}
 
 	if len(p.Namespace) == 0 {
