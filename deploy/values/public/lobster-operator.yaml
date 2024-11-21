@@ -10,6 +10,7 @@
 
 namespace: default
 priorityClassName: null
+createPriorityClassName: false
 registry: quay.io/lobster/lobster
 
 operator:
