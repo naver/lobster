@@ -186,7 +186,7 @@ func (t *Tailer) drain() {
 		close(t.LogChan)
 	}
 
-	for t.tail.IsSending {
+	for t.tail.IsTailing {
 		select {
 		case <-t.tail.Lines:
 		default:
