@@ -33,7 +33,6 @@ import (
 const (
 	statusRunning status = 1
 	statusIdle    status = 2
-	drainWait            = time.Millisecond
 )
 
 type status int
@@ -177,8 +176,6 @@ func (t *Tailer) doStop() {
 
 func (t *Tailer) drain() {
 	t.tail.Kill(nil)
-
-	time.Sleep(drainWait)
 
 	select {
 	case <-t.LogChan:
