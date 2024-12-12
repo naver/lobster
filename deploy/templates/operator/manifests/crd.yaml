@@ -159,6 +159,10 @@ spec:
                             time-based layout
                           type: string
                       type: object
+                    shouldEncodeFileName:
+                      description: Provide an option to convert '+' to '%2B' to address
+                        issues in certain web environments where '+' is misinterpreted
+                      type: boolean
                   type: object
                 type: array
               logMetricRules:

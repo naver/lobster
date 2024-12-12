@@ -41,6 +41,8 @@ type LogExportRule struct {
 	Filter Filter `json:"filter,omitempty"`
 	// Interval to export logs
 	Interval metav1.Duration `json:"interval,omitempty" swaggertype:"string" example:"time duration(e.g. 1m)"`
+	// Provide an option to convert '+' to '%2B' to address issues in certain web environments where '+' is misinterpreted
+	ShouldEncodeFileName bool `json:"shouldEncodeFileName,omitempty"`
 }
 
 func (r LogExportRule) Validate() error {

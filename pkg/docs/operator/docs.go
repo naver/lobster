@@ -327,6 +327,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/v1.S3Bucket"
                         }
                     ]
+                },
+                "shouldEncodeFileName": {
+                    "description": "Provide an option to convert '+' to '%2B' to address issues in certain web environments where '+' is misinterpreted",
+                    "type": "boolean"
                 }
             }
         },

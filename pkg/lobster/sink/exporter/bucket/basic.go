@@ -26,6 +26,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/golang/glog"
@@ -90,7 +91,13 @@ func (b BasicBucket) Dir(chunk model.Chunk, date time.Time) string {
 }
 
 func (b BasicBucket) FileName(start, end time.Time) string {
-	return fmt.Sprintf("%s_%s.log", start.Format(layoutFileName), end.Format(layoutFileName))
+	fileName := fmt.Sprintf("%s_%s.log", start.Format(layoutFileName), end.Format(layoutFileName))
+
+	if b.Order.LogExportRule.ShouldEncodeFileName {
+		return strings.ReplaceAll(fileName, "+", "%2B")
+	}
+
+	return fileName
 }
 
 func (b BasicBucket) Validate() error {

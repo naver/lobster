@@ -81,6 +81,10 @@ definitions:
         allOf:
         - $ref: '#/definitions/v1.S3Bucket'
         description: Settings required to export logs to S3 bucket
+      shouldEncodeFileName:
+        description: Provide an option to convert '+' to '%2B' to address issues in
+          certain web environments where '+' is misinterpreted
+        type: boolean
     type: object
   v1.LogMetricRule:
     properties:
