@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"fmt"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -75,8 +76,14 @@ func (s S3Bucket) Dir(chunk model.Chunk, date time.Time) string {
 		dirPath)
 }
 
-func (s S3Bucket) FileName(start, end time.Time) string {
-	return fmt.Sprintf("%s_%s.log", start.Format(layoutFileName), end.Format(layoutFileName))
+func (b S3Bucket) FileName(start, end time.Time) string {
+	fileName := fmt.Sprintf("%s_%s.log", start.Format(layoutFileName), end.Format(layoutFileName))
+
+	if b.Order.LogExportRule.ShouldEncodeFileName {
+		return strings.ReplaceAll(fileName, "+", "%2B")
+	}
+
+	return fileName
 }
 
 func (s S3Bucket) Validate() error {
