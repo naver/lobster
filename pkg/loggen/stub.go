@@ -33,18 +33,26 @@ type Stub interface {
 
 func generateLogs(logger *log.Logger, conf Config, stopChan chan struct{}, logFormatter func(string) string) {
 	ticker := time.NewTicker(*conf.LogGenerationInterval)
-	number := uint(0)
+	index := uint(0)
+	logSequences := []string{}
+
+	for i := 0; i < 10; i++ {
+		var str strings.Builder
+
+		for str.Len() < *conf.LogSize {
+			str.WriteString(fmt.Sprintf("%d", i))
+		}
+
+		logSequences = append(logSequences, logFormatter(str.String()))
+	}
+
 	for {
 		select {
 		case <-ticker.C:
-			var str strings.Builder
+			index = (index + 1) % 10
 
-			number = (number + 1) % 10
-			for str.Len() < *conf.LogSize {
-				str.WriteString(fmt.Sprintf("%d", number))
-			}
 			for i := 0; i < *conf.LogLines; i++ {
-				logger.Print(logFormatter(str.String()))
+				logger.Print(logSequences[index])
 			}
 
 		case <-stopChan:
