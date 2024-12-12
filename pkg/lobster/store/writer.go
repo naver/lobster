@@ -49,10 +49,8 @@ func writeFiledLogs(chunk *model.Chunk, files []model.LogFile, blockDirPath stri
 func writeBlocks(chunk *model.Chunk, file model.LogFile, buf *writeBuffer, blockDirPath string, maxBlockSize int64, logHandler LogHandler) ([]*model.Block, error) {
 	var (
 		readLine string
-		prevTs   time.Time
+		blocks   = []*model.Block{}
 	)
-
-	blocks := []*model.Block{}
 
 	f, err := os.Open(file.Path)
 	if err != nil {
@@ -79,18 +77,11 @@ func writeBlocks(chunk *model.Chunk, file model.LogFile, buf *writeBuffer, block
 		ts, err := logline.ParseTimestamp(readLine)
 		if err != nil {
 			glog.V(3).Info("failed to parse timestamp for %s: %s", file.Path, readLine)
-			if file.Source.Type == model.LogTypeStdStream || prevTs.IsZero() {
+			if file.Source.Type == model.LogTypeStdStream || buf.start.IsZero() {
 				continue
 			}
 
-			ts = prevTs
 			readLine = logline.MakeUnreliableTimestamp(ts, readLine)
-		} else {
-			prevTs = ts
-		}
-
-		if buf.start.IsZero() {
-			buf.start = ts
 		}
 
 		buf.write(ts, readLine)
@@ -101,7 +92,6 @@ func writeBlocks(chunk *model.Chunk, file model.LogFile, buf *writeBuffer, block
 			continue
 		}
 
-		buf.end = ts
 		block, err := writeBlock(blockDirPath, buf, file.Number)
 		if err != nil {
 			return blocks, err
@@ -110,14 +100,12 @@ func writeBlocks(chunk *model.Chunk, file model.LogFile, buf *writeBuffer, block
 			blocks = append(blocks, block)
 		}
 		buf.reset()
-		prevTs = time.Time{}
 	}
 
 	if buf.size() == 0 {
 		return blocks, nil
 	}
 
-	buf.end = prevTs
 	block, err := writeBlock(blockDirPath, buf, file.Number)
 	if err != nil {
 		return blocks, nil
@@ -191,11 +179,6 @@ func writeTailedLogs(chunk *model.Chunk, blockDirPath, tempBlockFilePath string,
 
 			buf.lastOffset = line.Offset
 			msg := line.Line + "\n"
-
-			if buf.start.IsZero() {
-				buf.start = line.Timestamp
-			}
-			buf.end = line.Timestamp
 
 			buf.write(line.Timestamp, msg)
 

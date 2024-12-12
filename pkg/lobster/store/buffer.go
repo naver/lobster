@@ -56,12 +56,17 @@ func (w *writeBuffer) write(ts time.Time, input string) {
 
 	w.lines = w.lines + 1
 	w.fileOffset = w.fileOffset + int64(len(input))
+
+	w.start = w.histories[0].ts
+	w.end = w.histories[len(w.histories)-1].ts
 }
 
 func (w writeBuffer) inspect(ts time.Time) (int, int, bool) {
-	minTs := ts.Add(-maxAge)
-	historyIdx := len(w.histories) - 1
-	dataIdx := len(w.data)
+	var (
+		minTs      = ts.Add(-maxAge)
+		historyIdx = len(w.histories) - 1
+		dataIdx    = len(w.data)
+	)
 
 	if len(w.histories) == 0 || w.histories[len(w.histories)-1].ts.Before(ts) {
 		return 0, 0, false

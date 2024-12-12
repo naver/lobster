@@ -220,3 +220,32 @@ func checkLogOrderInBuffer(buffer *writeBuffer, t *testing.T) {
 		prevTs = ts
 	}
 }
+
+func TestWriteBufferInsertOutOfOrderFrontBufferStatus(t *testing.T) {
+	testCount := 10
+	expectedLogMsg := "out-of-order start test"
+	buffer := emptyWriteBuffer()
+	outOfOrderTsFront := time.Now().Add(-time.Minute)
+	outOfOrderTsRear := time.Time{}
+
+	for i := 0; i < testCount; i++ {
+		ts := time.Now()
+		outOfOrderTsRear = ts
+		buffer.write(ts, fmt.Sprintf("%s test\n", ts.Format(time.RFC3339Nano)))
+	}
+
+	checkLogOrderInBuffer(buffer, t)
+
+	buffer.write(outOfOrderTsFront, fmt.Sprintf("%s %s\n", outOfOrderTsFront.Format(time.RFC3339Nano), expectedLogMsg))
+	checkLogOrderInBuffer(buffer, t)
+
+	t.Logf("buffer start: %s", buffer.start.Format(time.RFC3339Nano))
+	t.Logf("buffer end: %s", buffer.end.Format(time.RFC3339Nano))
+
+	if !buffer.start.Equal(outOfOrderTsFront) {
+		t.FailNow()
+	}
+	if !buffer.end.Equal(outOfOrderTsRear) {
+		t.FailNow()
+	}
+}
