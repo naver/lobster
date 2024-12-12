@@ -77,7 +77,7 @@ type Config struct {
 type Tail struct {
 	Filename  string
 	Lines     chan *Line
-	IsSending bool
+	IsTailing bool
 	Config
 
 	file   *os.File
@@ -233,8 +233,11 @@ func (tail *Tail) readLine() (string, error) {
 }
 
 func (tail *Tail) tailFileSync() {
+	defer func() { tail.IsTailing = false }()
 	defer tail.Done()
 	defer tail.close()
+
+	tail.IsTailing = true
 
 	if !tail.MustExist {
 		// deferred first open.
@@ -434,8 +437,6 @@ func (tail *Tail) sendLine(line string) bool {
 	now := time.Now()
 	lines := []string{line}
 
-	tail.IsSending = true
-	defer func() { tail.IsSending = false }()
 	// Split longer lines
 	if tail.MaxLineSize > 0 && len(line) > tail.MaxLineSize {
 		lines = util.PartitionString(line, tail.MaxLineSize)
