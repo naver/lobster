@@ -21,6 +21,7 @@ import (
 	"log"
 	"os"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/golang/glog"
@@ -183,7 +184,7 @@ func (t *Tailer) drain() {
 		close(t.LogChan)
 	}
 
-	for t.tail.IsTailing {
+	for atomic.LoadInt32(&t.tail.IsTailing) == 1 {
 		select {
 		case <-t.tail.Lines:
 		default:

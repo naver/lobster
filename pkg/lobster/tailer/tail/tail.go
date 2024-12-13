@@ -11,6 +11,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/golang/glog"
@@ -77,7 +78,7 @@ type Config struct {
 type Tail struct {
 	Filename  string
 	Lines     chan *Line
-	IsTailing bool
+	IsTailing int32
 	Config
 
 	file   *os.File
@@ -108,9 +109,10 @@ func TailFile(filename string, config Config) (*Tail, error) {
 	}
 
 	t := &Tail{
-		Filename: filename,
-		Lines:    make(chan *Line),
-		Config:   config,
+		Filename:  filename,
+		Lines:     make(chan *Line),
+		Config:    config,
+		IsTailing: 1,
 	}
 
 	// when Logger was not specified in config, use default logger
@@ -233,11 +235,9 @@ func (tail *Tail) readLine() (string, error) {
 }
 
 func (tail *Tail) tailFileSync() {
-	defer func() { tail.IsTailing = false }()
+	defer func() { atomic.StoreInt32(&tail.IsTailing, 0) }()
 	defer tail.Done()
 	defer tail.close()
-
-	tail.IsTailing = true
 
 	if !tail.MustExist {
 		// deferred first open.
