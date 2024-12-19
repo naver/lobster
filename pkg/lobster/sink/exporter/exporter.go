@@ -144,7 +144,7 @@ func (e *LogExporter) export(current time.Time, uploader uploader.Uploader, orde
 		glog.Error(err)
 	}
 	if !ok {
-		receipt = e.counter.Produce(0, current.Add(-interval), interval, current)
+		receipt = e.counter.Produce(0, current.Add(-interval), interval, current.Add(-interval))
 	}
 
 	defer func(key string, receipt *counter.Receipt) {
