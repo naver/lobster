@@ -242,7 +242,12 @@ func (e *LogExporter) getAndExportLogs(uploader uploader.Uploader, request query
 func parseStart(data []byte) (time.Time, error) {
 	index := bytes.IndexAny(data, "\n")
 	if index < 0 {
-		return time.Time{}, fmt.Errorf("failed to parse start")
+		t, err := logline.ParseTimestamp(string(data))
+		if err != nil {
+			return time.Time{}, errors.Wrap(err, "failed to parse start")
+		}
+
+		return t, nil
 	}
 
 	return logline.ParseTimestamp(string(data[:index]))
