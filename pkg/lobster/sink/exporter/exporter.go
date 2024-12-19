@@ -118,10 +118,10 @@ func (e *LogExporter) Run(stopChan chan struct{}) {
 				exportedBytes, err := e.export(current, uploader, order, *chunk)
 				if err != nil {
 					glog.Errorf("%s : %v", err.Error(), order.Request)
-					metrics.AddSinkFailure(order.Request, order.SinkNamespace, order.SinkName, order.SinkType, bkt.Name())
+					metrics.AddSinkFailure(order.Request, order.SinkNamespace, order.SinkName, uploader.Type(), uploader.Name())
 				}
 
-				metrics.AddSinkLogBytes(order.Request, order.SinkNamespace, order.SinkName, order.SinkType, bkt.Name(), float64(exportedBytes))
+				metrics.AddSinkLogBytes(order.Request, order.SinkNamespace, order.SinkName, uploader.Type(), uploader.Name(), float64(exportedBytes))
 			}
 
 			recentOrders = copyOrders(newOrders)
