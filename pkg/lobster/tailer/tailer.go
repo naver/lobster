@@ -177,6 +177,7 @@ func (t *Tailer) doStop() {
 
 func (t *Tailer) drain() {
 	t.tail.Kill(nil)
+	t.tail.Cleanup()
 
 	select {
 	case <-t.LogChan:
