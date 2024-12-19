@@ -47,6 +47,9 @@ func New(order order.Order) (Uploader, error) {
 	if order.LogExportRule.BasicBucket != nil {
 		return NewBasicUploader(order), nil
 	}
+	if order.LogExportRule.Kafka != nil {
+		return NewKafkaUploader(order), nil
+	}
 
 	return nil, errors.New("no proper log export rules are found")
 }

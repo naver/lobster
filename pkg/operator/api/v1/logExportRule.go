@@ -37,6 +37,8 @@ type LogExportRule struct {
 	BasicBucket *BasicBucket `json:"basicBucket,omitempty"`
 	// Settings required to export logs to S3 bucket
 	S3Bucket *S3Bucket `json:"s3Bucket,omitempty"`
+	// Settings required to export logs to Kafka
+	Kafka *Kafka `json:"kafka,omitempty"`
 	// Generate metrics from logs by specifying the target or log content
 	Filter Filter `json:"filter,omitempty"`
 	// Interval to export logs

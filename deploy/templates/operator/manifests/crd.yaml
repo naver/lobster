@@ -123,6 +123,72 @@ spec:
                     interval:
                       description: Interval to export logs
                       type: string
+                    kafka:
+                      description: Settings required to export logs to Kafka
+                      properties:
+                        brokers:
+                          description: Target kafka broker servers to send logs
+                          items:
+                            type: string
+                          type: array
+                        clientId:
+                          description: An identifier to distinguish request; default
+                            `lobster`
+                          type: string
+                        key:
+                          description: Target key to which logs will be exported (optional)
+                          type: string
+                        partition:
+                          description: Target partition to which logs will be exported
+                            (optional)
+                          format: int32
+                          type: integer
+                        sasl:
+                          description: SASL configuration
+                          properties:
+                            accessToken:
+                              description: OAuth access token
+                              type: string
+                            enable:
+                              description: Whether or not to use SASL authentication
+                              type: boolean
+                            handshake:
+                              description: Kafka SASL handshake
+                              type: boolean
+                            mechanism:
+                              description: Enabled SASL mechanism
+                              type: string
+                            password:
+                              description: Password for SASL/PLAIN authentication
+                              type: string
+                            user:
+                              description: SASL/PLAIN or SASL/SCRAM authentication
+                              type: string
+                            version:
+                              description: SASL Protocol Version
+                              type: integer
+                          type: object
+                        tls:
+                          description: TLS configuration
+                          properties:
+                            caCertificate:
+                              description: CA certificate for TLS
+                              type: string
+                            enable:
+                              description: Whether or not to use TLS
+                              type: boolean
+                            insecureSkipVerify:
+                              description: Whether or not to skip verification of
+                                CA certificate in client
+                              type: boolean
+                          type: object
+                        topic:
+                          description: Target topic to which logs will be exported
+                            (required)
+                          type: string
+                      required:
+                      - topic
+                      type: object
                     name:
                       description: Rule name
                       type: string
