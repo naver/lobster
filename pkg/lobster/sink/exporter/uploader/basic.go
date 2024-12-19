@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package bucket
+package uploader
 
 import (
 	"bytes"
@@ -34,14 +34,13 @@ import (
 	"github.com/naver/lobster/pkg/lobster/sink/order"
 )
 
-type BasicBucket struct {
-	httpClient     *http.Client
-	Order          order.Order
-	LastUploadTime time.Time
+type BasicUploader struct {
+	httpClient *http.Client
+	Order      order.Order
 }
 
-func NewBasicBucket(order order.Order) BasicBucket {
-	return BasicBucket{
+func NewBasicUploader(order order.Order) BasicUploader {
+	return BasicUploader{
 		httpClient: &http.Client{
 			Timeout: 10 * time.Second,
 			Transport: &http.Transport{
@@ -56,24 +55,23 @@ func NewBasicBucket(order order.Order) BasicBucket {
 				TLSHandshakeTimeout: time.Second,
 			},
 		},
-		Order:          order,
-		LastUploadTime: time.Now(),
+		Order: order,
 	}
 }
 
-func (b BasicBucket) Type() string {
-	return b.Order.SinkType
+func (b BasicUploader) Type() string {
+	return "BasicBucket"
 }
 
-func (b BasicBucket) Name() string {
+func (b BasicUploader) Name() string {
 	return b.Order.LogExportRule.Name
 }
 
-func (b BasicBucket) Interval() time.Duration {
+func (b BasicUploader) Interval() time.Duration {
 	return b.Order.LogExportRule.Interval.Duration
 }
 
-func (b BasicBucket) Dir(chunk model.Chunk, date time.Time) string {
+func (b BasicUploader) Dir(chunk model.Chunk, date time.Time) string {
 	dirPath := b.Order.Path()
 	layout := b.Order.LogExportRule.BasicBucket.TimeLayoutOfSubDirectory
 
@@ -90,7 +88,7 @@ func (b BasicBucket) Dir(chunk model.Chunk, date time.Time) string {
 		dirPath)
 }
 
-func (b BasicBucket) FileName(start, end time.Time) string {
+func (b BasicUploader) FileName(start, end time.Time) string {
 	fileName := fmt.Sprintf("%s_%s.log", start.Format(layoutFileName), end.Format(layoutFileName))
 
 	if b.Order.LogExportRule.ShouldEncodeFileName {
@@ -100,11 +98,11 @@ func (b BasicBucket) FileName(start, end time.Time) string {
 	return fileName
 }
 
-func (b BasicBucket) Validate() error {
+func (b BasicUploader) Validate() error {
 	return b.Order.LogExportRule.BasicBucket.Validate()
 }
 
-func (b BasicBucket) Flush(data []byte, dir, fileName string) error {
+func (b BasicUploader) Upload(data []byte, dir, fileName string) error {
 	u, err := url.Parse(b.Order.LogExportRule.BasicBucket.Destination)
 	if err != nil {
 		return err

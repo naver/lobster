@@ -18,7 +18,6 @@ package exporter
 
 import (
 	"bytes"
-	"fmt"
 	"log"
 	"time"
 
@@ -28,8 +27,8 @@ import (
 	"github.com/naver/lobster/pkg/lobster/metrics"
 	"github.com/naver/lobster/pkg/lobster/model"
 	"github.com/naver/lobster/pkg/lobster/query"
-	"github.com/naver/lobster/pkg/lobster/sink/exporter/bucket"
 	"github.com/naver/lobster/pkg/lobster/sink/exporter/counter"
+	"github.com/naver/lobster/pkg/lobster/sink/exporter/uploader"
 	"github.com/naver/lobster/pkg/lobster/sink/helper"
 	"github.com/naver/lobster/pkg/lobster/sink/manager"
 	"github.com/naver/lobster/pkg/lobster/sink/order"
@@ -100,13 +99,13 @@ func (e *LogExporter) Run(stopChan chan struct{}) {
 			})
 
 			for _, order := range recentOrders {
-				bkt, err := bucket.New(order)
+				uploader, err := uploader.New(order)
 				if err != nil {
 					glog.Error(err)
 					continue
 				}
 
-				if err := bkt.Validate(); err != nil {
+				if err := uploader.Validate(); err != nil {
 					glog.Error(err)
 					continue
 				}
@@ -116,19 +115,19 @@ func (e *LogExporter) Run(stopChan chan struct{}) {
 					continue
 				}
 
-				exportedBytes, err := e.exportToBucket(current, bkt, order, *chunk)
+				exportedBytes, err := e.export(current, uploader, order, *chunk)
 				if err != nil {
 					glog.Errorf("%s : %v", err.Error(), order.Request)
-					metrics.AddSinkFailure(order.Request, order.SinkNamespace, order.SinkName, order.SinkType, bkt.Name())
+					metrics.AddSinkFailure(order.Request, order.SinkNamespace, order.SinkName, uploader.Type(), uploader.Name())
 				}
 
-				metrics.AddSinkLogBytes(order.Request, order.SinkNamespace, order.SinkName, order.SinkType, bkt.Name(), float64(exportedBytes))
+				metrics.AddSinkLogBytes(order.Request, order.SinkNamespace, order.SinkName, uploader.Type(), uploader.Name(), float64(exportedBytes))
 			}
 
 			recentOrders = copyOrders(newOrders)
 			metrics.ClearSinkMetrics()
 			e.store.Clear()
-			e.counter.Clean()
+			e.counter.Clean(current)
 			metrics.ObserveExporterHandleSeconds(time.Since(now).Seconds())
 		case <-stopChan:
 			glog.Info("stop exporter")
@@ -137,15 +136,15 @@ func (e *LogExporter) Run(stopChan chan struct{}) {
 	}
 }
 
-func (e *LogExporter) exportToBucket(current time.Time, bucket bucket.Bucket, order order.Order, chunk model.Chunk) (int, error) {
+func (e *LogExporter) export(current time.Time, uploader uploader.Uploader, order order.Order, chunk model.Chunk) (int, error) {
 	key := order.Key()
-	interval := bucket.Interval()
+	interval := uploader.Interval()
 	receipt, ok, err := e.counter.Load(key)
 	if err != nil {
 		glog.Error(err)
 	}
 	if !ok {
-		receipt = e.counter.Produce(0, current.Add(-interval), interval, current)
+		receipt = e.counter.Produce(0, current.Add(-interval), interval, current.Add(-interval))
 	}
 
 	defer func(key string, receipt *counter.Receipt) {
@@ -159,8 +158,7 @@ func (e *LogExporter) exportToBucket(current time.Time, bucket bucket.Bucket, or
 	}
 
 	start, end := e.makeTimeRange(receipt.LogTime, current)
-	logTs, total, err := e.getAndExportLogs(bucket, order.Request, chunk, start, end)
-
+	logTs, total, err := e.getAndExportLogs(uploader, order.Request, chunk, start, end)
 	if logTs.IsZero() {
 		logTs = current
 	}
@@ -182,7 +180,7 @@ func (e *LogExporter) makeTimeRange(logTime, current time.Time) (time.Time, time
 	return logTime.Add(time.Nanosecond), current
 }
 
-func (e *LogExporter) getAndExportLogs(bucket bucket.Bucket, request query.Request, chunk model.Chunk, start, end time.Time) (time.Time, int, error) {
+func (e *LogExporter) getAndExportLogs(uploader uploader.Uploader, request query.Request, chunk model.Chunk, start, end time.Time) (time.Time, int, error) {
 	ts := time.Time{}
 	total := 0
 	hasNext := true
@@ -225,10 +223,10 @@ func (e *LogExporter) getAndExportLogs(bucket bucket.Bucket, request query.Reque
 			return time.Time{}, 0, err
 		}
 
-		fileName := bucket.FileName(pStart, pEnd)
-		dir := bucket.Dir(chunk, start)
+		fileName := uploader.FileName(pStart, pEnd)
+		dir := uploader.Dir(chunk, start)
 
-		if err := bucket.Flush(data, dir, fileName); err != nil {
+		if err := uploader.Upload(data, dir, fileName); err != nil {
 			return time.Time{}, 0, err
 		}
 
@@ -244,7 +242,12 @@ func (e *LogExporter) getAndExportLogs(bucket bucket.Bucket, request query.Reque
 func parseStart(data []byte) (time.Time, error) {
 	index := bytes.IndexAny(data, "\n")
 	if index < 0 {
-		return time.Time{}, fmt.Errorf("failed to parse start")
+		t, err := logline.ParseTimestamp(string(data))
+		if err != nil {
+			return time.Time{}, errors.Wrap(err, "failed to parse start")
+		}
+
+		return t, nil
 	}
 
 	return logline.ParseTimestamp(string(data[:index]))
