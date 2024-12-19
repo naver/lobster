@@ -13,7 +13,7 @@ var (
 	SHA512 scram.HashGeneratorFcn = sha512.New
 )
 
-// XDGSCRAMClient implements sarama.SCRAMClient
+// XDGSCRAMClient implements sarama.SCRAMClient.
 type XDGSCRAMClient struct {
 	*scram.Client
 	*scram.ClientConversation

@@ -41,7 +41,7 @@ type TokenProvider struct {
 // In OAuth authentication, the required credentials
 // for authentication vary across different systems
 // Therefore, Lobster does not perform OAuth authentication
-// directly but instead relies on the user to provide the access token
+// directly but instead relies on the user to provide the access token.
 func (t TokenProvider) Token() (*sarama.AccessToken, error) {
 	return &sarama.AccessToken{Token: t.token}, nil
 }
@@ -165,8 +165,8 @@ func newConfig(kafka *v1.Kafka) (*sarama.Config, error) {
 
 func newMessages(kafka *v1.Kafka, data []byte) []*sarama.ProducerMessage {
 	var (
-		start    = 0
-		index    = 0
+		start    int
+		index    int
 		b        byte
 		messages = []*sarama.ProducerMessage{}
 	)
