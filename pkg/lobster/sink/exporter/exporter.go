@@ -127,7 +127,7 @@ func (e *LogExporter) Run(stopChan chan struct{}) {
 			recentOrders = copyOrders(newOrders)
 			metrics.ClearSinkMetrics()
 			e.store.Clear()
-			e.counter.Clean()
+			e.counter.Clean(current)
 			metrics.ObserveExporterHandleSeconds(time.Since(now).Seconds())
 		case <-stopChan:
 			glog.Info("stop exporter")

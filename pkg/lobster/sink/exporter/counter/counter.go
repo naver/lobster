@@ -77,8 +77,7 @@ func (c Counter) Store(key string, receipt Receipt) error {
 	return c.db.Put(bucketName, []byte(key), data)
 }
 
-func (c Counter) Clean() {
-	now := time.Now()
+func (c Counter) Clean(current time.Time) {
 	targets := [][]byte{}
 
 	if err := c.db.ForEach(bucketName, func(k, v []byte) error {
@@ -89,7 +88,7 @@ func (c Counter) Clean() {
 			return nil
 		}
 
-		if receipt.ExportInterval.Seconds() != 0 && !receipt.IsStale(now) {
+		if receipt.ExportInterval.Seconds() != 0 && !receipt.IsStale(current) {
 			return nil
 		}
 
