@@ -270,7 +270,6 @@ func readBlock(sourceType string, block model.ReadableBlock, blockPath string, o
 
 	numOfBytes, err := readFile(f, blkReader.block)
 	if err != nil && err != io.ErrUnexpectedEOF {
-		glog.Error(err)
 		return true, nil
 	}
 
