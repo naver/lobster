@@ -89,6 +89,7 @@ spec:
           - --model.clusterName={{ .Values.cluster }}
           - --logline.format={{ .Values.loglineFormat | default "text" }}
           - --sink.exporter.dataPath={{ .Values.store.options.storeHostPath }}
+          - --sink.exporter.inspectInterval={{ .Values.exporter.options.inspectInterval }}
           env:
           - name: NODE_NAME
             valueFrom:
