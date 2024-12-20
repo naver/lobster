@@ -69,6 +69,7 @@ exporter:
     metricPort: 8882
     pushPort: 80
     lobsterSyncerAddress: lobster-syncer:80
+    inspectInterval: 1m
   
 syncer:
   service:
