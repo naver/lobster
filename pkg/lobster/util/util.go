@@ -17,6 +17,7 @@
 package util
 
 import (
+	"crypto/x509"
 	"fmt"
 	"io"
 	"net"
@@ -222,4 +223,14 @@ func CountSubDirectories(dir string) (int, error) {
 	}
 
 	return n, nil
+}
+
+func NewCertPoolForRootCA(caCert []byte) (*x509.CertPool, error) {
+	pool := x509.NewCertPool()
+
+	if !pool.AppendCertsFromPEM(caCert) {
+		return nil, fmt.Errorf("failed to append CA certificate to pool")
+	}
+
+	return pool, nil
 }

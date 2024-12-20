@@ -288,6 +288,50 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.Kafka": {
+            "type": "object",
+            "properties": {
+                "brokers": {
+                    "description": "Target kafka broker servers to send logs",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "clientId": {
+                    "description": "An identifier to distinguish request; default ` + "`" + `lobster` + "`" + `",
+                    "type": "string"
+                },
+                "key": {
+                    "description": "Target key to which logs will be exported (optional)",
+                    "type": "string"
+                },
+                "partition": {
+                    "description": "Target partition to which logs will be exported (optional)",
+                    "type": "integer"
+                },
+                "sasl": {
+                    "description": "SASL configuration",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.SASL"
+                        }
+                    ]
+                },
+                "tls": {
+                    "description": "TLS configuration",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.TLS"
+                        }
+                    ]
+                },
+                "topic": {
+                    "description": "Target topic to which logs will be exported (required)",
+                    "type": "string"
+                }
+            }
+        },
         "v1.LogExportRule": {
             "type": "object",
             "properties": {
@@ -315,6 +359,14 @@ const docTemplate = `{
                     "description": "Interval to export logs",
                     "type": "string",
                     "example": "time duration(e.g. 1m)"
+                },
+                "kafka": {
+                    "description": "Settings required to export logs to Kafka",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.Kafka"
+                        }
+                    ]
                 },
                 "name": {
                     "description": "Rule name",
@@ -397,6 +449,39 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.SASL": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "description": "OAuth access token",
+                    "type": "string"
+                },
+                "enable": {
+                    "description": "Whether or not to use SASL authentication",
+                    "type": "boolean"
+                },
+                "handshake": {
+                    "description": "Kafka SASL handshake",
+                    "type": "boolean"
+                },
+                "mechanism": {
+                    "description": "Enabled SASL mechanism",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "Password for SASL/PLAIN authentication",
+                    "type": "string"
+                },
+                "user": {
+                    "description": "SASL/PLAIN or SASL/SCRAM authentication",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "SASL Protocol Version",
+                    "type": "integer"
+                }
+            }
+        },
         "v1.Sink": {
             "type": "object",
             "properties": {
@@ -434,6 +519,23 @@ const docTemplate = `{
                 },
                 "type": {
                     "type": "string"
+                }
+            }
+        },
+        "v1.TLS": {
+            "type": "object",
+            "properties": {
+                "caCertificate": {
+                    "description": "CA certificate for TLS",
+                    "type": "string"
+                },
+                "enable": {
+                    "description": "Whether or not to use TLS",
+                    "type": "boolean"
+                },
+                "insecureSkipVerify": {
+                    "description": "Whether or not to skip verification of CA certificate in client",
+                    "type": "boolean"
                 }
             }
         },

@@ -57,6 +57,34 @@ definitions:
           $ref: '#/definitions/v1.Source'
         type: array
     type: object
+  v1.Kafka:
+    properties:
+      brokers:
+        description: Target kafka broker servers to send logs
+        items:
+          type: string
+        type: array
+      clientId:
+        description: An identifier to distinguish request; default `lobster`
+        type: string
+      key:
+        description: Target key to which logs will be exported (optional)
+        type: string
+      partition:
+        description: Target partition to which logs will be exported (optional)
+        type: integer
+      sasl:
+        allOf:
+        - $ref: '#/definitions/v1.SASL'
+        description: SASL configuration
+      tls:
+        allOf:
+        - $ref: '#/definitions/v1.TLS'
+        description: TLS configuration
+      topic:
+        description: Target topic to which logs will be exported (required)
+        type: string
+    type: object
   v1.LogExportRule:
     properties:
       basicBucket:
@@ -74,6 +102,10 @@ definitions:
         description: Interval to export logs
         example: time duration(e.g. 1m)
         type: string
+      kafka:
+        allOf:
+        - $ref: '#/definitions/v1.Kafka'
+        description: Settings required to export logs to Kafka
       name:
         description: Rule name
         type: string
@@ -129,6 +161,30 @@ definitions:
           following `{Root path}` to a time-based layout
         type: string
     type: object
+  v1.SASL:
+    properties:
+      accessToken:
+        description: OAuth access token
+        type: string
+      enable:
+        description: Whether or not to use SASL authentication
+        type: boolean
+      handshake:
+        description: Kafka SASL handshake
+        type: boolean
+      mechanism:
+        description: Enabled SASL mechanism
+        type: string
+      password:
+        description: Password for SASL/PLAIN authentication
+        type: string
+      user:
+        description: SASL/PLAIN or SASL/SCRAM authentication
+        type: string
+      version:
+        description: SASL Protocol Version
+        type: integer
+    type: object
   v1.Sink:
     properties:
       description:
@@ -154,6 +210,18 @@ definitions:
         type: string
       type:
         type: string
+    type: object
+  v1.TLS:
+    properties:
+      caCertificate:
+        description: CA certificate for TLS
+        type: string
+      enable:
+        description: Whether or not to use TLS
+        type: boolean
+      insecureSkipVerify:
+        description: Whether or not to skip verification of CA certificate in client
+        type: boolean
     type: object
   v1.Tags:
     additionalProperties:
