@@ -8,7 +8,8 @@
   - There may be a discrepancy between the timestamp in the log and the time of logging, resulting in inconsistencies such as querying logs outside their intended time period
 - Measures taken
   - Logs are collected and sorted in chronological order within a specified time period before being stored
-    Logs are collected and sorted before retrieval
+    - This operation is performed only within the `store.leakyBucketInterval (default 1s)`
+    - Logs with a timestamp difference greater than this interval are written directly without reordering
   - This issue can occur if logs arrive in reverse order during the collection and storage cycle
 
 ### Explanation of each file log rotation method

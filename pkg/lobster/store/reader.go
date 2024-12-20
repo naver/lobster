@@ -217,16 +217,12 @@ func readBlocks(chunk model.Chunk, storeRootkDir string, onlySeries bool, start 
 		return nil, []model.Bucket{}, errors.New("invalid range")
 	}
 
-	prevTs := time.Time{}
 	for _, block := range blocks {
 		if !(block.StartTime().Before(end) && block.EndTime().After(start)) {
 			continue
 		}
 
-		skip, err := readBlock(chunk.Source.Type, block, fmt.Sprintf("%s/%s/%s", storeRootkDir, chunk.RelativeBlockDir, block.FileName()), onlySeries, buffer, bucketBuilder, prevTs, start, end, filterers...)
-		if prevTs.Before(block.EndTime()) {
-			prevTs = block.EndTime()
-		}
+		skip, err := readBlock(chunk.Source.Type, block, fmt.Sprintf("%s/%s/%s", storeRootkDir, chunk.RelativeBlockDir, block.FileName()), onlySeries, buffer, bucketBuilder, start, end, filterers...)
 		if skip {
 			continue
 		}
@@ -240,8 +236,11 @@ func readBlocks(chunk model.Chunk, storeRootkDir string, onlySeries bool, start 
 	return buffer.Bytes(), bucketBuilder.Build(), nil
 }
 
-func readBlock(sourceType string, block model.ReadableBlock, blockPath string, onlySeries bool, buffer *bytes.Buffer, bucketBuilder *model.BucketBuilder, prevTs, start, end time.Time, filterers ...filter.Filterer) (bool, error) {
-	var blkReader *blockReader
+func readBlock(sourceType string, block model.ReadableBlock, blockPath string, onlySeries bool, buffer *bytes.Buffer, bucketBuilder *model.BucketBuilder, start, end time.Time, filterers ...filter.Filterer) (bool, error) {
+	var (
+		blkReader    *blockReader
+		isStartFound bool
+	)
 
 	f, err := directio.OpenFile(blockPath, os.O_RDONLY, 0)
 	if err != nil {
@@ -296,13 +295,10 @@ func readBlock(sourceType string, block model.ReadableBlock, blockPath string, o
 			continue
 		}
 
-		if !prevTs.IsZero() && (ts.Before(prevTs) || ts.Equal(prevTs)) {
-			continue // prevent to read duplicated contents
-		}
-
-		if ts.Before(start) {
+		if !isStartFound && ts.Before(start) {
 			continue
 		}
+		isStartFound = true
 
 		if ts.After(end) {
 			break
