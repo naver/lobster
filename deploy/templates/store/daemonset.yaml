@@ -44,6 +44,7 @@ spec:
           - --client.hostName=$(NODE_NAME)
           - --logline.format={{ .Values.loglineFormat | default "text" }}
           - --store.storeRootPath={{ .Values.store.options.storeRootPath }}
+          - --store.retentionSize={{ .Values.store.options.retentionSize | int64 }}
           - --distributor.matchLookbackMin={{ .Values.store.options.matchLookbackMin }}
           - --distributor.stdstreamLogRootPath={{ .Values.store.options.stdstreamLogRootPath }}
           - --distributor.emptyDirLogRootPath={{ .Values.store.options.emptyDirLogRootPath }}
