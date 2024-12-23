@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"syscall"
 	"time"
 
 	"github.com/naver/lobster/pkg/lobster/query"
@@ -40,21 +41,20 @@ func (r RenamedFileStub) GenerateLogs(conf Config, stopChan chan struct{}) {
 	if err != nil {
 		panic(err)
 	}
-	defer func() {
-		if cErr := logFile.Close(); err == nil {
-			err = cErr
-		}
-	}()
+	defer logFile.Close()
 
-	interval := 10 * time.Millisecond
-	logger := log.New(logFile, "", 0)
-	ticker := time.NewTicker(interval)
+	var (
+		logger    = log.New(logFile, "", 0)
+		ticker    = time.NewTicker(100 * time.Millisecond)
+		lastInode = getFileInode(*conf.RenamedFileLogPath)
+	)
+
 	go func() {
 		for {
 			select {
 			case <-ticker.C:
-				stat, err := os.Stat(*conf.RenamedFileLogPath)
-				if err != nil || time.Since(stat.ModTime()) < interval*2 {
+				currentInode := getFileInode(*conf.RenamedFileLogPath)
+				if currentInode != lastInode {
 					newLogFile, err := os.OpenFile(*conf.RenamedFileLogPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
 					if err != nil {
 						panic(err)
@@ -62,6 +62,7 @@ func (r RenamedFileStub) GenerateLogs(conf Config, stopChan chan struct{}) {
 					logger.SetOutput(newLogFile)
 					logFile.Close()
 					logFile = newLogFile
+					lastInode = currentInode
 				}
 			case <-stopChan:
 				ticker.Stop()
@@ -85,4 +86,13 @@ func (r RenamedFileStub) Query() query.Request {
 		Page:              -1,
 		FilterIncludeExpr: r.Keyword(),
 	}
+}
+
+func getFileInode(filePath string) uint64 {
+	stat, _ := os.Stat(filePath)
+	if stat == nil {
+		return 0
+	}
+
+	return stat.Sys().(*syscall.Stat_t).Ino
 }
