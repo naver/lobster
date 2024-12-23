@@ -52,6 +52,7 @@ store:
     matchLookbackMin: 1m
     shouldUpdateLogMatcher: false
     dockerLogPath: /var/lib/docker
+    retentionSize: 2147483648
 
 loggen:
   pod:
