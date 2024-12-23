@@ -43,7 +43,7 @@ func generateLogs(logger *log.Logger, conf Config, stopChan chan struct{}, logFo
 			str.WriteString(fmt.Sprintf("%d", i))
 		}
 
-		logSequences = append(logSequences, logFormatter(str.String()))
+		logSequences = append(logSequences, str.String())
 	}
 
 	for {
@@ -52,7 +52,7 @@ func generateLogs(logger *log.Logger, conf Config, stopChan chan struct{}, logFo
 			index = (index + 1) % 10
 
 			for i := 0; i < *conf.LogLines; i++ {
-				logger.Print(logSequences[index])
+				logger.Print(logFormatter(logSequences[index]))
 			}
 
 		case <-stopChan:
