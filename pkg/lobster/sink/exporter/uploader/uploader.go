@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package bucket
+package uploader
 
 import (
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/naver/lobster/pkg/lobster/model"
@@ -30,8 +30,8 @@ const (
 	timeout        = 10 * time.Second
 )
 
-type Bucket interface {
-	Flush([]byte, string, string) error
+type Uploader interface {
+	Upload([]byte, string, string) error
 	Interval() time.Duration
 	Type() string
 	Name() string
@@ -40,13 +40,16 @@ type Bucket interface {
 	Validate() error
 }
 
-func New(order order.Order) (Bucket, error) {
+func New(order order.Order) (Uploader, error) {
 	if order.LogExportRule.S3Bucket != nil {
-		return NewS3Bucket(order), nil
+		return NewS3Uploader(order), nil
 	}
 	if order.LogExportRule.BasicBucket != nil {
-		return NewBasicBucket(order), nil
+		return NewBasicUploader(order), nil
+	}
+	if order.LogExportRule.Kafka != nil {
+		return NewKafkaUploader(order), nil
 	}
 
-	return nil, fmt.Errorf("not supported type %s", order.SinkType)
+	return nil, errors.New("no proper log export rules are found")
 }

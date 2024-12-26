@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package bucket
+package uploader
 
 import (
 	"bytes"
@@ -35,31 +35,29 @@ import (
 
 var defaultRegion = aws.String("US")
 
-type S3Bucket struct {
-	Order          order.Order
-	LastUploadTime time.Time
+type S3Uploader struct {
+	Order order.Order
 }
 
-func NewS3Bucket(order order.Order) S3Bucket {
-	return S3Bucket{
-		Order:          order,
-		LastUploadTime: time.Now(),
+func NewS3Uploader(order order.Order) S3Uploader {
+	return S3Uploader{
+		Order: order,
 	}
 }
 
-func (s S3Bucket) Type() string {
-	return s.Order.SinkType
+func (s S3Uploader) Type() string {
+	return "S3"
 }
 
-func (s S3Bucket) Name() string {
+func (s S3Uploader) Name() string {
 	return s.Order.LogExportRule.Name
 }
 
-func (s S3Bucket) Interval() time.Duration {
+func (s S3Uploader) Interval() time.Duration {
 	return s.Order.LogExportRule.Interval.Duration
 }
 
-func (s S3Bucket) Dir(chunk model.Chunk, date time.Time) string {
+func (s S3Uploader) Dir(chunk model.Chunk, date time.Time) string {
 	dirPath := s.Order.Path()
 	layout := s.Order.LogExportRule.S3Bucket.TimeLayoutOfSubDirectory
 
@@ -76,7 +74,7 @@ func (s S3Bucket) Dir(chunk model.Chunk, date time.Time) string {
 		dirPath)
 }
 
-func (b S3Bucket) FileName(start, end time.Time) string {
+func (b S3Uploader) FileName(start, end time.Time) string {
 	fileName := fmt.Sprintf("%s_%s.log", start.Format(layoutFileName), end.Format(layoutFileName))
 
 	if b.Order.LogExportRule.ShouldEncodeFileName {
@@ -86,11 +84,11 @@ func (b S3Bucket) FileName(start, end time.Time) string {
 	return fileName
 }
 
-func (s S3Bucket) Validate() error {
+func (s S3Uploader) Validate() error {
 	return s.Order.LogExportRule.S3Bucket.Validate()
 }
 
-func (s S3Bucket) Flush(data []byte, dir, fileName string) error {
+func (s S3Uploader) Upload(data []byte, dir, fileName string) error {
 	s3Session, err := session.NewSession(&aws.Config{
 		Endpoint:         aws.String(s.Order.LogExportRule.S3Bucket.Destination),
 		Credentials:      credentials.NewStaticCredentials(s.Order.LogExportRule.S3Bucket.AccessKey, s.Order.LogExportRule.S3Bucket.SecretKey, ""),
