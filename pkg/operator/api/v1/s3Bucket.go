@@ -53,6 +53,8 @@ type S3Bucket struct {
 	SecretKey string `json:"secretKey,omitempty"`
 	// Tags for objects to be stored
 	Tags Tags `json:"tags,omitempty"`
+	// Provide an option to convert '+' to '%2B' to address issues in certain web environments where '+' is misinterpreted
+	ShouldEncodeFileName bool `json:"shouldEncodeFileName,omitempty"`
 }
 
 func (s S3Bucket) Validate() error {

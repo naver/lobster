@@ -219,6 +219,10 @@ const docTemplate = `{
                     "description": "Root directory to store logs within external storage",
                     "type": "string"
                 },
+                "shouldEncodeFileName": {
+                    "description": "Provide an option to convert '+' to '%2B' to address issues in certain web environments where '+' is misinterpreted",
+                    "type": "boolean"
+                },
                 "timeLayoutOfSubDirectory": {
                     "description": "An option(default ` + "`" + `2006-01` + "`" + `) that sets the name of the sub-directory following ` + "`" + `{Root path}` + "`" + ` to a time-based layout",
                     "type": "string",
@@ -379,10 +383,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/v1.S3Bucket"
                         }
                     ]
-                },
-                "shouldEncodeFileName": {
-                    "description": "Provide an option to convert '+' to '%2B' to address issues in certain web environments where '+' is misinterpreted",
-                    "type": "boolean"
                 }
             }
         },
@@ -433,6 +433,10 @@ const docTemplate = `{
                 "secretKey": {
                     "description": "S3 bucket secret key",
                     "type": "string"
+                },
+                "shouldEncodeFileName": {
+                    "description": "Provide an option to convert '+' to '%2B' to address issues in certain web environments where '+' is misinterpreted",
+                    "type": "boolean"
                 },
                 "tags": {
                     "description": "Tags for objects to be stored",

@@ -7,6 +7,10 @@ definitions:
       rootPath:
         description: Root directory to store logs within external storage
         type: string
+      shouldEncodeFileName:
+        description: Provide an option to convert '+' to '%2B' to address issues in
+          certain web environments where '+' is misinterpreted
+        type: boolean
       timeLayoutOfSubDirectory:
         default: 2006-01
         description: An option(default `2006-01`) that sets the name of the sub-directory
@@ -113,10 +117,6 @@ definitions:
         allOf:
         - $ref: '#/definitions/v1.S3Bucket'
         description: Settings required to export logs to S3 bucket
-      shouldEncodeFileName:
-        description: Provide an option to convert '+' to '%2B' to address issues in
-          certain web environments where '+' is misinterpreted
-        type: boolean
     type: object
   v1.LogMetricRule:
     properties:
@@ -151,6 +151,10 @@ definitions:
       secretKey:
         description: S3 bucket secret key
         type: string
+      shouldEncodeFileName:
+        description: Provide an option to convert '+' to '%2B' to address issues in
+          certain web environments where '+' is misinterpreted
+        type: boolean
       tags:
         allOf:
         - $ref: '#/definitions/v1.Tags'

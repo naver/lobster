@@ -77,7 +77,7 @@ func (s S3Uploader) Dir(chunk model.Chunk, date time.Time) string {
 func (b S3Uploader) FileName(start, end time.Time) string {
 	fileName := fmt.Sprintf("%s_%s.log", start.Format(layoutFileName), end.Format(layoutFileName))
 
-	if b.Order.LogExportRule.ShouldEncodeFileName {
+	if b.Order.LogExportRule.S3Bucket.ShouldEncodeFileName {
 		return strings.ReplaceAll(fileName, "+", "%2B")
 	}
 
