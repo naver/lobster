@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	MinBucketInterval = time.Minute
+	MinBucketInterval = 15 * time.Second
 	MaxBucketInterval = time.Hour
 )
 
@@ -43,8 +43,6 @@ type LogExportRule struct {
 	Filter Filter `json:"filter,omitempty"`
 	// Interval to export logs
 	Interval metav1.Duration `json:"interval,omitempty" swaggertype:"string" example:"time duration(e.g. 1m)"`
-	// Provide an option to convert '+' to '%2B' to address issues in certain web environments where '+' is misinterpreted
-	ShouldEncodeFileName bool `json:"shouldEncodeFileName,omitempty"`
 }
 
 func (r LogExportRule) Validate() error {
@@ -53,7 +51,7 @@ func (r LogExportRule) Validate() error {
 	}
 
 	if r.Interval.Seconds() < MinBucketInterval.Seconds() {
-		return fmt.Errorf("`interval` should be greater than or equal to %dm", int(MinBucketInterval.Minutes()))
+		return fmt.Errorf("`interval` should be greater than or equal to %dm", int(MinBucketInterval.Seconds()))
 	}
 
 	if MaxBucketInterval.Seconds() < r.Interval.Seconds() {
