@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	MinBucketInterval = time.Minute
+	MinBucketInterval = 15 * time.Second
 	MaxBucketInterval = time.Hour
 )
 
@@ -51,7 +51,7 @@ func (r LogExportRule) Validate() error {
 	}
 
 	if r.Interval.Seconds() < MinBucketInterval.Seconds() {
-		return fmt.Errorf("`interval` should be greater than or equal to %dm", int(MinBucketInterval.Minutes()))
+		return fmt.Errorf("`interval` should be greater than or equal to %dm", int(MinBucketInterval.Seconds()))
 	}
 
 	if MaxBucketInterval.Seconds() < r.Interval.Seconds() {
