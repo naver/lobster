@@ -17,11 +17,15 @@
 package v1
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
+	"regexp"
 
 	sinkV1 "github.com/naver/lobster/pkg/operator/api/v1"
 )
+
+var invalidNameCharacter = regexp.MustCompile(`[<>:"/\\|?*]`)
 
 type SinkContents interface {
 	GetNamespace() string
@@ -83,6 +87,10 @@ func ValidateContent(content interface{}) error {
 			return fmt.Errorf("duplicated name is not allowed '%s'", name)
 		}
 
+		if err := hasValidName(name); err != nil {
+			return err
+		}
+
 		existence[name] = true
 	}
 
@@ -123,4 +131,12 @@ func SearchContentToDelete(content interface{}, targetName string) int {
 	}
 
 	return -1
+}
+
+func hasValidName(name string) error {
+	if invalidNameCharacter.MatchString(name) {
+		return errors.New("invalid characters(<>:\"/\\) are included in name")
+	}
+
+	return nil
 }
