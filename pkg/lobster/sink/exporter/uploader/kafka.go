@@ -31,7 +31,7 @@ import (
 
 const (
 	defaultClientId = "lobster"
-	produceTimeout  = 5 * time.Second
+	dialTimeout     = time.Second
 )
 
 type TokenProvider struct {
@@ -106,6 +106,7 @@ func newConfig(kafka *v1.Kafka) (*sarama.Config, error) {
 
 	config.ClientID = defaultClientId
 	config.Producer.Return.Successes = true
+	config.Net.DialTimeout = dialTimeout
 
 	if kafka.TLS.Enable {
 		config.Net.TLS.Enable = true
