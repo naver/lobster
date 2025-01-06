@@ -60,7 +60,7 @@ func main() {
 	))
 
 	versionedRouter := router.PathPrefix(log.PathApi).Subrouter()
-	versionedRouter.Use(middleware.Metrics{}.Middleware)
+	versionedRouter.Use(middleware.Inspector{}.Middleware)
 	versionedRouter.Handle(log.PathLogs, log.ListHandler{Querier: querier})
 	versionedRouter.Handle(log.PathLogSeries, log.SeriesHandler{Querier: querier})
 	versionedRouter.Handle(log.PathLogRange, log.RangeHandler{Querier: querier})

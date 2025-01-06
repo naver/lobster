@@ -26,17 +26,17 @@ var (
 	handleSeconds = prometheus.NewSummaryVec(prometheus.SummaryOpts{
 		Name: "lobster_handle_seconds",
 		Help: "A time spent to handle query",
-	}, []string{labelLogNamespace, labelHandler})
+	}, []string{labelHandler})
 
 	responseBytes = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "lobster_response_bytes_total",
 		Help: "A bytes for response.",
-	}, []string{labelLogNamespace, labelHandler})
+	}, []string{labelHandler})
 
 	responseCodes = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "lobster_http_response_total",
 		Help: "Error code of response",
-	}, []string{labelLogNamespace, labelHandler, labelStatusCode})
+	}, []string{labelHandler, labelStatusCode})
 )
 
 func RegisterMiddlewareMetrics() {
@@ -45,14 +45,14 @@ func RegisterMiddlewareMetrics() {
 	prometheus.MustRegister(responseCodes)
 }
 
-func ObserveHandleSeconds(namespace, handler string, seconds float64) {
-	handleSeconds.WithLabelValues(namespace, handler).Observe(seconds)
+func ObserveHandleSeconds(path string, seconds float64) {
+	handleSeconds.WithLabelValues(path).Observe(seconds)
 }
 
-func AddResponseBytes(namespace, handler string, bytesLength int) {
-	responseBytes.WithLabelValues(namespace, handler).Add(float64(bytesLength))
+func AddResponseBytes(path string, bytesLength int) {
+	responseBytes.WithLabelValues(path).Add(float64(bytesLength))
 }
 
-func AddResponseStatus(namespace, handler string, statusCode int) {
-	responseCodes.WithLabelValues(namespace, handler, fmt.Sprint(statusCode)).Inc()
+func AddResponseStatus(path string, statusCode int) {
+	responseCodes.WithLabelValues(path, fmt.Sprint(statusCode)).Inc()
 }
