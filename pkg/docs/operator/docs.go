@@ -215,8 +215,12 @@ const docTemplate = `{
                     "description": "Address to export logs",
                     "type": "string"
                 },
+                "pathTemplate": {
+                    "description": "Path constructed from log metadata for exporting logs",
+                    "type": "string"
+                },
                 "rootPath": {
-                    "description": "Root directory to store logs within external storage",
+                    "description": "Deprecated; Root directory to store logs within external storage",
                     "type": "string"
                 },
                 "shouldEncodeFileName": {
@@ -224,7 +228,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "timeLayoutOfSubDirectory": {
-                    "description": "An option(default ` + "`" + `2006-01` + "`" + `) that sets the name of the sub-directory following ` + "`" + `{Root path}` + "`" + ` to a time-based layout",
+                    "description": "Deprecated; An option(default ` + "`" + `2006-01` + "`" + `) that sets the name of the sub-directory following ` + "`" + `{Root path}` + "`" + ` to a time-based layout",
                     "type": "string",
                     "default": "2006-01"
                 }
@@ -422,12 +426,16 @@ const docTemplate = `{
                     "description": "S3 Address to export logs",
                     "type": "string"
                 },
+                "pathTemplate": {
+                    "description": "Path constructed from log metadata for exporting logs",
+                    "type": "string"
+                },
                 "region": {
                     "description": "S3 region",
                     "type": "string"
                 },
                 "rootPath": {
-                    "description": "Root directory to store logs within external storage",
+                    "description": "Deprecated; Root directory to store logs within external storage",
                     "type": "string"
                 },
                 "secretKey": {
@@ -447,7 +455,7 @@ const docTemplate = `{
                     ]
                 },
                 "timeLayoutOfSubDirectory": {
-                    "description": "An option(default ` + "`" + `2006-01` + "`" + `) that sets the name of the sub-directory following ` + "`" + `{Root path}` + "`" + ` to a time-based layout",
+                    "description": "Deprecated; An option(default ` + "`" + `2006-01` + "`" + `) that sets the name of the sub-directory following ` + "`" + `{Root path}` + "`" + ` to a time-based layout",
                     "type": "string",
                     "default": "2006-01"
                 }

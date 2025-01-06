@@ -19,6 +19,8 @@ package v1
 import (
 	"fmt"
 	"strings"
+
+	"github.com/naver/lobster/pkg/operator/api/v1/template"
 )
 
 const MaxS3Tags = 10
@@ -39,9 +41,9 @@ func (t Tags) String() string {
 type S3Bucket struct {
 	// S3 Address to export logs
 	Destination string `json:"destination,omitempty"`
-	// Root directory to store logs within external storage
+	// Deprecated; Root directory to store logs within external storage
 	RootPath string `json:"rootPath,omitempty"`
-	// An option(default `2006-01`) that sets the name of the sub-directory following `{Root path}` to a time-based layout
+	// Deprecated; An option(default `2006-01`) that sets the name of the sub-directory following `{Root path}` to a time-based layout
 	TimeLayoutOfSubDirectory string `json:"timeLayoutOfSubDirectory,omitempty" default:"2006-01"`
 	// S3 bucket name
 	BucketName string `json:"bucketName,omitempty"`
@@ -55,6 +57,8 @@ type S3Bucket struct {
 	Tags Tags `json:"tags,omitempty"`
 	// Provide an option to convert '+' to '%2B' to address issues in certain web environments where '+' is misinterpreted
 	ShouldEncodeFileName bool `json:"shouldEncodeFileName,omitempty"`
+	// Path constructed from log metadata for exporting logs
+	PathTemplate string `json:"pathTemplate,omitempty"`
 }
 
 func (s S3Bucket) Validate() error {
@@ -68,6 +72,10 @@ func (s S3Bucket) Validate() error {
 
 	if MaxS3Tags < len(s.Tags) {
 		return fmt.Errorf("too many tags")
+	}
+
+	if err := template.ValidateTemplateString(s.PathTemplate); err != nil {
+		return err
 	}
 
 	return nil

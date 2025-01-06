@@ -32,6 +32,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/naver/lobster/pkg/lobster/model"
 	"github.com/naver/lobster/pkg/lobster/sink/order"
+	"github.com/naver/lobster/pkg/operator/api/v1/template"
 )
 
 type BasicUploader struct {
@@ -72,20 +73,16 @@ func (b BasicUploader) Interval() time.Duration {
 }
 
 func (b BasicUploader) Dir(chunk model.Chunk, date time.Time) string {
-	dirPath := b.Order.Path()
-	layout := b.Order.LogExportRule.BasicBucket.TimeLayoutOfSubDirectory
+	if len(b.Order.LogExportRule.BasicBucket.PathTemplate) > 0 {
+		path, err := b.templateDir(chunk, date)
+		if err != nil {
+			return b.defaultDir(chunk, date)
+		}
 
-	if len(chunk.Source.Path) > 0 {
-		dirPath = fmt.Sprintf("%s/%s", dirPath, chunk.Source.Path)
-	}
-	if len(layout) == 0 {
-		layout = defaultLayout
+		return path
 	}
 
-	return fmt.Sprintf("%s/%s/%s",
-		b.Order.LogExportRule.BasicBucket.RootPath,
-		date.Format(layout),
-		dirPath)
+	return b.defaultDir(chunk, date)
 }
 
 func (b BasicUploader) FileName(start, end time.Time) string {
@@ -153,4 +150,35 @@ func (b BasicUploader) Upload(data []byte, dir, fileName string) error {
 	}
 
 	return err
+}
+
+func (b BasicUploader) defaultDir(chunk model.Chunk, date time.Time) string {
+	dirPath := b.Order.Path()
+	layout := b.Order.LogExportRule.BasicBucket.TimeLayoutOfSubDirectory
+
+	if len(chunk.Source.Path) > 0 {
+		dirPath = fmt.Sprintf("%s/%s", dirPath, chunk.Source.Path)
+	}
+	if len(layout) == 0 {
+		layout = defaultLayout
+	}
+
+	return fmt.Sprintf("%s/%s/%s",
+		b.Order.LogExportRule.BasicBucket.RootPath,
+		date.Format(layout),
+		dirPath)
+}
+
+func (b BasicUploader) templateDir(chunk model.Chunk, date time.Time) (string, error) {
+	return template.GeneratePath(
+		b.Order.LogExportRule.BasicBucket.PathTemplate,
+		template.PathElement{
+			Namespace:  chunk.Namespace,
+			SinkName:   b.Order.LogExportRule.Name,
+			Pod:        chunk.Pod,
+			Container:  chunk.Container,
+			SourceType: chunk.Source.Type,
+			SourcePath: chunk.Source.Path,
+			TimeInput:  date,
+		})
 }
