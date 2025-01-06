@@ -86,155 +86,149 @@ func (q *Querier) UpdateStoreStatus(storeAddr string) {
 }
 
 func (q *Querier) GetChunksWithinRange(req query.Request) (chunks []model.Chunk, err error) {
-	util.MeasureElapse(func() string {
-		chunks, err = q.getLocalChunksWithinRange(req)
-		if err != nil {
-			return err.Error()
-		}
+	var receivedChunks []model.Chunk
 
-		if !req.Local {
-			req.Local = true
-			receivedChunks, err := q.RequestChunksWithinRange(req, false)
-			if err != nil {
-				return err.Error()
-			}
-			chunks = append(chunks, receivedChunks...)
+	chunks, err = q.getLocalChunksWithinRange(req)
+	if err != nil {
+		return
+	}
+
+	if !req.Local {
+		req.Local = true
+		receivedChunks, err = q.RequestChunksWithinRange(req, false)
+		if err != nil {
+			return
 		}
-		return fmt.Sprintf("%d chunks", len(chunks))
-	}, fmt.Sprintf("GetChunksWithinRange | %s", req.String()))
+		chunks = append(chunks, receivedChunks...)
+	}
+
+	glog.V(3).Infof("%d chunks | %s", len(chunks), req.String())
 	return
 }
 
 func (q *Querier) GetSeriesInBlocksWithinRange(req query.Request) (numOfChunk int, series model.SeriesData, err error) {
-	util.MeasureElapse(func() string {
-		var (
-			chunks       []model.Chunk
-			remoteChunks []model.Chunk
-			results      []FetchResult
-		)
+	var (
+		chunks       []model.Chunk
+		remoteChunks []model.Chunk
+		results      []FetchResult
+	)
 
-		chunks, err = q.getLocalChunksWithinRange(req)
-		if err != nil {
-			return err.Error()
-		}
+	chunks, err = q.getLocalChunksWithinRange(req)
+	if err != nil {
+		return
+	}
 
-		req.Local = true
-		remoteChunks, err = q.RequestChunksWithinRange(req, false)
-		if err != nil {
-			return err.Error()
-		}
+	req.Local = true
+	remoteChunks, err = q.RequestChunksWithinRange(req, false)
+	if err != nil {
+		return
+	}
 
-		chunks = append(chunks, remoteChunks...)
-		results, err = Fetch(req, chunks, logHandler.PathLogSeries)
-		if err != nil {
-			return err.Error()
-		}
+	chunks = append(chunks, remoteChunks...)
+	results, err = Fetch(req, chunks, logHandler.PathLogSeries)
+	if err != nil {
+		return
+	}
 
-		series = NewSeriesBuilder(results).
-			Merge().
-			Build()
+	series = NewSeriesBuilder(results).
+		Merge().
+		Build()
 
-		numOfChunk = len(chunks)
+	numOfChunk = len(chunks)
 
-		return fmt.Sprintf("chunks %d | fetched %d |  series %d", numOfChunk, len(results), len(series))
-	}, fmt.Sprintf("GetSeriesInBlocksWithinRange | %s", req.String()))
-
+	glog.V(3).Infof("chunks %d | fetched %d |  series %d | %s", numOfChunk, len(results), len(series), req.String())
 	return
 }
 
 func (q *Querier) GetBlocksWithinRange(req query.Request) (data []byte, numOfChunk int, pageInfo model.PageInfo, err error) {
-	util.MeasureElapse(func() string {
-		var (
-			chunks           []model.Chunk
-			remoteChunks     []model.Chunk
-			results          []FetchResult
-			isPartialEntries bool
-			limit            = *conf.ContentsLimit
-		)
+	var (
+		chunks           []model.Chunk
+		remoteChunks     []model.Chunk
+		results          []FetchResult
+		isPartialEntries bool
+		limit            = *conf.ContentsLimit
+	)
 
-		if req.ContentsLimit > 0 {
-			limit = req.ContentsLimit
-		}
+	if req.ContentsLimit > 0 {
+		limit = req.ContentsLimit
+	}
 
-		chunks, err = q.getLocalChunksWithinRange(req)
-		if err != nil {
-			return err.Error()
-		}
+	chunks, err = q.getLocalChunksWithinRange(req)
+	if err != nil {
+		return
+	}
 
-		req.Local = true
-		remoteChunks, err = q.RequestChunksWithinRange(req, false)
-		if err != nil {
-			return err.Error()
-		}
+	req.Local = true
+	remoteChunks, err = q.RequestChunksWithinRange(req, false)
+	if err != nil {
+		return
+	}
 
-		chunks = append(chunks, remoteChunks...)
-		results, pageInfo, err = FetchLogEntries(req, chunks, limit)
-		if err != nil {
-			return err.Error()
-		}
+	chunks = append(chunks, remoteChunks...)
+	results, pageInfo, err = FetchLogEntries(req, chunks, limit)
+	if err != nil {
+		return
+	}
 
-		data, isPartialEntries = NewEntryBuilder(results, limit).
-			Merge(ParseEntryRaw).
-			SortAscending().
-			BuildRawLogs()
+	data, isPartialEntries = NewEntryBuilder(results, limit).
+		Merge(ParseEntryRaw).
+		SortAscending().
+		BuildRawLogs()
 
-		if isPartialEntries || pageInfo.IsPartialContents {
-			pageInfo.IsPartialContents = true
-			metrics.IncreasePartialResponseCount()
-		}
+	if isPartialEntries || pageInfo.IsPartialContents {
+		pageInfo.IsPartialContents = true
+		metrics.IncreasePartialResponseCount()
+	}
 
-		numOfChunk = len(chunks)
+	numOfChunk = len(chunks)
 
-		return fmt.Sprintf("chunks %d | fetched %d | data %d", numOfChunk, len(results), len(data))
-	}, fmt.Sprintf("GetBlocksWithinRange | %s", req.String()))
+	glog.V(3).Infof("chunks %d | fetched %d | data %d | %s", numOfChunk, len(results), len(data), req.String())
 	return
 }
 
 func (q *Querier) GetEntriesWithinRange(req query.Request) (data []model.Entry, numOfChunk int, pageInfo model.PageInfo, err error) {
-	util.MeasureElapse(func() string {
-		var (
-			chunks           []model.Chunk
-			remoteChunks     []model.Chunk
-			results          []FetchResult
-			isPartialEntries bool
-			limit            = *conf.ContentsLimit
-		)
+	var (
+		chunks           []model.Chunk
+		remoteChunks     []model.Chunk
+		results          []FetchResult
+		isPartialEntries bool
+		limit            = *conf.ContentsLimit
+	)
 
-		if req.ContentsLimit > 0 {
-			limit = req.ContentsLimit
-		}
+	if req.ContentsLimit > 0 {
+		limit = req.ContentsLimit
+	}
 
-		chunks, err = q.getLocalChunksWithinRange(req)
-		if err != nil {
-			return err.Error()
-		}
+	chunks, err = q.getLocalChunksWithinRange(req)
+	if err != nil {
+		return
+	}
 
-		req.Local = true
-		remoteChunks, err = q.RequestChunksWithinRange(req, false)
-		if err != nil {
-			return err.Error()
-		}
+	req.Local = true
+	remoteChunks, err = q.RequestChunksWithinRange(req, false)
+	if err != nil {
+		return
+	}
 
-		chunks = append(chunks, remoteChunks...)
-		results, pageInfo, err = FetchLogEntries(req, chunks, limit)
-		if err != nil {
-			return err.Error()
-		}
+	chunks = append(chunks, remoteChunks...)
+	results, pageInfo, err = FetchLogEntries(req, chunks, limit)
+	if err != nil {
+		return
+	}
 
-		data, isPartialEntries = NewEntryBuilder(results, limit).
-			Merge(ParseEntry).
-			SortAscending().
-			Build()
+	data, isPartialEntries = NewEntryBuilder(results, limit).
+		Merge(ParseEntry).
+		SortAscending().
+		Build()
 
-		if isPartialEntries || pageInfo.IsPartialContents {
-			pageInfo.IsPartialContents = true
-			metrics.IncreasePartialResponseCount()
-		}
+	if isPartialEntries || pageInfo.IsPartialContents {
+		pageInfo.IsPartialContents = true
+		metrics.IncreasePartialResponseCount()
+	}
 
-		numOfChunk = len(chunks)
+	numOfChunk = len(chunks)
 
-		return fmt.Sprintf("chunks %d | fetched %d | data %d", numOfChunk, len(results), len(data))
-	}, fmt.Sprintf("GetEntriesWithinRange | %s", req.String()))
+	glog.V(3).Infof("chunks %d | fetched %d | data %d | %s", numOfChunk, len(results), len(data), req.String())
 	return
 }
 
