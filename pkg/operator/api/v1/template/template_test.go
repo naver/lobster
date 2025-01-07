@@ -23,14 +23,14 @@ import (
 
 func TestGeneratePath(t *testing.T) {
 	templates := map[string]string{
-		"/my":                       "/my",
-		"/{{TimeFunc \"2006-01\"}}": "/2025-01",
-		"/{{.Pod}}":                 "/loggen-pod",
-		"/{{.Container}}/{{.Pod}}":  "/container1/loggen-pod",
-		"/{{.SourcePath}}":          "/renamed_namespaceA_test.log",
-		"/my/{{TimeFunc \"2006-01\"}}/123/{{.SourcePath}}":                                     "/my/2025-01/123/renamed_namespaceA_test.log",
-		"/{{.Pod}}-{{.Container}}/{{.Pod}}":                                                    "/loggen-pod-container1/loggen-pod",
-		"/{{TimeFunc \"2006-01\"}}/{{TimeFunc \"2006-01-02\"}}/{{TimeFunc \"2006-01-02_15\"}}": "/2025-01/2025-01-06/2025-01-06_14",
+		"/my":                         "/my",
+		"/{{TimeLayout \"2006-01\"}}": "/2025-01",
+		"/{{.Pod}}":                   "/loggen-pod",
+		"/{{.Container}}/{{.Pod}}":    "/container1/loggen-pod",
+		"/{{.SourcePath}}":            "/renamed_namespaceA_test.log",
+		"/my/{{TimeLayout \"2006-01\"}}/123/{{.SourcePath}}":                                         "/my/2025-01/123/renamed_namespaceA_test.log",
+		"/{{.Pod}}-{{.Container}}/{{.Pod}}":                                                          "/loggen-pod-container1/loggen-pod",
+		"/{{TimeLayout \"2006-01\"}}/{{TimeLayout \"2006-01-02\"}}/{{TimeLayout \"2006-01-02_15\"}}": "/2025-01/2025-01-06/2025-01-06_14",
 	}
 
 	timeInput := time.Date(2025, 1, 6, 14, 17, 15, 0, time.UTC)
@@ -61,9 +61,9 @@ func TestGeneratePath(t *testing.T) {
 
 func TestInvalidPath(t *testing.T) {
 	templates := []string{
-		"/{.SourcePath}}",            // invalid brace
-		"/{{.TimeFunc \"2006-01\"}}", // invalid function usage
-		"/{{TimeFunc}}",              // invalid function usage
+		"/{.SourcePath}}",              // invalid brace
+		"/{{.TimeLayout \"2006-01\"}}", // invalid function usage
+		"/{{TimeLayout}}",              // invalid function usage
 	}
 
 	for _, tmpl := range templates {

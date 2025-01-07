@@ -174,7 +174,8 @@ func (b BasicUploader) templateDir(chunk model.Chunk, date time.Time) (string, e
 		b.Order.LogExportRule.BasicBucket.PathTemplate,
 		template.PathElement{
 			Namespace:  chunk.Namespace,
-			SinkName:   b.Order.LogExportRule.Name,
+			SinkName:   b.Order.SinkName,
+			RuleName:   b.Order.LogExportRule.Name,
 			Pod:        chunk.Pod,
 			Container:  chunk.Container,
 			SourceType: chunk.Source.Type,

@@ -143,7 +143,8 @@ func (s S3Uploader) templateDir(chunk model.Chunk, date time.Time) (string, erro
 		s.Order.LogExportRule.S3Bucket.PathTemplate,
 		template.PathElement{
 			Namespace:  chunk.Namespace,
-			SinkName:   s.Order.LogExportRule.Name,
+			SinkName:   s.Order.SinkName,
+			RuleName:   s.Order.LogExportRule.Name,
 			Pod:        chunk.Pod,
 			Container:  chunk.Container,
 			SourceType: chunk.Source.Type,

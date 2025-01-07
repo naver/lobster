@@ -19,6 +19,7 @@ package template
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"net/url"
 	"strings"
 	"text/template"
@@ -36,6 +37,7 @@ func init() {
 type PathElement struct {
 	Namespace  string
 	SinkName   string
+	RuleName   string
 	Pod        string
 	Container  string
 	SourceType string
@@ -43,7 +45,7 @@ type PathElement struct {
 	TimeInput  time.Time
 }
 
-func (d PathElement) Time(layout string) string {
+func (d PathElement) TimeFormat(layout string) string {
 	return d.TimeInput.Format(layout)
 }
 
@@ -52,7 +54,7 @@ func ValidateTemplateString(templateStr string) error {
 		return errors.New("mismatch between '{{' and '}}'")
 	}
 
-	tmpl, err := getTemplate(templateStr, PathElement{}).Parse(templateStr)
+	tmpl, err := getTemplate(fmt.Sprintf("validate_%s", templateStr), PathElement{}).Parse(templateStr)
 	if err != nil {
 		return err
 	}
@@ -84,7 +86,7 @@ func getTemplate(templateStr string, elem PathElement) *template.Template {
 	v, ok := templateCache.Get(templateStr)
 	if !ok {
 		newTmpl := template.New(templateStr).Funcs(template.FuncMap{
-			"TimeFunc": elem.Time,
+			"TimeLayout": elem.TimeFormat,
 		})
 		templateCache.Add(templateStr, newTmpl)
 
