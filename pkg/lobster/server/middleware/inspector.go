@@ -49,7 +49,7 @@ func (i Inspector) Middleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(recorder, r)
 
-		glog.Infof("[%s] took %fs %s %d %db", r.RemoteAddr, time.Since(measureStart).Seconds(), r.URL.Path, recorder.Status, recorder.Size)
+		glog.Infof("[%s] took %fs %s %d %dbytes", r.RemoteAddr, time.Since(measureStart).Seconds(), r.URL.Path, recorder.Status, recorder.Size)
 
 		metrics.ObserveHandleSeconds(r.URL.Path, time.Since(measureStart).Seconds())
 		metrics.AddResponseBytes(r.URL.Path, recorder.Size)
