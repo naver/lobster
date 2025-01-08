@@ -64,6 +64,7 @@ func TestInvalidPath(t *testing.T) {
 		"/{.SourcePath}}",              // invalid brace
 		"/{{.TimeLayout \"2006-01\"}}", // invalid function usage
 		"/{{TimeLayout}}",              // invalid function usage
+		"{{.Container}}/{{.Pod}}",      // invalid relative path
 	}
 
 	for _, tmpl := range templates {

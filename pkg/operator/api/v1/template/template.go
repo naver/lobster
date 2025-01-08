@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"path/filepath"
 	"strings"
 	"text/template"
 	"time"
@@ -50,8 +51,16 @@ func (d PathElement) TimeFormat(layout string) string {
 }
 
 func ValidateTemplateString(templateStr string) error {
+	if len(templateStr) == 0 {
+		return nil
+	}
+
 	if strings.Count(templateStr, "{{") != strings.Count(templateStr, "}}") {
 		return errors.New("mismatch between '{{' and '}}'")
+	}
+
+	if !filepath.IsAbs(templateStr) {
+		return errors.New("the template should be an absolute path (starting with `/`)")
 	}
 
 	tmpl, err := getTemplate(fmt.Sprintf("validate_%s", templateStr), PathElement{}).Parse(templateStr)
