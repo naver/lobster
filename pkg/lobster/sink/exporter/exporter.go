@@ -76,12 +76,7 @@ func (e *LogExporter) Run(stopChan chan struct{}) {
 			now := time.Now()
 			current := now.Truncate(time.Second)
 			newOrders := map[string]order.Order{}
-
-			podMap, err := e.client.GetPods()
-			if err != nil {
-				glog.Error(err)
-				continue
-			}
+			podMap := e.client.GetPods()
 
 			if len(podMap) == 0 {
 				panic("no pods found")
