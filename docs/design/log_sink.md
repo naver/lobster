@@ -156,6 +156,7 @@ spec:
 Field | Description
 --- | ---
 `{{TimeLayout "2006-01-02"}}` | Time based directory layout 
+`{{.Cluster}}` | Cluster name
 `{{.Namespace}}` | Log source namespace name
 `{{.SinkName}}` | Lobster sink name
 `{{.RuleName}}` | Rule name in Lobster sink

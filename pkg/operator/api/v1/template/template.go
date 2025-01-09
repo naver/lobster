@@ -36,6 +36,7 @@ func init() {
 }
 
 type PathElement struct {
+	Cluster    string
 	Namespace  string
 	SinkName   string
 	RuleName   string
