@@ -30,6 +30,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/naver/lobster/pkg/lobster/model"
 	"github.com/naver/lobster/pkg/lobster/sink/order"
+	"github.com/naver/lobster/pkg/operator/api/v1/template"
 	"github.com/pkg/errors"
 )
 
@@ -58,20 +59,16 @@ func (s S3Uploader) Interval() time.Duration {
 }
 
 func (s S3Uploader) Dir(chunk model.Chunk, date time.Time) string {
-	dirPath := s.Order.Path()
-	layout := s.Order.LogExportRule.S3Bucket.TimeLayoutOfSubDirectory
+	if len(s.Order.LogExportRule.S3Bucket.PathTemplate) > 0 {
+		path, err := s.templateDir(chunk, date)
+		if err != nil {
+			return s.defaultDir(chunk, date)
+		}
 
-	if len(chunk.Source.Path) > 0 {
-		dirPath = fmt.Sprintf("%s/%s", dirPath, chunk.Source.Path)
-	}
-	if len(layout) == 0 {
-		layout = defaultLayout
+		return path
 	}
 
-	return fmt.Sprintf("%s/%s/%s",
-		s.Order.LogExportRule.S3Bucket.RootPath,
-		date.Format(layout),
-		dirPath)
+	return s.defaultDir(chunk, date)
 }
 
 func (b S3Uploader) FileName(start, end time.Time) string {
@@ -122,4 +119,36 @@ func (s S3Uploader) Upload(data []byte, dir, fileName string) error {
 	glog.Infof("[s3] upload %d bytes to %s", len(data), result.Location)
 
 	return nil
+}
+
+func (s S3Uploader) defaultDir(chunk model.Chunk, date time.Time) string {
+	dirPath := s.Order.Path()
+	layout := s.Order.LogExportRule.S3Bucket.TimeLayoutOfSubDirectory
+
+	if len(chunk.Source.Path) > 0 {
+		dirPath = fmt.Sprintf("%s/%s", dirPath, chunk.Source.Path)
+	}
+	if len(layout) == 0 {
+		layout = defaultLayout
+	}
+
+	return fmt.Sprintf("%s/%s/%s",
+		s.Order.LogExportRule.S3Bucket.RootPath,
+		date.Format(layout),
+		dirPath)
+}
+
+func (s S3Uploader) templateDir(chunk model.Chunk, date time.Time) (string, error) {
+	return template.GeneratePath(
+		s.Order.LogExportRule.S3Bucket.PathTemplate,
+		template.PathElement{
+			Namespace:  chunk.Namespace,
+			SinkName:   s.Order.SinkName,
+			RuleName:   s.Order.LogExportRule.Name,
+			Pod:        chunk.Pod,
+			Container:  chunk.Container,
+			SourceType: chunk.Source.Type,
+			SourcePath: chunk.Source.Path,
+			TimeInput:  date,
+		})
 }

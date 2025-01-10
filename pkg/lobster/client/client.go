@@ -24,6 +24,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/golang/glog"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -43,6 +44,7 @@ type Client struct {
 	hostName string
 	*kubernetes.Clientset
 	timeout time.Duration
+	cache   map[string]v1.Pod
 }
 
 func New() (Client, error) {
@@ -56,10 +58,10 @@ func New() (Client, error) {
 
 	clientset, err := kubernetes.NewForConfig(config)
 
-	return Client{*conf.HostName, clientset, timeout}, err
+	return Client{*conf.HostName, clientset, timeout, map[string]v1.Pod{}}, err
 }
 
-func (c Client) GetPods() (map[string]v1.Pod, error) {
+func (c *Client) GetPods() map[string]v1.Pod {
 	podMap := map[string]v1.Pod{}
 	podList := v1.PodList{}
 
@@ -71,16 +73,20 @@ func (c Client) GetPods() (map[string]v1.Pod, error) {
 		AbsPath(fmt.Sprintf("/api/v1/nodes/%s/proxy/pods", c.hostName)).
 		DoRaw(ctx)
 	if err != nil {
-		return podMap, err
+		glog.Warningf("using cached pod information: failed to make a request to the k8s API server or kubelet: %s", err.Error())
+		return c.cache
 	}
 
 	if err := json.Unmarshal(data, &podList); err != nil {
-		return podMap, err
+		glog.Warningf("using cached pod information: failed to unmarshal the pod list response: %s", err.Error())
+		return c.cache
 	}
 
 	for _, pod := range podList.Items {
 		podMap[string(pod.UID)] = pod
 	}
 
-	return podMap, nil
+	c.cache = podMap
+
+	return podMap
 }

@@ -70,8 +70,9 @@ spec:
       container: tc-container
     basicBucket:
       destination: http://{basicBucket endpoint}
-      rootPath: /
+      rootPath: / # deprecated
       timeLayoutOfSubDirectory: {time layout of sub-directory; default `2006-01`}
+      pathTemplate: "/path/{{TimeLayout \"20060102\"}}"
   - name: exclude-GET
     interval: 1h
     filter:
@@ -84,8 +85,9 @@ spec:
       namespace: log-test
     s3Bucket:
       destination: http://{s3 bucket endpoint}
-      rootPath: /
+      rootPath: / # deprecated
       timeLayoutOfSubDirectory: {time layout of sub-directory; default `2006-01`}
+      pathTemplate: "/path/{{TimeLayout \"20060102\"}}"
       bucketName: {s3 bucket name}
       accessKey: {s3 bucket access key}
       secretKey: {s3 bucket secret key}
@@ -105,7 +107,10 @@ spec:
 - `matcher` operates as a module within `store` and `exporter` operates as a sidecar for `store`
 - `exporter` periodically sends logs as a file to external storage. Since information about transfer volume or transfer failure is produced as Prometheus metrics, please refer to the [metrics](./metrics.md) guide for the metric contents
   - If a bucket has a directory structure, the directory can follow the rules below\
-    `{Root path}/{time layout of sub-directory}/{Namespace}/{LobsterSink name}/{Contents name}/{Pod}/{Container}/{Start time of log}_{End time of log}.log`
+    - AS-IS(deprecated): `{Root path}/{time layout of sub-directory}/{Namespace}/{LobsterSink name}/{Contents name}/{Pod}/{Container}/{Start time of log}_{End time of log}.log`
+    - TO-BE
+      - default: `/{time layout(2006-01)}/{Namespace}/{LobsterSink name}/{Contents name}/{Pod}/{Container}/{Start time of log}_{End time of log}.log`
+      - Using PathTemplate: `/{PathTemplate}/{Start time of log}_{End time of log}.log` (Please refer to the `PathTemplate` section below for more details.)
 - `time layout of sub-directory` is an option(default `2006-01`) that sets the name of the sub-directory following `{Root path}` to a time-based layout \
    Logs can be stored in a specific directory according to the rendering results of the layout, such as time or date
    - Here are some examples
@@ -135,3 +140,56 @@ spec:
      - https://go.dev/src/time/format.go
 
 ![overview_multi-cluster-with-logsink](../images/overview_multi-cluster-with-logsink.png)
+
+
+### PathTemplate
+
+- As the exported logs are transformed into various formats, the requirements for log paths have also increased
+- With the `PathTemplate` based on Go templates, you can freely structure fields using the template fields described below
+
+#### Template Fields
+- Reserved keywords are provided to allow flexible directory composition in the path
+- Each field can be used multiple times
+- If this feature is not used, the default path structure is applied
+  - `/{time layout(2006-01)}/{Namespace}/{LobsterSink name}/{Contents name}/{Pod}/{Container}/{Start time of log}_{End time of log}.log`
+
+Field | Description
+--- | ---
+`{{TimeLayout "2006-01-02"}}` | Time based directory layout 
+`{{.Cluster}}` | Cluster name
+`{{.Namespace}}` | Log source namespace name
+`{{.SinkName}}` | Lobster sink name
+`{{.RuleName}}` | Rule name in Lobster sink
+`{{.Pod}}` | Pod name
+`{{.Container}}` | Container name or `__emptydir__`
+`{{.SourceType}}` | `stdstream` or `emptydir`
+`{{.SourcePath}}` | A file path within an emptyDir volume
+
+#### Example
+
+```
+spec:
+  logExportRules:
+  - basicBucket:
+      pathTemplate: /pathtest/{{TimeLayout "20060102"}}/{{.Container}}
+  ...
+```
+
+PathTemplate | Exported file
+--- | ---
+`/lobster` | /lobster/2025-01-06T14:17:15%2B09:00_2025-01-06T14:17:17%2B09:00.log 
+`/{{TimeLayout "2006-01"}}` | /2025-01/2025-01-06T14:17:15%2B09:00_2025-01-06T14:17:17%2B09:00.log 
+`/{{.Pod}}` | /loggen-123/2025-01-06T14:17:15%2B09:00_2025-01-06T14:17:17%2B09:00.log 
+`/{{.SourcePath}}/{{.Pod}}` | /renamed_namespaceA_test.log/loggen-123/2025-01-06T14:17:15%2B09:00_2025-01-06T14:17:17%2B09:00.log 
+`/lobster/{{TimeLayout "2006-01"}}/123/{{.SourcePath}}` | /lobster/2025-01/123/renamed_namespaceA_test.log/2025-01-06T14:17:15%2B09:00_2025-01-06T14:17:17%2B09:00.log 
+`/{{TimeLayout "2006-01"}}/{{TimeLayout "2006-01-02"}}` | /2025-01/2025-01-06/2025-01-06T14:17:15%2B09:00_2025-01-06T14:17:17%2B09:00.log 
+
+#### Cautions
+
+- Customization introduces potential risks of conflicts due to insufficient delimiters
+- For example, with configurations like `/{{.Pod}}`, where delimiters are insufficient, \
+  conflicts may arise when exporting logs from multiple containers, each having the same log timestamp
+  - container A - `2025-01-06T18:20:24%252B09:00_2025-01-06T18:21:23%252B09:00.log`
+  - container B - `2025-01-06T18:20:24%252B09:00_2025-01-06T18:21:23%252B09:00.log`
+
+
