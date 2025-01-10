@@ -28,7 +28,6 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/golang/glog"
 	cp "github.com/otiai10/copy"
 	"github.com/pkg/errors"
 	"golang.org/x/sys/unix"
@@ -40,14 +39,6 @@ var (
 
 func TargetPathAppearance(path string) int {
 	return len(strings.Split(path, "/"))
-}
-
-func MeasureElapse(f func() string, msg string) {
-	start := time.Now()
-	result := f()
-	elapsed := time.Since(start)
-
-	glog.V(2).Infof("msg: %s | took: %v | result: %s", msg, elapsed, result)
 }
 
 func ConvertStringToTimestamp(str string) (Timestamp, error) {

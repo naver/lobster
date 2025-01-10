@@ -18,9 +18,9 @@ package middleware
 
 import (
 	"net/http"
-	"net/url"
 	"time"
 
+	"github.com/golang/glog"
 	"github.com/naver/lobster/pkg/lobster/metrics"
 )
 
@@ -40,24 +40,20 @@ func (r *Recorder) Write(data []byte) (int, error) {
 	return r.ResponseWriter.Write(data)
 }
 
-type Metrics struct{}
+type Inspector struct{}
 
-func (m Metrics) Middleware(next http.Handler) http.Handler {
+func (i Inspector) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		measureStart := time.Now()
 		recorder := &Recorder{w, 0, 0}
 
 		next.ServeHTTP(recorder, r)
 
-		u, err := url.Parse(r.RequestURI)
-		if err != nil {
-			return
-		}
-		namespace := u.Query().Get("namespace")
+		glog.Infof("[%s] took %fs %s %d %dbytes", r.RemoteAddr, time.Since(measureStart).Seconds(), r.URL.Path, recorder.Status, recorder.Size)
 
-		metrics.ObserveHandleSeconds(namespace, r.URL.Path, time.Since(measureStart).Seconds())
-		metrics.AddResponseBytes(namespace, r.URL.Path, recorder.Size)
-		metrics.AddResponseStatus(namespace, r.URL.Path, correctStatus(recorder.Status))
+		metrics.ObserveHandleSeconds(r.URL.Path, time.Since(measureStart).Seconds())
+		metrics.AddResponseBytes(r.URL.Path, recorder.Size)
+		metrics.AddResponseStatus(r.URL.Path, correctStatus(recorder.Status))
 	})
 }
 

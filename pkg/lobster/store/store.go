@@ -94,17 +94,15 @@ func (s *Store) GetChunks() (chunks []model.Chunk) {
 }
 
 func (s *Store) GetChunksWithinRange(req query.Request) (chunks []model.Chunk, err error) {
-	util.MeasureElapse(func() string {
-		s.chunkCache.Range(func(key, value interface{}) bool {
-			chunk := value.(*model.Chunk)
-			if chunk.HasBlocks() && !chunk.IsOutdated(*conf.RetentionTime) && chunk.UpdatedAt.After(req.Start.Time) && chunk.StartedAt.Before(req.End.Time) {
-				chunks = append(chunks, *chunk)
-			}
-			return true
-		})
+	s.chunkCache.Range(func(key, value interface{}) bool {
+		chunk := value.(*model.Chunk)
+		if chunk.HasBlocks() && !chunk.IsOutdated(*conf.RetentionTime) && chunk.UpdatedAt.After(req.Start.Time) && chunk.StartedAt.Before(req.End.Time) {
+			chunks = append(chunks, *chunk)
+		}
+		return true
+	})
 
-		return fmt.Sprintf("%d chunks", len(chunks))
-	}, fmt.Sprintf("GetChunksWithinRange | %s ", req.String()))
+	glog.V(3).Infof("%d chunks | %s", len(chunks), req.String())
 	return
 }
 
@@ -114,24 +112,21 @@ func (s *Store) GetSeriesInBlocksWithinRange(req query.Request) (numOfChunk int,
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
-	util.MeasureElapse(func() string {
-		chunk := s.LoadChunk(req.Source, req.PodUID, req.Container)
+	chunk := s.LoadChunk(req.Source, req.PodUID, req.Container)
 
-		if chunk == nil {
-			return "no chunks"
-		}
+	if chunk == nil {
+		return
+	}
 
-		_, buckets, err = readBlocks(*chunk, *conf.StoreRootPath, true, req.Start.Time, req.End.Time, req.Filterers...)
-		if err != nil {
-			glog.Error(err)
-		}
+	_, buckets, err = readBlocks(*chunk, *conf.StoreRootPath, true, req.Start.Time, req.End.Time, req.Filterers...)
+	if err != nil {
+		glog.Error(err)
+	}
 
-		series = model.BucketsToSeries(req.Start.Time, req.End.Time, buckets)
-		numOfChunk = 1
+	series = model.BucketsToSeries(req.Start.Time, req.End.Time, buckets)
+	numOfChunk = 1
 
-		return fmt.Sprintf("chunks %d | buckets %d | lines %d", numOfChunk, len(buckets), series.Lines())
-	}, fmt.Sprintf("GetSeriesInBlocksWithinRange | %s ", req.String()))
-
+	glog.V(3).Infof("chunks %d | buckets %d | lines %d | %s", numOfChunk, len(buckets), series.Lines(), req.String())
 	return
 }
 
@@ -141,35 +136,32 @@ func (s *Store) GetBlocksWithinRange(req query.Request) (data []byte, numOfChunk
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
-	util.MeasureElapse(func() string {
-		chunk := s.LoadChunk(req.Source, req.PodUID, req.Container)
+	chunk := s.LoadChunk(req.Source, req.PodUID, req.Container)
 
-		if chunk == nil {
-			return "no chunks"
-		}
+	if chunk == nil {
+		return
+	}
 
-		data, buckets, err = readBlocks(*chunk, *conf.StoreRootPath, false, req.Start.Time, req.End.Time, req.Filterers...)
-		if err != nil {
-			glog.Error(err)
-		}
+	data, buckets, err = readBlocks(*chunk, *conf.StoreRootPath, false, req.Start.Time, req.End.Time, req.Filterers...)
+	if err != nil {
+		glog.Error(err)
+	}
 
-		totalLines := int64(0)
+	totalLines := int64(0)
 
-		for _, bucket := range buckets {
-			totalLines = totalLines + bucket.Lines
-		}
+	for _, bucket := range buckets {
+		totalLines = totalLines + bucket.Lines
+	}
 
-		burst := req.Burst
-		if burst == 0 {
-			burst = *conf.PageBurst
-		}
+	burst := req.Burst
+	if burst == 0 {
+		burst = *conf.PageBurst
+	}
 
-		pageInfo = model.NewPageInfo(req.Page, totalLines, int64(burst), false)
-		numOfChunk = 1
+	pageInfo = model.NewPageInfo(req.Page, totalLines, int64(burst), false)
+	numOfChunk = 1
 
-		return fmt.Sprintf("chunks %d | data %d | buckets %d", numOfChunk, len(data), len(buckets))
-	}, fmt.Sprintf("GetBlocksWithinRange | %s ", req.String()))
-
+	glog.V(3).Infof("chunks %d | data %d | buckets %d | %s", numOfChunk, len(data), len(buckets), req.String())
 	return
 }
 

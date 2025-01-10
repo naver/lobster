@@ -82,11 +82,7 @@ func (d *Distributor) Run(stopChan chan struct{}) {
 		for {
 			select {
 			case <-inspectTicker.C:
-				podMap, err := d.client.GetPods()
-				if err != nil {
-					glog.Error(err)
-					continue
-				}
+				podMap := d.client.GetPods()
 
 				if len(podMap) == 0 {
 					panic("no pods found")
