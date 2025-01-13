@@ -20,7 +20,14 @@ import (
 	"fmt"
 )
 
-const PartitionAny = -1
+const (
+	PartitionAny = -1
+
+	OAuthTypeUnencodedCredential = "UnencodedCredential"
+	OAuthTypeAuthenzPrincipal    = "AuthenzPrincipal"
+)
+
+type OAuthType string
 
 type TLS struct {
 	// Whether or not to use TLS
@@ -36,16 +43,28 @@ type SASL struct {
 	Enable bool `json:"enable,omitempty"`
 	// Enabled SASL mechanism
 	Mechanism string `json:"mechanism,omitempty"`
-	// OAuth access token
-	AccessToken string `json:"accessToken,omitempty"`
 	// SASL Protocol Version
 	Version int16 `json:"version,omitempty"`
 	// Kafka SASL handshake
 	Handshake bool `json:"handshake,omitempty"`
+
 	// SASL/PLAIN or SASL/SCRAM authentication
 	User string `json:"user,omitempty"`
 	// Password for SASL/PLAIN authentication
 	Password string `json:"password,omitempty"`
+
+	// Deprecated; OAuth access token
+	AccessToken string `json:"accessToken,omitempty"`
+	// Application's ID
+	ClientID string `json:"clientId,omitempty"`
+	// Application's secret
+	ClientSecret string `json:"clientSecret,omitempty"`
+	// TokenURL server endpoint to obtain the access token
+	TokenURL string `json:"tokenUrl,omitempty"`
+	// Scopes used to specify permission
+	Scopes []string `json:"scopes,omitempty"`
+	// Type for reflecting authentication server's specific requirements
+	OAuthType OAuthType `json:"oAuthType,omitempty"`
 }
 
 type Kafka struct {
