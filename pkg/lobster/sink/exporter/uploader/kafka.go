@@ -17,6 +17,7 @@
 package uploader
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"time"
@@ -24,9 +25,12 @@ import (
 	"github.com/IBM/sarama"
 	"github.com/golang/glog"
 	"github.com/naver/lobster/pkg/lobster/model"
+	"github.com/naver/lobster/pkg/lobster/sink/exporter/uploader/auth"
 	"github.com/naver/lobster/pkg/lobster/sink/order"
 	"github.com/naver/lobster/pkg/lobster/util"
 	v1 "github.com/naver/lobster/pkg/operator/api/v1"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/clientcredentials"
 )
 
 const (
@@ -34,25 +38,15 @@ const (
 	dialTimeout     = time.Second
 )
 
-type TokenProvider struct {
-	token string
-}
-
-// In OAuth authentication, the required credentials
-// for authentication vary across different systems
-// Therefore, Lobster does not perform OAuth authentication
-// directly but instead relies on the user to provide the access token.
-func (t TokenProvider) Token() (*sarama.AccessToken, error) {
-	return &sarama.AccessToken{Token: t.token}, nil
-}
-
 type KafkaUploader struct {
-	Order order.Order
+	Order        order.Order
+	tokenManager *auth.TokenManager
 }
 
-func NewKafkaUploader(order order.Order) KafkaUploader {
+func NewKafkaUploader(order order.Order, tokenManager *auth.TokenManager) KafkaUploader {
 	return KafkaUploader{
-		Order: order,
+		Order:        order,
+		tokenManager: tokenManager,
 	}
 }
 
@@ -81,7 +75,7 @@ func (k KafkaUploader) Validate() error {
 }
 
 func (k KafkaUploader) Upload(data []byte, dir, fileName string) error {
-	config, err := newConfig(k.Order.LogExportRule.Kafka)
+	config, err := k.newConfig(k.Order.LogExportRule.Kafka)
 	if err != nil {
 		return err
 	}
@@ -101,9 +95,8 @@ func (k KafkaUploader) Upload(data []byte, dir, fileName string) error {
 	return nil
 }
 
-func newConfig(kafka *v1.Kafka) (*sarama.Config, error) {
+func (k KafkaUploader) newConfig(kafka *v1.Kafka) (*sarama.Config, error) {
 	config := sarama.NewConfig()
-
 	config.ClientID = defaultClientId
 	config.Producer.Return.Successes = true
 	config.Net.DialTimeout = dialTimeout
@@ -150,7 +143,20 @@ func newConfig(kafka *v1.Kafka) (*sarama.Config, error) {
 
 		case sarama.SASLTypeOAuth:
 			config.Net.SASL.Mechanism = sarama.SASLTypeOAuth
-			config.Net.SASL.TokenProvider = TokenProvider{kafka.SASL.AccessToken}
+			oauthConfig := &clientcredentials.Config{
+				ClientID:     kafka.SASL.ClientID,
+				ClientSecret: kafka.SASL.ClientSecret,
+				TokenURL:     kafka.SASL.TokenURL,
+				AuthStyle:    oauth2.AuthStyleInHeader,
+				Scopes:       kafka.SASL.Scopes,
+			}
+
+			tokenProvider, err := k.tokenManager.GetOAuthTokenProvider(context.Background(), kafka.SASL.OAuthType, oauthConfig)
+			if err != nil {
+				return nil, err
+			}
+
+			config.Net.SASL.TokenProvider = tokenProvider
 
 		default:
 			return nil, fmt.Errorf("Unsupported SASL mechanism: " + kafka.SASL.Mechanism)

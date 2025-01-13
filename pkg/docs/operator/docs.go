@@ -465,7 +465,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "accessToken": {
-                    "description": "OAuth access token",
+                    "description": "Deprecated; OAuth access token",
+                    "type": "string"
+                },
+                "clientId": {
+                    "description": "Application's ID",
+                    "type": "string"
+                },
+                "clientSecret": {
+                    "description": "Application's secret",
                     "type": "string"
                 },
                 "enable": {
@@ -480,8 +488,23 @@ const docTemplate = `{
                     "description": "Enabled SASL mechanism",
                     "type": "string"
                 },
+                "oAuthType": {
+                    "description": "Type for reflecting authentication server's specific requirements",
+                    "type": "string"
+                },
                 "password": {
                     "description": "Password for SASL/PLAIN authentication",
+                    "type": "string"
+                },
+                "scopes": {
+                    "description": "Scopes used to specify permission",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "tokenUrl": {
+                    "description": "TokenURL server endpoint to obtain the access token",
                     "type": "string"
                 },
                 "user": {

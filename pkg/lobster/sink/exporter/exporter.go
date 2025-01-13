@@ -29,6 +29,7 @@ import (
 	"github.com/naver/lobster/pkg/lobster/query"
 	"github.com/naver/lobster/pkg/lobster/sink/exporter/counter"
 	"github.com/naver/lobster/pkg/lobster/sink/exporter/uploader"
+	"github.com/naver/lobster/pkg/lobster/sink/exporter/uploader/auth"
 	"github.com/naver/lobster/pkg/lobster/sink/helper"
 	"github.com/naver/lobster/pkg/lobster/sink/manager"
 	"github.com/naver/lobster/pkg/lobster/sink/order"
@@ -47,10 +48,11 @@ func init() {
 }
 
 type LogExporter struct {
-	counter     counter.Counter
-	store       *store.Store
-	sinkManager manager.SinkManager
-	client      client.Client
+	counter      counter.Counter
+	store        *store.Store
+	sinkManager  manager.SinkManager
+	client       client.Client
+	tokenManager *auth.TokenManager
 }
 
 func NewLogExporter(store *store.Store) LogExporter {
@@ -63,6 +65,7 @@ func NewLogExporter(store *store.Store) LogExporter {
 		store,
 		manager.NewSinkManager(sinkV1.LogExportRules),
 		client,
+		auth.NewTokenManager(),
 	}
 }
 
@@ -94,7 +97,7 @@ func (e *LogExporter) Run(stopChan chan struct{}) {
 			})
 
 			for _, order := range recentOrders {
-				uploader, err := uploader.New(order)
+				uploader, err := uploader.New(order, e.tokenManager)
 				if err != nil {
 					glog.Error(err)
 					continue

@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/naver/lobster/pkg/lobster/model"
+	"github.com/naver/lobster/pkg/lobster/sink/exporter/uploader/auth"
 	"github.com/naver/lobster/pkg/lobster/sink/order"
 )
 
@@ -40,7 +41,7 @@ type Uploader interface {
 	Validate() error
 }
 
-func New(order order.Order) (Uploader, error) {
+func New(order order.Order, tokenManager *auth.TokenManager) (Uploader, error) {
 	if order.LogExportRule.S3Bucket != nil {
 		return NewS3Uploader(order), nil
 	}
@@ -48,7 +49,7 @@ func New(order order.Order) (Uploader, error) {
 		return NewBasicUploader(order), nil
 	}
 	if order.LogExportRule.Kafka != nil {
-		return NewKafkaUploader(order), nil
+		return NewKafkaUploader(order, tokenManager), nil
 	}
 
 	return nil, errors.New("no proper log export rules are found")
