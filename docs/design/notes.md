@@ -24,3 +24,12 @@
   - For `copy & truncate`, this issue involves the disappearance of traceable logs, so log tracking is not supported
     - It is recommended to use `rename & create` for log rotation
 
+
+### Supports header extensions for the authentication server
+
+The authentication process supports the following actions (`oAuthType`):
+- `AuthenzPrincipal`: Provides an option to add the `Athenz-Principal-Auth` header for Authenz when required.
+- `UnencodedCredential`: Provides an option to communicate with servers that do not require encoding of the credential value(Although non-standard, it supports various scenarios).
+  -  See [RFC 6749 Section 2.3.1](https://datatracker.ietf.org/doc/html/rfc6749#section-2.3.1)
+  
+  
