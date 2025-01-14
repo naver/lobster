@@ -30,6 +30,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/naver/lobster/pkg/lobster/model"
 	"github.com/naver/lobster/pkg/lobster/sink/order"
+	v1 "github.com/naver/lobster/pkg/operator/api/v1"
 	"github.com/naver/lobster/pkg/operator/api/v1/template"
 	"github.com/pkg/errors"
 )
@@ -81,7 +82,7 @@ func (b S3Uploader) FileName(start, end time.Time) string {
 	return fileName
 }
 
-func (s S3Uploader) Validate() error {
+func (s S3Uploader) Validate() v1.ValidationErrors {
 	return s.Order.LogExportRule.S3Bucket.Validate()
 }
 
@@ -124,6 +125,7 @@ func (s S3Uploader) Upload(data []byte, dir, fileName string) error {
 func (s S3Uploader) defaultDir(chunk model.Chunk, date time.Time) string {
 	dirPath := s.Order.Path()
 	layout := s.Order.LogExportRule.S3Bucket.TimeLayoutOfSubDirectory
+	rootPath := s.Order.LogExportRule.S3Bucket.RootPath
 
 	if len(chunk.Source.Path) > 0 {
 		dirPath = fmt.Sprintf("%s/%s", dirPath, chunk.Source.Path)
@@ -131,9 +133,12 @@ func (s S3Uploader) defaultDir(chunk model.Chunk, date time.Time) string {
 	if len(layout) == 0 {
 		layout = defaultLayout
 	}
+	if len(rootPath) == 0 {
+		rootPath = "/"
+	}
 
 	return fmt.Sprintf("%s/%s/%s",
-		s.Order.LogExportRule.S3Bucket.RootPath,
+		rootPath,
 		date.Format(layout),
 		dirPath)
 }

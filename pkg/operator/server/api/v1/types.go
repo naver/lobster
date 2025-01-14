@@ -23,6 +23,7 @@ import (
 	"regexp"
 
 	sinkV1 "github.com/naver/lobster/pkg/operator/api/v1"
+	v1 "github.com/naver/lobster/pkg/operator/api/v1"
 )
 
 var invalidNameCharacter = regexp.MustCompile(`[<>:"/\\|?*]`)
@@ -31,7 +32,7 @@ type SinkContents interface {
 	GetNamespace() string
 	GetName() string
 	GetFilter() sinkV1.Filter
-	Validate() error
+	Validate() v1.ValidationErrors
 }
 
 type Sink struct {
@@ -57,38 +58,51 @@ func (s Sink) ListSinkContents() []SinkContents {
 	return contentsList
 }
 
-func (s Sink) Validate() error {
-	if len(s.Namespace) == 0 || len(s.Name) == 0 {
-		return fmt.Errorf("should set `namespace` and `name`")
+func (s Sink) Validate() v1.ValidationErrors {
+	var validationErrors v1.ValidationErrors
+
+	if len(s.Namespace) == 0 {
+		validationErrors.AppendErrorWithFields("lobsterSink.namespace", v1.ErrorEmptyField)
+	}
+
+	if len(s.Namespace) == 0 {
+		validationErrors.AppendErrorWithFields("lobsterSink.name", v1.ErrorEmptyField)
 	}
 
 	switch s.Type {
 	case sinkV1.LogMetricRules:
-		return ValidateContent(s.LogMetricRules)
+		if errList := ValidateContent(s.LogMetricRules); !errList.IsEmpty() {
+			validationErrors.AppendErrors(errList...)
+		}
 	case sinkV1.LogExportRules:
-		return ValidateContent(s.LogExportRules)
+		if errList := ValidateContent(s.LogExportRules); !errList.IsEmpty() {
+			validationErrors.AppendErrors(errList...)
+		}
+	default:
+		validationErrors.AppendErrorWithFields("lobsterSink.type", "unsupported lobsterSink type")
+
 	}
 
-	return fmt.Errorf("%s type is not supported", s.Type)
+	return validationErrors
 }
 
-func ValidateContent(content interface{}) error {
+func ValidateContent(content interface{}) v1.ValidationErrors {
 	existence := map[string]bool{}
 	v := reflect.ValueOf(content)
 
 	for i := 0; i < v.Len(); i++ {
 		ct := v.Index(i).Interface().(SinkContents)
 		name := ct.GetName()
-		if err := ct.Validate(); err != nil {
-			return err
+		if errList := ct.Validate(); !errList.IsEmpty() {
+			return errList
 		}
 
 		if _, ok := existence[name]; ok {
-			return fmt.Errorf("duplicated name is not allowed '%s'", name)
+			return v1.ValidationErrors{v1.NewValidationError("{logMetricRules|logExportRules}.name", fmt.Sprintf("duplicated name is not allowed '%s'", name))}
 		}
 
 		if err := hasValidName(name); err != nil {
-			return err
+			return v1.ValidationErrors{v1.NewValidationError("{logMetricRules|logExportRules}.name", err.Error())}
 		}
 
 		existence[name] = true

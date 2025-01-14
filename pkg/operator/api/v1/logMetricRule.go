@@ -16,8 +16,6 @@
 
 package v1
 
-import "fmt"
-
 type LogMetricRule struct {
 	// Rule name
 	Name string `json:"name,omitempty"`
@@ -27,12 +25,18 @@ type LogMetricRule struct {
 	Filter Filter `json:"filter,omitempty"`
 }
 
-func (r LogMetricRule) Validate() error {
+func (r LogMetricRule) Validate() ValidationErrors {
+	var validationErrors ValidationErrors
+
 	if len(r.Name) == 0 {
-		return fmt.Errorf("`name` should not be empty")
+		validationErrors.AppendErrorWithFields("logMetricRule.name", ErrorEmptyField)
 	}
 
-	return r.Filter.Validate()
+	if errList := r.Filter.Validate(); !errList.IsEmpty() {
+		validationErrors.AppendErrors(errList...)
+	}
+
+	return validationErrors
 }
 
 func (r LogMetricRule) GetName() string {

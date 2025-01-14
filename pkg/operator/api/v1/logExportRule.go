@@ -45,32 +45,44 @@ type LogExportRule struct {
 	Interval metav1.Duration `json:"interval,omitempty" swaggertype:"string" example:"time duration(e.g. 1m)"`
 }
 
-func (r LogExportRule) Validate() error {
+func (r LogExportRule) Validate() ValidationErrors {
+	var validationErrors ValidationErrors
+
 	if len(r.Name) == 0 {
-		return fmt.Errorf("`name` should not be empty")
+		validationErrors.AppendErrorWithFields("logExportRule.name", ErrorEmptyField)
 	}
 
 	if r.Interval.Seconds() < MinBucketInterval.Seconds() {
-		return fmt.Errorf("`interval` should be greater than or equal to %dm", int(MinBucketInterval.Seconds()))
-	}
-
-	if MaxBucketInterval.Seconds() < r.Interval.Seconds() {
-		return fmt.Errorf("`interval` should be less than or equal to %dh", int(MaxBucketInterval.Hours()))
+		validationErrors.AppendErrorWithFields("logExportRule.interval",
+			fmt.Sprintf("`interval` should be greater than or equal to %dm", int(MinBucketInterval.Seconds())))
+	} else if MaxBucketInterval.Seconds() < r.Interval.Seconds() {
+		validationErrors.AppendErrorWithFields("logExportRule.interval",
+			fmt.Sprintf("`interval` should be less than or equal to %dh", int(MaxBucketInterval.Hours())))
 	}
 
 	if r.BasicBucket != nil {
-		if err := r.BasicBucket.Validate(); err != nil {
-			return err
+		if errList := r.BasicBucket.Validate(); !errList.IsEmpty() {
+			validationErrors.AppendErrors(errList...)
 		}
 	}
 
 	if r.S3Bucket != nil {
-		if err := r.S3Bucket.Validate(); err != nil {
-			return err
+		if errList := r.S3Bucket.Validate(); !errList.IsEmpty() {
+			validationErrors.AppendErrors(errList...)
 		}
 	}
 
-	return r.Filter.Validate()
+	if r.Kafka != nil {
+		if errList := r.Kafka.Validate(); !errList.IsEmpty() {
+			validationErrors.AppendErrors(errList...)
+		}
+	}
+
+	if errList := r.Filter.Validate(); !errList.IsEmpty() {
+		validationErrors.AppendErrors(errList...)
+	}
+
+	return validationErrors
 }
 
 func (r LogExportRule) GetName() string {

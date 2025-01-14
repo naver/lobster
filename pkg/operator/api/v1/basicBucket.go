@@ -17,8 +17,6 @@
 package v1
 
 import (
-	"fmt"
-
 	"github.com/naver/lobster/pkg/operator/api/v1/template"
 )
 
@@ -35,14 +33,16 @@ type BasicBucket struct {
 	PathTemplate string `json:"pathTemplate,omitempty"`
 }
 
-func (b BasicBucket) Validate() error {
-	if len(b.Destination) == 0 || len(b.RootPath) == 0 {
-		return fmt.Errorf("`destination` and `rootPath` should not be empty")
+func (b BasicBucket) Validate() ValidationErrors {
+	var validationErrors ValidationErrors
+
+	if len(b.Destination) == 0 {
+		validationErrors.AppendErrorWithFields("basicBucket.destination", ErrorEmptyField)
 	}
 
 	if err := template.ValidateTemplateString(b.PathTemplate); err != nil {
-		return err
+		validationErrors.AppendErrorWithFields("basicBucket.pathTemplate", err.Error())
 	}
 
-	return nil
+	return validationErrors
 }

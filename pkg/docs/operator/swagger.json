@@ -86,7 +86,7 @@
                         "required": true
                     },
                     {
-                        "description": "sink contentd; Each content in array must be unique",
+                        "description": "sink contents; All contents in the array must be unique",
                         "name": "sink",
                         "in": "body",
                         "required": true,
@@ -111,7 +111,10 @@
                     "400": {
                         "description": "Invalid parameters",
                         "schema": {
-                            "type": "string"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/v1.ValidationError"
+                            }
                         }
                     },
                     "405": {
@@ -191,6 +194,83 @@
                     },
                     "500": {
                         "description": "Failed to delete sink",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/namespaces/{namespace}/sinks/{name}/validate": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Validate log sink",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "namespace name",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "sink name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "sink contents; All contents in the array must be unique",
+                        "name": "sink",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.Sink"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "201": {
+                        "description": "Created successfully",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid parameters",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/v1.ValidationError"
+                            }
+                        }
+                    },
+                    "405": {
+                        "description": "Method not allowed",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "422": {
+                        "description": "Restricted by limits",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to get sink content",
                         "schema": {
                             "type": "string"
                         }
@@ -457,7 +537,15 @@
             "type": "object",
             "properties": {
                 "accessToken": {
-                    "description": "OAuth access token",
+                    "description": "Deprecated; OAuth access token",
+                    "type": "string"
+                },
+                "clientId": {
+                    "description": "Application's ID",
+                    "type": "string"
+                },
+                "clientSecret": {
+                    "description": "Application's secret",
                     "type": "string"
                 },
                 "enable": {
@@ -472,8 +560,23 @@
                     "description": "Enabled SASL mechanism",
                     "type": "string"
                 },
+                "oAuthType": {
+                    "description": "Type for reflecting authentication server's specific requirements",
+                    "type": "string"
+                },
                 "password": {
                     "description": "Password for SASL/PLAIN authentication",
+                    "type": "string"
+                },
+                "scopes": {
+                    "description": "Scopes used to specify permission",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "tokenUrl": {
+                    "description": "TokenURL server endpoint to obtain the access token",
                     "type": "string"
                 },
                 "user": {
@@ -547,6 +650,17 @@
             "type": "object",
             "additionalProperties": {
                 "type": "string"
+            }
+        },
+        "v1.ValidationError": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
             }
         }
     }

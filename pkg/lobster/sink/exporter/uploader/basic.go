@@ -32,6 +32,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/naver/lobster/pkg/lobster/model"
 	"github.com/naver/lobster/pkg/lobster/sink/order"
+	v1 "github.com/naver/lobster/pkg/operator/api/v1"
 	"github.com/naver/lobster/pkg/operator/api/v1/template"
 )
 
@@ -95,7 +96,7 @@ func (b BasicUploader) FileName(start, end time.Time) string {
 	return fileName
 }
 
-func (b BasicUploader) Validate() error {
+func (b BasicUploader) Validate() v1.ValidationErrors {
 	return b.Order.LogExportRule.BasicBucket.Validate()
 }
 
@@ -155,6 +156,7 @@ func (b BasicUploader) Upload(data []byte, dir, fileName string) error {
 func (b BasicUploader) defaultDir(chunk model.Chunk, date time.Time) string {
 	dirPath := b.Order.Path()
 	layout := b.Order.LogExportRule.BasicBucket.TimeLayoutOfSubDirectory
+	rootPath := b.Order.LogExportRule.BasicBucket.RootPath
 
 	if len(chunk.Source.Path) > 0 {
 		dirPath = fmt.Sprintf("%s/%s", dirPath, chunk.Source.Path)
@@ -162,9 +164,12 @@ func (b BasicUploader) defaultDir(chunk model.Chunk, date time.Time) string {
 	if len(layout) == 0 {
 		layout = defaultLayout
 	}
+	if len(rootPath) == 0 {
+		rootPath = "/"
+	}
 
 	return fmt.Sprintf("%s/%s/%s",
-		b.Order.LogExportRule.BasicBucket.RootPath,
+		rootPath,
 		date.Format(layout),
 		dirPath)
 }
