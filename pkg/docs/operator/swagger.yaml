@@ -254,6 +254,13 @@ definitions:
     additionalProperties:
       type: string
     type: object
+  v1.ValidationError:
+    properties:
+      field:
+        type: string
+      message:
+        type: string
+    type: object
 info:
   contact: {}
   description: Descriptions of Lobster log-sink management APIs
@@ -311,7 +318,7 @@ paths:
         name: name
         required: true
         type: string
-      - description: sink contentd; Each content in array must be unique
+      - description: sink contents; All contents in the array must be unique
         in: body
         name: sink
         required: true
@@ -329,7 +336,9 @@ paths:
         "400":
           description: Invalid parameters
           schema:
-            type: string
+            items:
+              $ref: '#/definitions/v1.ValidationError'
+            type: array
         "405":
           description: Method not allowed
           schema:
@@ -387,4 +396,55 @@ paths:
       summary: Delete sink
       tags:
       - Delete
+  /api/v1/namespaces/{namespace}/sinks/{name}/validate:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: namespace name
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: sink name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: sink contents; All contents in the array must be unique
+        in: body
+        name: sink
+        required: true
+        schema:
+          $ref: '#/definitions/v1.Sink'
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "201":
+          description: Created successfully
+          schema:
+            type: string
+        "400":
+          description: Invalid parameters
+          schema:
+            items:
+              $ref: '#/definitions/v1.ValidationError'
+            type: array
+        "405":
+          description: Method not allowed
+          schema:
+            type: string
+        "422":
+          description: Restricted by limits
+          schema:
+            type: string
+        "500":
+          description: Failed to get sink content
+          schema:
+            type: string
+      summary: Validate log sink
+      tags:
+      - Post
 swagger: "2.0"

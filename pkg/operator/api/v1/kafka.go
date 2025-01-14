@@ -17,7 +17,7 @@
 package v1
 
 import (
-	"fmt"
+	"github.com/IBM/sarama"
 )
 
 const (
@@ -84,22 +84,52 @@ type Kafka struct {
 	Key string `json:"key,omitempty"`
 }
 
-func (k Kafka) Validate() error {
+func (k Kafka) Validate() ValidationErrors {
+	var validationErrors ValidationErrors
+
 	if len(k.Brokers) == 0 {
-		return fmt.Errorf("`brokers` should not be empty")
+		validationErrors.AppendErrorWithFields("kafka.brokers", ErrorEmptyField)
 	}
 
 	if k.TLS.Enable && !k.TLS.InsecureSkipVerify && len(k.TLS.CaCertificate) == 0 {
-		return fmt.Errorf("`caCertificate` should not be empty when TLS is enabled")
+		validationErrors.AppendErrorWithFields("kafka.tls.caCertificate", ErrorEmptyField)
+	}
+
+	if k.SASL.Enable {
+		switch k.SASL.Mechanism {
+		case sarama.SASLTypeOAuth:
+			if len(k.SASL.ClientID) == 0 {
+				validationErrors.AppendErrorWithFields("kafka.sasl.clientId", ErrorEmptyField)
+			}
+			if len(k.SASL.ClientSecret) == 0 {
+				validationErrors.AppendErrorWithFields("kafka.sasl.clientSecret", ErrorEmptyField)
+			}
+			if len(k.SASL.TokenURL) == 0 {
+				validationErrors.AppendErrorWithFields("kafka.sasl.tokenUrl", ErrorEmptyField)
+			}
+		case sarama.SASLTypePlaintext:
+			fallthrough
+		case sarama.SASLTypeSCRAMSHA256:
+			fallthrough
+		case sarama.SASLTypeSCRAMSHA512:
+			if len(k.SASL.User) == 0 {
+				validationErrors.AppendErrorWithFields("kafka.sasl.user", ErrorEmptyField)
+			}
+			if len(k.SASL.Password) == 0 {
+				validationErrors.AppendErrorWithFields("kafka.sasl.password", ErrorEmptyField)
+			}
+		default:
+			validationErrors.AppendErrorWithFields("kafka.sasl.mechanism", "unsupported sasl auth mechanism")
+		}
 	}
 
 	if len(k.Topic) == 0 {
-		return fmt.Errorf("`topic` should not be empty")
+		validationErrors.AppendErrorWithFields("kafka.topic", ErrorEmptyField)
 	}
 
 	if k.Partition < PartitionAny {
-		return fmt.Errorf("`partition` should not be less than PartitionAny(-1)")
+		validationErrors.AppendErrorWithFields("kafka.partition", "the partition value must not be less than PartitionAny(-1)")
 	}
 
-	return nil
+	return validationErrors
 }

@@ -70,7 +70,7 @@ func (k KafkaUploader) FileName(start, end time.Time) string {
 	return ""
 }
 
-func (k KafkaUploader) Validate() error {
+func (k KafkaUploader) Validate() v1.ValidationErrors {
 	return k.Order.LogExportRule.Kafka.Validate()
 }
 

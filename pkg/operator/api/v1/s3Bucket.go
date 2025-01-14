@@ -61,22 +61,28 @@ type S3Bucket struct {
 	PathTemplate string `json:"pathTemplate,omitempty"`
 }
 
-func (s S3Bucket) Validate() error {
-	if len(s.Destination) == 0 || len(s.RootPath) == 0 {
-		return fmt.Errorf("`destination` and `rootPath` should not be empty")
+func (s S3Bucket) Validate() ValidationErrors {
+	var validationErrors ValidationErrors
+
+	if len(s.Destination) == 0 {
+		validationErrors.AppendErrorWithFields("basicBucket.destination", ErrorEmptyField)
 	}
 
-	if len(s.AccessKey) == 0 || len(s.SecretKey) == 0 {
-		return fmt.Errorf("`accessKey` and `secretKey` should not be empty")
+	if len(s.AccessKey) == 0 {
+		validationErrors.AppendErrorWithFields("basicBucket.accessKey", ErrorEmptyField)
+	}
+
+	if len(s.SecretKey) == 0 {
+		validationErrors.AppendErrorWithFields("basicBucket.secretKey", ErrorEmptyField)
 	}
 
 	if MaxS3Tags < len(s.Tags) {
-		return fmt.Errorf("too many tags")
+		validationErrors.AppendErrorWithFields("basicBucket.tags", "too many tags")
 	}
 
 	if err := template.ValidateTemplateString(s.PathTemplate); err != nil {
-		return err
+		validationErrors.AppendErrorWithFields("basicBucket.pathTemplate", err.Error())
 	}
 
-	return nil
+	return validationErrors
 }

@@ -34,9 +34,10 @@ const (
 )
 
 const (
-	PathSinks            = "/namespaces/{namespace}/sinks"
-	PathSpecificSink     = "/namespaces/{namespace}/sinks/{name}"
-	PathSinkContentsRule = "/namespaces/{namespace}/sinks/{name}/rules/{rule}"
+	PathSinks                  = "/namespaces/{namespace}/sinks"
+	PathSpecificSink           = "/namespaces/{namespace}/sinks/{name}"
+	PathSpecificSinkValidation = "/namespaces/{namespace}/sinks/{name}/validate"
+	PathSinkContentsRule       = "/namespaces/{namespace}/sinks/{name}/rules/{rule}"
 )
 
 type sinkParam struct {
@@ -66,6 +67,8 @@ func (h SinkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.handleGet(w, r)
 	case http.MethodPut:
 		h.handlePut(w, r)
+	case http.MethodPost:
+		h.handlePost(w, r)
 	case http.MethodDelete:
 		h.handleDelete(w, r)
 	default:
@@ -114,15 +117,15 @@ func (h SinkHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 //	@Summary	Put log sink
 //	@Tags		Put
 //	@Accept		json
-//	@Param		namespace	path		string	true	"namespace name"
-//	@Param		name		path		string	true	"sink name"
-//	@Param		sink		body		v1.Sink	true	"sink contentd; Each content in array must be unique"
-//	@Success	200			{string}	string	""
-//	@Success	201			{string}	string	"Created successfully"
-//	@Failure	400			{string}	string	"Invalid parameters"
-//	@Failure	422			{string}	string	"Restricted by limits"
-//	@Failure	405			{string}	string	"Method not allowed"
-//	@Failure	500			{string}	string	"Failed to get sink content"
+//	@Param		namespace	path		string				true	"namespace name"
+//	@Param		name		path		string				true	"sink name"
+//	@Param		sink		body		v1.Sink				true	"sink contents; All contents in the array must be unique"
+//	@Success	200			{string}	string				""
+//	@Success	201			{string}	string				"Created successfully"
+//	@Failure	400			{object}	v1.ValidationErrors	"Invalid parameters"
+//	@Failure	422			{string}	string				"Restricted by limits"
+//	@Failure	405			{string}	string				"Method not allowed"
+//	@Failure	500			{string}	string				"Failed to get sink content"
 //	@Router		/api/v1/namespaces/{namespace}/sinks/{name} [put]
 func (h SinkHandler) handlePut(w http.ResponseWriter, r *http.Request) {
 	p, err := parseParam(r)
@@ -151,8 +154,13 @@ func (h SinkHandler) handlePut(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := sink.Validate(); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	if errList := sink.Validate(); !errList.IsEmpty() {
+		errData, err := json.Marshal(errList)
+		if err != nil {
+			handleError(w, err)
+			return
+		}
+		http.Error(w, string(errData), http.StatusBadRequest)
 		return
 	}
 
@@ -163,6 +171,59 @@ func (h SinkHandler) handlePut(w http.ResponseWriter, r *http.Request) {
 	}
 	if isCreated {
 		w.WriteHeader(http.StatusCreated)
+	}
+}
+
+// handlePost
+//
+//	@Summary	Validate log sink
+//	@Tags		Post
+//	@Accept		json
+//	@Param		namespace	path		string				true	"namespace name"
+//	@Param		name		path		string				true	"sink name"
+//	@Param		sink		body		v1.Sink				true	"sink contents; All contents in the array must be unique"
+//	@Success	200			{string}	string				""
+//	@Success	201			{string}	string				"Created successfully"
+//	@Failure	400			{object}	v1.ValidationErrors	"Invalid parameters"
+//	@Failure	422			{string}	string				"Restricted by limits"
+//	@Failure	405			{string}	string				"Method not allowed"
+//	@Failure	500			{string}	string				"Failed to get sink content"
+//	@Router		/api/v1/namespaces/{namespace}/sinks/{name}/validate [post]
+func (h SinkHandler) handlePost(w http.ResponseWriter, r *http.Request) {
+	p, err := parseParam(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if len(p.Name) == 0 {
+		http.Error(w, "should set `name`", http.StatusBadRequest)
+		return
+	}
+
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	sink := v1.Sink{
+		Namespace: p.Namespace,
+		Name:      p.Name,
+	}
+	if err := json.Unmarshal(data, &sink); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if errList := sink.Validate(); !errList.IsEmpty() {
+		errData, err := json.Marshal(errList)
+		if err != nil {
+			handleError(w, err)
+			return
+		}
+		http.Error(w, string(errData), http.StatusBadRequest)
+		return
 	}
 }
 
