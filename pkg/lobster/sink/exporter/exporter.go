@@ -103,8 +103,8 @@ func (e *LogExporter) Run(stopChan chan struct{}) {
 					continue
 				}
 
-				if err := uploader.Validate(); err != nil {
-					glog.Error(err)
+				if errList := uploader.Validate(); !errList.IsEmpty() {
+					glog.Error(errList.String())
 					metrics.AddSinkFailure(order.Request, order.SinkNamespace, order.SinkName, uploader.Type(), uploader.Name())
 					continue
 				}

@@ -33,7 +33,6 @@ limitations under the License.
 package v1
 
 import (
-	"fmt"
 	"regexp"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -86,28 +85,30 @@ type Filter struct {
 	FilterExcludeExpr string `json:"exclude,omitempty"`
 }
 
-func (f Filter) Validate() error {
+func (f Filter) Validate() ValidationErrors {
+	var validationErrors ValidationErrors
+
 	if len(f.Namespace) == 0 {
-		return fmt.Errorf("`namespace` should not be empty")
+		validationErrors.AppendErrorWithFields("filter.namespace", ErrorEmptyField)
 	}
 
 	if len(f.SetNames) == 0 && len(f.Pods) == 0 && len(f.Labels) == 0 {
-		return fmt.Errorf("`setNames` or `pods` or `labels` should not be empty")
+		validationErrors.AppendErrorWithFields("filter", "`setNames` or `pods` or `labels` must not be empty")
 	}
 
 	if len(f.FilterIncludeExpr) > 0 {
 		if _, err := regexp.Compile(f.FilterIncludeExpr); err != nil {
-			return err
+			validationErrors.AppendErrorWithFields("filter.include", err.Error())
 		}
 	}
 
 	if len(f.FilterExcludeExpr) > 0 {
 		if _, err := regexp.Compile(f.FilterExcludeExpr); err != nil {
-			return err
+			validationErrors.AppendErrorWithFields("filter.exclude", err.Error())
 		}
 	}
 
-	return nil
+	return validationErrors
 }
 
 type Source struct {
