@@ -24,7 +24,6 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/golang/glog"
 	cache "github.com/hashicorp/golang-lru"
 
 	v1 "github.com/naver/lobster/pkg/operator/api/v1"
@@ -49,7 +48,6 @@ func (tm *TokenManager) GetOAuthTokenProvider(ctx context.Context, oAuthType v1.
 	v, ok := tm.cache.Get(key)
 	tm.RUnlock()
 	if ok && v.(*oauth2.Token).Valid() {
-		glog.Info("reuse " + v.(*oauth2.Token).AccessToken)
 		return TokenProvider{oauth2.StaticTokenSource(v.(*oauth2.Token))}, nil
 	}
 
@@ -64,8 +62,6 @@ func (tm *TokenManager) GetOAuthTokenProvider(ctx context.Context, oAuthType v1.
 	if err != nil {
 		return TokenProvider{}, err
 	}
-
-	glog.Info("new " + newToken.AccessToken)
 
 	tm.Lock()
 	tm.cache.Add(key, newToken)
