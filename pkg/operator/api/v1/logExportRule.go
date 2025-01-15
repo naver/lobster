@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	MinBucketInterval = 15 * time.Second
+	MinBucketInterval = 5 * time.Second
 	MaxBucketInterval = time.Hour
 )
 
