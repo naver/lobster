@@ -32,7 +32,7 @@ import (
 	"github.com/naver/lobster/pkg/lobster/util"
 )
 
-const unreliableTimestamp = "(lobsgter: Unreliable timstamp)"
+const unreliableTimestamp = "(lobster: Unreliable timstamp)"
 
 var (
 	conf       Config

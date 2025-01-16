@@ -185,7 +185,7 @@ func writeTailedLogs(chunk *model.Chunk, blockDirPath, tempBlockFilePath string,
 			go logHandler(chunk, msg, line.Timestamp)
 
 			if ok, description := bucket.Pour(int64(len(msg))); !ok {
-				buf.write(line.Timestamp, fmt.Sprintf("%s stdout F (lobsgter: Logs exceeding %s were limited)\n", line.Timestamp.Format(time.RFC3339Nano), description))
+				buf.write(line.Timestamp, fmt.Sprintf("%s stdout F (lobster: Logs exceeding %s were limited)\n", line.Timestamp.Format(time.RFC3339Nano), description))
 				metrics.AddOverloadedCount(chunk.Namespace, chunk.Pod, chunk.Container, chunk.Source.Type, chunk.Source.Path, description)
 
 				return fmt.Errorf("logs are limit(%s) for %s_%s_%s", description, chunk.Namespace, chunk.Pod, chunk.Container)
