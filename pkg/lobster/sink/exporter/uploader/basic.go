@@ -101,6 +101,8 @@ func (b BasicUploader) Validate() v1.ValidationErrors {
 }
 
 func (b BasicUploader) Upload(data []byte, dir, fileName string) error {
+	var start = time.Now()
+
 	u, err := url.Parse(b.Order.LogExportRule.BasicBucket.Destination)
 	if err != nil {
 		return err
@@ -120,10 +122,13 @@ func (b BasicUploader) Upload(data []byte, dir, fileName string) error {
 		return err
 	}
 
+	defer func() {
+		glog.Infof("[basic][took %fs] upload %d bytes to %s", time.Since(start).Seconds(), len(data), u.String())
+	}()
+
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	glog.Infof("[basic] upload %d bytes to %s", len(data), u.String())
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u.String(), bytes.NewReader(body.Bytes()))
 	if err != nil {
 		return err
