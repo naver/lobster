@@ -115,7 +115,7 @@ func (s S3Uploader) Upload(data []byte, dir, fileName string) error {
 	}
 
 	defer func() {
-		glog.Infof("[s3][took %fs] upload %d bytes to %s(%s)", time.Since(start).Seconds(), len(data), *input.Bucket, *input.Key)
+		glog.Infof("[s3][took %fs] upload %d bytes to %s(%s) for %s", time.Since(start).Seconds(), len(data), *input.Bucket, *input.Key, s.Order.Request.String())
 	}()
 
 	if _, err := s3manager.NewUploader(s3Session).Upload(input); err != nil {
