@@ -75,6 +75,12 @@ func (k KafkaUploader) Validate() v1.ValidationErrors {
 }
 
 func (k KafkaUploader) Upload(data []byte, dir, fileName string) error {
+	var start = time.Now()
+
+	defer func() {
+		glog.Infof("[kafka][took %fs] upload %d bytes to topic `%s` for %s", time.Since(start).Seconds(), len(data), k.Order.LogExportRule.Kafka.Topic, k.Order.Request.String())
+	}()
+
 	config, err := k.newConfig(k.Order.LogExportRule.Kafka)
 	if err != nil {
 		return err
@@ -89,8 +95,6 @@ func (k KafkaUploader) Upload(data []byte, dir, fileName string) error {
 	if err := producer.SendMessages(newMessages(k.Order.LogExportRule.Kafka, data)); err != nil {
 		return err
 	}
-
-	glog.Infof("[kafka] upload %d bytes to topic `%s` for %s", len(data), k.Order.LogExportRule.Kafka.Topic, k.Order.Request.String())
 
 	return nil
 }

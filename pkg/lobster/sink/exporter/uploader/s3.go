@@ -87,6 +87,8 @@ func (s S3Uploader) Validate() v1.ValidationErrors {
 }
 
 func (s S3Uploader) Upload(data []byte, dir, fileName string) error {
+	var start = time.Now()
+
 	s3Session, err := session.NewSession(&aws.Config{
 		Endpoint:         aws.String(s.Order.LogExportRule.S3Bucket.Destination),
 		Credentials:      credentials.NewStaticCredentials(s.Order.LogExportRule.S3Bucket.AccessKey, s.Order.LogExportRule.S3Bucket.SecretKey, ""),
@@ -112,12 +114,13 @@ func (s S3Uploader) Upload(data []byte, dir, fileName string) error {
 		input.Tagging = aws.String(s.Order.LogExportRule.S3Bucket.Tags.String())
 	}
 
-	result, err := s3manager.NewUploader(s3Session).Upload(input)
-	if err != nil {
+	defer func() {
+		glog.Infof("[s3][took %fs] upload %d bytes to %s(%s)", time.Since(start).Seconds(), len(data), *input.Bucket, *input.Key)
+	}()
+
+	if _, err := s3manager.NewUploader(s3Session).Upload(input); err != nil {
 		return errors.Wrap(err, "failed to upload file")
 	}
-
-	glog.Infof("[s3] upload %d bytes to %s", len(data), result.Location)
 
 	return nil
 }
