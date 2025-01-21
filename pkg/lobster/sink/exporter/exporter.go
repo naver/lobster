@@ -223,7 +223,7 @@ func (e *LogExporter) getAndExportLogs(uploader uploader.Uploader, request query
 		}
 
 		fileName := uploader.FileName(pStart, pEnd)
-		dir := uploader.Dir(chunk, start)
+		dir := uploader.Dir(chunk, pStart)
 
 		if err := uploader.Upload(data, dir, fileName); err != nil {
 			return time.Time{}, 0, err
