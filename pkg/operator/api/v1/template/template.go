@@ -64,7 +64,7 @@ func ValidateTemplateString(templateStr string) error {
 		return errors.New("the template should be an absolute path (starting with `/`)")
 	}
 
-	tmpl, err := getTemplate(fmt.Sprintf("validate_%s", templateStr), PathElement{}).Parse(templateStr)
+	tmpl, err := getTemplate(fmt.Sprintf("validate_%s", templateStr), PathElement{})
 	if err != nil {
 		return err
 	}
@@ -75,7 +75,7 @@ func ValidateTemplateString(templateStr string) error {
 func GeneratePath(templateStr string, elem PathElement) (string, error) {
 	var result bytes.Buffer
 
-	tmpl, err := getTemplate(templateStr, elem).Parse(templateStr)
+	tmpl, err := getTemplate(templateStr, elem)
 	if err != nil {
 		return "", err
 	}
@@ -92,16 +92,26 @@ func GeneratePath(templateStr string, elem PathElement) (string, error) {
 	return path, nil
 }
 
-func getTemplate(templateStr string, elem PathElement) *template.Template {
-	v, ok := templateCache.Get(templateStr)
-	if !ok {
-		newTmpl := template.New(templateStr).Funcs(template.FuncMap{
-			"TimeLayout": elem.TimeFormat,
-		})
-		templateCache.Add(templateStr, newTmpl)
+func getTemplate(templateStr string, elem PathElement) (*template.Template, error) {
+	if v, ok := templateCache.Get(templateStr); ok {
+		clone, err := v.(*template.Template).Clone()
+		if err != nil {
+			return nil, err
+		}
 
-		return newTmpl
+		return clone.Funcs(template.FuncMap{
+			"TimeLayout": elem.TimeFormat,
+		}).Parse(templateStr)
 	}
 
-	return v.(*template.Template)
+	newTmpl, err := template.New(templateStr).Funcs(template.FuncMap{
+		"TimeLayout": elem.TimeFormat,
+	}).Parse(templateStr)
+	if err != nil {
+		return nil, err
+	}
+
+	templateCache.Add(templateStr, newTmpl)
+
+	return newTmpl, nil
 }
