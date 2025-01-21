@@ -74,3 +74,31 @@ func TestInvalidPath(t *testing.T) {
 		}
 	}
 }
+
+func TestGeneratePathWithCachedTemplates(t *testing.T) {
+	templateStr := "/{{TimeLayout \"20060102\"}}/{{.SinkName}}"
+	dates := map[string]time.Time{
+		"/20250106/2025-01-06T00:00:00Z": time.Date(2025, 1, 6, 0, 0, 0, 0, time.UTC),
+		"/20250107/2025-01-07T00:00:00Z": time.Date(2025, 1, 7, 0, 0, 0, 0, time.UTC),
+		"/20250108/2025-01-08T00:00:00Z": time.Date(2025, 1, 8, 0, 0, 0, 0, time.UTC),
+	}
+
+	elem := PathElement{}
+
+	for expected, date := range dates {
+		elem.TimeInput = date                     // time func
+		elem.SinkName = date.Format(time.RFC3339) // string field
+
+		path, err := GeneratePath(templateStr, elem)
+		if err != nil {
+			t.Errorf("failed to generating path for template %q: %v\n", templateStr, err)
+			return
+		}
+		if path != expected {
+			t.Errorf("invalid result: %s vs %s", path, expected)
+			return
+		}
+
+		t.Logf("template: %q\npath: %s", templateStr, path)
+	}
+}
