@@ -43,9 +43,10 @@ func NewCounter(dataPath string) Counter {
 
 func (c Counter) Produce(bytes int, exportTime time.Time, interval time.Duration, logTime time.Time) Receipt {
 	return Receipt{
-		ExportBytes: bytes,
-		ExportTime:  exportTime,
-		LogTime:     logTime,
+		ExportBytes:    bytes,
+		ExportTime:     exportTime,
+		ExportInterval: interval,
+		LogTime:        logTime,
 	}
 }
 
