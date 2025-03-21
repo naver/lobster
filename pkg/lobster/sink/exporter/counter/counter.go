@@ -93,7 +93,7 @@ func (c Counter) Clean(current time.Time) {
 			return nil
 		}
 
-		glog.Infof("delete stale receipts %s", string(k))
+		glog.Infof("delete stale receipts %s : %v", string(k), receipt)
 		targets = append(targets, k)
 
 		return nil
