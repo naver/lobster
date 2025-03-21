@@ -112,7 +112,7 @@ func (s *Store) GetSeriesInBlocksWithinRange(req query.Request) (numOfChunk int,
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
-	chunk := s.LoadChunk(req.Source, req.PodUID, req.Container)
+	chunk := s.LoadChunk(req.Source, req.PodUid, req.Container)
 
 	if chunk == nil {
 		return
@@ -136,7 +136,7 @@ func (s *Store) GetBlocksWithinRange(req query.Request) (data []byte, numOfChunk
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
-	chunk := s.LoadChunk(req.Source, req.PodUID, req.Container)
+	chunk := s.LoadChunk(req.Source, req.PodUid, req.Container)
 
 	if chunk == nil {
 		return
@@ -171,7 +171,7 @@ func (s *Store) GetEntriesWithinRange(req query.Request) ([]model.Entry, int, mo
 }
 
 func (s *Store) Validate(req query.Request) error {
-	if len(req.PodUID) == 0 || len(req.Container) == 0 {
+	if len(req.PodUid) == 0 || len(req.Container) == 0 {
 		return fmt.Errorf("invalid pod uid or container name")
 	}
 
@@ -188,14 +188,14 @@ func (s *Store) InitChunks() {
 	}
 
 	loadBlocks(files, conf, func(block model.ReadableBlock, checkPoint *model.CheckPoint, file model.LogFile) {
-		chunk := s.LoadChunk(file.Source, file.PodUID, file.Container)
+		chunk := s.LoadChunk(file.Source, file.PodUid, file.Container)
 		if chunk == nil {
 			chunk, err = model.NewChunk(file, checkPoint)
 			if err != nil {
 				glog.Error(err)
 				return
 			}
-			s.StoreChunk(file.Source, file.PodUID, file.Container, chunk)
+			s.StoreChunk(file.Source, file.PodUid, file.Container, chunk)
 		}
 
 		tempBlock, ok := block.(*model.TempBlock)
@@ -256,7 +256,7 @@ func (s *Store) WriteFiledLogs(chunk *model.Chunk, files []model.LogFile, logHan
 		glog.V(3).Info("failed to wrtie checkpoint: " + err.Error())
 	}
 	glog.V(3).Infof("add blocks %v for %s\n", len(blocks), chunk.RelativeBlockDir)
-	s.StoreChunk(chunk.Source, chunk.PodUID, chunk.Container, chunk)
+	s.StoreChunk(chunk.Source, chunk.PodUid, chunk.Container, chunk)
 }
 
 func (s *Store) WriteTailedLogs(chunk *model.Chunk, fileNum int64, logChan chan logline.LogLine, stopChan chan struct{}, logHandler LogHandler) error {

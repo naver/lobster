@@ -144,7 +144,7 @@ func (d *Distributor) Run(stopChan chan struct{}) {
 
 func (d *Distributor) updateLabelsInChunks(podMap map[string]v1.Pod) {
 	d.store.UpdateChunks(func(chunk *model.Chunk) {
-		pod, ok := podMap[chunk.PodUID]
+		pod, ok := podMap[chunk.PodUid]
 
 		if !ok {
 			return
@@ -229,9 +229,9 @@ func (d *Distributor) storeFiles(fileMap map[string][]model.LogFile) {
 				refFile     = files[0]
 			)
 
-			if d.store.HasChunk(refFile.Source, refFile.PodUID, refFile.Container) {
+			if d.store.HasChunk(refFile.Source, refFile.PodUid, refFile.Container) {
 				newFiles := []model.LogFile{}
-				chunk = d.store.LoadChunk(refFile.Source, refFile.PodUID, refFile.Container)
+				chunk = d.store.LoadChunk(refFile.Source, refFile.PodUid, refFile.Container)
 
 				for _, file := range files {
 					if chunk.CheckPoint.FileNum < file.Number {
@@ -270,14 +270,14 @@ func (d *Distributor) tailFiles(fileList []model.LogFile, stopChan chan struct{}
 		var err error
 
 		key := file.Id()
-		chunk := d.store.LoadChunk(file.Source, file.PodUID, file.Container)
+		chunk := d.store.LoadChunk(file.Source, file.PodUid, file.Container)
 
 		if chunk == nil {
 			chunk, err = model.NewChunk(file, model.NewCheckPoint(file.Number, 0))
 			if err != nil {
 				continue
 			}
-			d.store.StoreChunk(file.Source, file.PodUID, file.Container, chunk)
+			d.store.StoreChunk(file.Source, file.PodUid, file.Container, chunk)
 		}
 
 		if _, ok := d.tailerCache.Load(key); ok {

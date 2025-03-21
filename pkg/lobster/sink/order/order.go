@@ -76,7 +76,7 @@ func (o *Order) Clone() (Order, error) {
 
 func (o *Order) Update(c model.Chunk) error {
 	o.Request.Pod = c.Pod
-	o.Request.PodUID = c.PodUID
+	o.Request.PodUid = c.PodUid
 	o.Request.Container = c.Container
 	o.Request.Source = c.Source
 

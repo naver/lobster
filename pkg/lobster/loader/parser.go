@@ -46,7 +46,7 @@ func ParseKubeLogFile(logType, path string, mTime time.Time, size int64, appeara
 	return &model.LogFile{
 		Namespace: tokens[0],
 		Pod:       tokens[1],
-		PodUID:    tokens[2],
+		PodUid:    tokens[2],
 		Container: subPaths[appearance+1],
 		FileName:  subPaths[appearance+2],
 		Path:      path,
@@ -93,7 +93,7 @@ func ParseStoredLogFile(logType, path string, mTime time.Time, size int64, appea
 		return &model.LogFile{
 			Namespace: tokens[0],
 			Pod:       tokens[1],
-			PodUID:    tokens[2],
+			PodUid:    tokens[2],
 			Container: container,
 			FileName:  model.TempBlockFileName,
 			Path:      path,
@@ -115,7 +115,7 @@ func ParseStoredLogFile(logType, path string, mTime time.Time, size int64, appea
 	return &model.LogFile{
 		Namespace: tokens[0],
 		Pod:       tokens[1],
-		PodUID:    tokens[2],
+		PodUid:    tokens[2],
 		Container: container,
 		FileName:  subPaths[appearance+2],
 		Path:      path,

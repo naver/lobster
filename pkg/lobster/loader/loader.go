@@ -142,7 +142,7 @@ func LoadPodEmptyDir(root string, podMap map[string]v1.Pod) []model.LogFile {
 				Namespace: pod.Namespace,
 				Labels:    pod.Labels,
 				Pod:       pod.Name,
-				PodUID:    uid,
+				PodUid:    uid,
 				Container: EmptyDirDescription,
 				FileName:  file.Name(),
 				Path:      path,

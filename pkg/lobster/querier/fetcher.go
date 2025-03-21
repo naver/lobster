@@ -123,7 +123,7 @@ func Fetch(req query.Request, chunks []model.Chunk, urlPath string) ([]FetchResu
 	for _, chunk := range chunks {
 		go func(req query.Request, c model.Chunk, channel chan FetchResult) {
 			r := req
-			r.PodUID = c.PodUID
+			r.PodUid = c.PodUid
 			r.Container = c.Container
 			r.Source = c.Source
 			result := FetchResult{c, query.Response{}, nil}
