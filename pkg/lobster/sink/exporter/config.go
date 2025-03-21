@@ -22,10 +22,13 @@ import (
 )
 
 type config struct {
-	InspectInterval *time.Duration
-	DataPath        *string
-	Burst           *int64
-	MaxLookback     *time.Duration
+	InspectInterval       *time.Duration
+	DataPath              *string
+	Burst                 *int64
+	MaxLookback           *time.Duration
+	MinGrpcConnectTimeout *time.Duration
+	StoreGrpcServerAddr   *string
+	StoreGrpcServerPort   *string
 }
 
 func setup() config {
@@ -33,11 +36,15 @@ func setup() config {
 	dataPath := flag.String("sink.exporter.dataPath", "/var/lobster", "Database path to store receipts")
 	burst := flag.Int64("sink.exporter.burst", 1000000, "Provide lines in and out of busrt per page")
 	maxLookback := flag.Duration("sink.exporter.maxLookback", time.Hour, "Limits the time when getting old receipts")
+	minGrpcConnectTimeout := flag.Duration("sink.exporter.minGrpcConnectTimeout", time.Second, "Minimum timeout for retrying connection to the store")
+	storeGrpcServerAddr := flag.String("sink.exporter.storeGrpcServerAddress", ":11130", "grpc server address in the store")
 
 	return config{
-		InspectInterval: inspectInterval,
-		DataPath:        dataPath,
-		Burst:           burst,
-		MaxLookback:     maxLookback,
+		InspectInterval:       inspectInterval,
+		DataPath:              dataPath,
+		Burst:                 burst,
+		MaxLookback:           maxLookback,
+		MinGrpcConnectTimeout: minGrpcConnectTimeout,
+		StoreGrpcServerAddr:   storeGrpcServerAddr,
 	}
 }

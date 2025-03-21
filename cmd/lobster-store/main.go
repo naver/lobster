@@ -24,6 +24,7 @@ import (
 	"github.com/naver/lobster/pkg/lobster/distributor"
 	"github.com/naver/lobster/pkg/lobster/logline"
 	"github.com/naver/lobster/pkg/lobster/metrics"
+	"github.com/naver/lobster/pkg/lobster/proto"
 	"github.com/naver/lobster/pkg/lobster/push"
 	"github.com/naver/lobster/pkg/lobster/server"
 	"github.com/naver/lobster/pkg/lobster/server/handler/log"
@@ -47,6 +48,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	grpcServer := &proto.ProtoServer{Service: proto.ChunkService{Store: store}}
 	distributor := distributor.NewDistributor(store)
 	limiter := middleware.Limiter{Limit: store.ReqMaxBurst, CooldownSecond: store.ReqCooldownDuration}
 	router := server.Router()
@@ -70,6 +73,7 @@ func main() {
 
 	push.Run(store, ep, stopChan)
 	distributor.Run(stopChan)
+	grpcServer.Run(stopChan)
 
 	server.Run(func() {
 		close(stopChan)
