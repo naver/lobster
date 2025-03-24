@@ -53,7 +53,7 @@ type Request struct {
 	// Use internally
 	Pod string `json:"pod,omitempty"`
 	// Use internally
-	PodUID string `json:"pod_uid,omitempty"`
+	PodUid string `json:"pod_uid,omitempty"`
 	// Use internally
 	Container string `json:"container,omitempty"`
 	// Use internally

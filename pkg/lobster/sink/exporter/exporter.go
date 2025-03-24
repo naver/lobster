@@ -18,6 +18,7 @@ package exporter
 
 import (
 	"bytes"
+	"context"
 	"log"
 	"time"
 
@@ -26,6 +27,7 @@ import (
 	"github.com/naver/lobster/pkg/lobster/logline"
 	"github.com/naver/lobster/pkg/lobster/metrics"
 	"github.com/naver/lobster/pkg/lobster/model"
+	"github.com/naver/lobster/pkg/lobster/proto"
 	"github.com/naver/lobster/pkg/lobster/query"
 	"github.com/naver/lobster/pkg/lobster/sink/exporter/counter"
 	"github.com/naver/lobster/pkg/lobster/sink/exporter/uploader"
@@ -36,6 +38,9 @@ import (
 	"github.com/naver/lobster/pkg/lobster/store"
 	"github.com/naver/lobster/pkg/lobster/util"
 	"github.com/pkg/errors"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	sinkV1 "github.com/naver/lobster/pkg/operator/api/v1"
 )
@@ -48,24 +53,37 @@ func init() {
 }
 
 type LogExporter struct {
-	counter      counter.Counter
-	store        *store.Store
-	sinkManager  manager.SinkManager
-	client       client.Client
-	tokenManager *auth.TokenManager
+	counter        counter.Counter
+	store          *store.Store
+	sinkManager    manager.SinkManager
+	client         client.Client
+	tokenManager   *auth.TokenManager
+	grpcClient     proto.ChunkServiceClient
+	protoConverter proto.Converter
 }
 
 func NewLogExporter(store *store.Store) LogExporter {
 	client, err := client.New()
 	if err != nil {
-		panic(err)
+		glog.Fatal(err)
 	}
+
+	conn, err := grpc.NewClient(
+		*conf.StoreGrpcServerAddr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithConnectParams(grpc.ConnectParams{MinConnectTimeout: time.Second}))
+	if err != nil {
+		glog.Fatal(err)
+	}
+
 	return LogExporter{
 		counter.NewCounter(*conf.DataPath),
 		store,
 		manager.NewSinkManager(sinkV1.LogExportRules),
 		client,
 		auth.NewTokenManager(),
+		proto.NewChunkServiceClient(conn),
+		proto.Converter{},
 	}
 }
 
@@ -85,7 +103,10 @@ func (e *LogExporter) Run(stopChan chan struct{}) {
 				panic("no pods found")
 			}
 
-			e.store.InitChunks()
+			if err := e.initStore(current); err != nil {
+				glog.Error(err)
+				continue
+			}
 			if err := e.sinkManager.Update(helper.FilterChunksByExistingPods(e.store.GetChunks(), podMap), current.Add(-*conf.InspectInterval), current); err != nil {
 				glog.Error(err)
 				continue
@@ -109,8 +130,9 @@ func (e *LogExporter) Run(stopChan chan struct{}) {
 					continue
 				}
 
-				chunk := e.store.LoadChunk(order.Request.Source, order.Request.PodUID, order.Request.Container)
-				if chunk == nil {
+				chunk, err := e.loadAndStoreChunkIfExist(order.Request.Source, order.Request.PodUid, order.Request.Container)
+				if err != nil {
+					glog.Error(err)
 					continue
 				}
 
@@ -133,6 +155,53 @@ func (e *LogExporter) Run(stopChan chan struct{}) {
 			return
 		}
 	}
+}
+func (e *LogExporter) initStore(current time.Time) error {
+	chunks, err := e.requestChunks(current.Add(-*conf.MaxLookback), current)
+	if err != nil {
+		return err
+	}
+
+	for i := range chunks {
+		e.store.StoreChunk(chunks[i].Source, chunks[i].PodUid, chunks[i].Container, &chunks[i])
+	}
+
+	return nil
+}
+
+func (e *LogExporter) requestChunks(start, end time.Time) ([]model.Chunk, error) {
+	resp, err := e.grpcClient.GetChunksWithinRange(context.Background(), &proto.Request{
+		Start: timestamppb.New(start),
+		End:   timestamppb.New(end),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return e.protoConverter.ToChunks(resp.ProtoChunk), nil
+}
+
+func (e *LogExporter) loadAndStoreChunkIfExist(source model.Source, podUid, container string) (*model.Chunk, error) {
+	resp, err := e.grpcClient.GetChunk(context.Background(), &proto.Request{
+		Source: &proto.ProtoSource{
+			Type: source.Type,
+			Path: source.Path,
+		},
+		PodUid:    podUid,
+		Container: container,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	chunks := e.protoConverter.ToChunks(resp.ProtoChunk)
+	if len(chunks) == 0 {
+		return nil, errors.New("failed to get chunk")
+	}
+
+	e.store.StoreChunk(source, podUid, container, &chunks[0])
+
+	return &chunks[0], nil
 }
 
 func (e *LogExporter) export(current time.Time, uploader uploader.Uploader, order order.Order, chunk model.Chunk) (int, error) {
@@ -162,7 +231,9 @@ func (e *LogExporter) export(current time.Time, uploader uploader.Uploader, orde
 		logTs = current
 	}
 
-	receipt.Update(total, current, interval, logTs)
+	if total > 0 {
+		receipt.Update(total, current, interval, logTs)
+	}
 
 	return receipt.ExportBytes, err
 }

@@ -25,7 +25,7 @@ type LogFile struct {
 	Namespace     string            `json:"namespace"`
 	Labels        map[string]string `json:"labels"`
 	Pod           string            `json:"pod"`
-	PodUID        string            `json:"podUid"`
+	PodUid        string            `json:"podUid"`
 	Container     string            `json:"container"`
 	FileName      string            `json:"fileName"`
 	Path          string            `json:"path"`
@@ -36,7 +36,7 @@ type LogFile struct {
 }
 
 func (f LogFile) RelativePodDir() string {
-	return fmt.Sprintf("%s_%s_%s", f.Namespace, f.Pod, f.PodUID)
+	return fmt.Sprintf("%s_%s_%s", f.Namespace, f.Pod, f.PodUid)
 }
 
 func (f LogFile) RelativeBlockDir() string {

@@ -25,7 +25,7 @@ func FilterChunksByExistingPods(chunks []model.Chunk, podMap map[string]v1.Pod) 
 	var filtered []model.Chunk
 
 	for _, chunk := range chunks {
-		if _, ok := podMap[chunk.PodUID]; !ok {
+		if _, ok := podMap[chunk.PodUid]; !ok {
 			continue
 		}
 

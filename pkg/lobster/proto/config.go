@@ -14,28 +14,20 @@
  * limitations under the License.
  */
 
-package counter
+package proto
 
 import (
-	"time"
+	"flag"
 )
 
-const liveFactor = 3
-
-type Receipt struct {
-	ExportBytes    int
-	ExportTime     time.Time
-	ExportInterval time.Duration
-	LogTime        time.Time
+type config struct {
+	ServerAddr *string
 }
 
-func (r *Receipt) Update(exportBytes int, exportTime time.Time, interval time.Duration, logTime time.Time) {
-	r.ExportBytes = exportBytes
-	r.ExportTime = exportTime
-	r.ExportInterval = interval
-	r.LogTime = logTime
-}
+func setup() config {
+	serverAddr := flag.String("grpc.server.addr", ":11130", "server address")
 
-func (r Receipt) IsStale(t time.Time) bool {
-	return t.Sub(r.ExportTime).Seconds() > liveFactor*r.ExportInterval.Seconds()
+	return config{
+		ServerAddr: serverAddr,
+	}
 }

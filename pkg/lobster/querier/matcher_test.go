@@ -37,7 +37,7 @@ func init() {
 		chunk, _ := model.NewChunk(model.LogFile{
 			Labels:    map[string]string{"label": "label" + suffix},
 			Pod:       "pod" + suffix,
-			PodUID:    "pod-uid" + suffix,
+			PodUid:    "pod-uid" + suffix,
 			Container: "container" + suffix,
 			Source:    model.Source{Type: model.LogTypeStdStream, Path: ""},
 		}, nil)

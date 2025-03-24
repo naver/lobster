@@ -31,13 +31,13 @@ const (
 
 // Chunk struct.
 type Chunk struct {
-	ID                  string      `json:"id"`
+	Id                  string      `json:"id"`
 	Cluster             string      `json:"cluster"`
 	Namespace           string      `json:"namespace"`
 	Labels              Labels      `json:"labels"`
 	SetName             string      `json:"setName"`
 	Pod                 string      `json:"pod"`
-	PodUID              string      `json:"podUid"`
+	PodUid              string      `json:"podUid"`
 	Container           string      `json:"container"`
 	Source              Source      `json:"source"`
 	Blocks              []*Block    `json:"-"`
@@ -61,13 +61,13 @@ func NewChunk(file LogFile, checkPoint *CheckPoint) (*Chunk, error) {
 	}
 
 	return &Chunk{
-		ID:               file.RelativeBlockDir(),
+		Id:               file.RelativeBlockDir(),
 		Cluster:          *conf.ClusterName,
 		Namespace:        file.Namespace,
 		Labels:           file.Labels,
 		SetName:          name,
 		Pod:              file.Pod,
-		PodUID:           file.PodUID,
+		PodUid:           file.PodUid,
 		Container:        file.Container,
 		Source:           file.Source,
 		TempBlock:        &TempBlock{},
@@ -182,7 +182,7 @@ func (c Chunk) IsOutdated(retentionTime time.Duration) bool {
 }
 
 func (c Chunk) Key() string {
-	return fmt.Sprintf("%s_%s_%s_%s_%s_%s", c.Namespace, c.SetName, c.Pod, c.PodUID, c.Container, c.Source.String())
+	return fmt.Sprintf("%s_%s_%s_%s_%s_%s", c.Namespace, c.SetName, c.Pod, c.PodUid, c.Container, c.Source.String())
 }
 
 func measureBlocks(blocks []*Block) (line, size int64) {

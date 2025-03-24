@@ -66,6 +66,8 @@ $(LOCALBIN):
 	mkdir -p $(LOCALBIN)
 
 ## Tool Binaries
+PROTOC_GEN_GO ?= $(LOCALBIN)/protoc-gen-go
+PROTOC_GEN_GO_GRPC ?= $(LOCALBIN)/protoc-gen-go-grpc
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 GOLANGCI_LINTER ?= $(LOCALBIN)/golangci-lint
 SWAG ?= $(LOCALBIN)/swag
@@ -81,6 +83,16 @@ OS := $(shell uname | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m)
 
 check_command = $(shell which $1 > /dev/null 2>&1 && echo "found" || echo "not found")
+
+.PHONY: protoc-gen-go
+protoc-gen-go: $(PROTOC_GEN_GO) ## Download protoc-gen-go locally if necessary.
+$(PROTOC_GEN_GO): $(LOCALBIN)
+	@GOBIN=$(LOCALBIN) go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.5
+
+.PHONY: protoc-gen-go-grpc
+protoc-gen-go-grpc: $(PROTOC_GEN_GO_GRPC) ## Download protoc-gen-go-grpc locally if necessary.
+$(PROTOC_GEN_GO_GRPC): $(LOCALBIN)
+	@GOBIN=$(LOCALBIN) go install  google.golang.org/grpc/cmd/protoc-gen-go-grpc@1.5.1
 
 .PHONY: controller-gen
 controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
@@ -103,6 +115,12 @@ ifeq ($(call check_command,$(WIDDERSHINS)),not found)
 	@echo "$(WIDDERSHINS) is not found, installing via npm..."
 	@npm install -g widdershins@$(WIDDERSHINS_TOOLS_VERSION)
 endif
+
+##@ Generate protocol buffer file
+## You might need to install the protoc binary
+.PHONY: gen-pb
+gen-pb: fmt vet
+	protoc --go_out=. --go-grpc_out=. --plugin=protoc-gen-go=$(PROTOC_GEN_GO) --plugin=protoc-gen-go-grpc=$(PROTOC_GEN_GO_GRPC)  ./pkg/lobster/proto/chunk.proto
 
 ##@ Generate docs
 
