@@ -43,7 +43,7 @@ func NewDatabase() (Database, error) {
 					indexID: {
 						Name:    indexID,
 						Unique:  true,
-						Indexer: &memdb.StringFieldIndex{Field: "ID"},
+						Indexer: &memdb.StringFieldIndex{Field: "Id"},
 					},
 					indexChunkNamespace: {
 						Name:   indexChunkNamespace,
