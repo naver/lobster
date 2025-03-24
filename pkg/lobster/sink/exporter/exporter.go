@@ -53,12 +53,13 @@ func init() {
 }
 
 type LogExporter struct {
-	counter      counter.Counter
-	store        *store.Store
-	sinkManager  manager.SinkManager
-	client       client.Client
-	tokenManager *auth.TokenManager
-	grpcClient   proto.ChunkServiceClient
+	counter        counter.Counter
+	store          *store.Store
+	sinkManager    manager.SinkManager
+	client         client.Client
+	tokenManager   *auth.TokenManager
+	grpcClient     proto.ChunkServiceClient
+	protoConverter proto.Converter
 }
 
 func NewLogExporter(store *store.Store) LogExporter {
@@ -82,6 +83,7 @@ func NewLogExporter(store *store.Store) LogExporter {
 		client,
 		auth.NewTokenManager(),
 		proto.NewChunkServiceClient(conn),
+		proto.Converter{},
 	}
 }
 
@@ -128,7 +130,7 @@ func (e *LogExporter) Run(stopChan chan struct{}) {
 					continue
 				}
 
-				chunk, err := e.loadChunk(order.Request.Source, order.Request.PodUid, order.Request.Container)
+				chunk, err := e.loadAndStoreChunkIfExist(order.Request.Source, order.Request.PodUid, order.Request.Container)
 				if err != nil {
 					glog.Error(err)
 					continue
@@ -176,10 +178,10 @@ func (e *LogExporter) requestChunks(start, end time.Time) ([]model.Chunk, error)
 		return nil, err
 	}
 
-	return proto.Converter{}.ToChunks(resp.ProtoChunk), nil
+	return e.protoConverter.ToChunks(resp.ProtoChunk), nil
 }
 
-func (e *LogExporter) loadChunk(source model.Source, podUid, container string) (*model.Chunk, error) {
+func (e *LogExporter) loadAndStoreChunkIfExist(source model.Source, podUid, container string) (*model.Chunk, error) {
 	resp, err := e.grpcClient.GetChunk(context.Background(), &proto.Request{
 		Source: &proto.ProtoSource{
 			Type: source.Type,
@@ -192,10 +194,12 @@ func (e *LogExporter) loadChunk(source model.Source, podUid, container string) (
 		return nil, err
 	}
 
-	chunks := proto.Converter{}.ToChunks(resp.ProtoChunk)
+	chunks := e.protoConverter.ToChunks(resp.ProtoChunk)
 	if len(chunks) == 0 {
 		return nil, errors.New("failed to get chunk")
 	}
+
+	e.store.StoreChunk(source, podUid, container, &chunks[0])
 
 	return &chunks[0], nil
 }
