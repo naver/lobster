@@ -81,9 +81,9 @@ func (b Block) EndTime() time.Time {
 
 func (b Block) FileName() string {
 	return fmt.Sprintf("%s%s%s%s%d%s%d.log",
-		b.StartedAt.Format(time.RFC3339Nano),
+		b.StartedAt.Local().Format(time.RFC3339Nano),
 		blockNameDelimiter,
-		b.EndedAt.Format(time.RFC3339Nano),
+		b.EndedAt.Local().Format(time.RFC3339Nano),
 		blockNameDelimiter,
 		b.Line,
 		blockNameDelimiter,

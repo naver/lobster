@@ -43,9 +43,10 @@ func NewCounter(dataPath string) Counter {
 
 func (c Counter) Produce(bytes int, exportTime time.Time, interval time.Duration, logTime time.Time) Receipt {
 	return Receipt{
-		ExportBytes: bytes,
-		ExportTime:  exportTime,
-		LogTime:     logTime,
+		ExportBytes:    bytes,
+		ExportTime:     exportTime,
+		ExportInterval: interval,
+		LogTime:        logTime,
 	}
 }
 
@@ -92,7 +93,7 @@ func (c Counter) Clean(current time.Time) {
 			return nil
 		}
 
-		glog.Infof("delete stale receipts %s", string(k))
+		glog.Infof("delete stale receipts %s : %v", string(k), receipt)
 		targets = append(targets, k)
 
 		return nil

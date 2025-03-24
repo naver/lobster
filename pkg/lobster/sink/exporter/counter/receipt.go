@@ -20,7 +20,7 @@ import (
 	"time"
 )
 
-const liveFactor = 2
+const liveFactor = 3
 
 type Receipt struct {
 	ExportBytes    int
