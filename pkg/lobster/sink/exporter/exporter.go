@@ -227,7 +227,9 @@ func (e *LogExporter) export(current time.Time, uploader uploader.Uploader, orde
 		logTs = current
 	}
 
-	receipt.Update(total, current, interval, logTs)
+	if total > 0 {
+		receipt.Update(total, current, interval, logTs)
+	}
 
 	return receipt.ExportBytes, err
 }
