@@ -74,11 +74,12 @@ func (k KafkaUploader) Validate() v1.ValidationErrors {
 	return k.Order.LogExportRule.Kafka.Validate()
 }
 
-func (k KafkaUploader) Upload(data []byte, dir, fileName string) error {
+func (k KafkaUploader) Upload(data []byte, chunk model.Chunk, pStart, pEnd time.Time) error {
 	var start = time.Now()
 
 	defer func() {
-		glog.Infof("[kafka][took %fs] upload %d bytes to topic `%s` for %s", time.Since(start).Seconds(), len(data), k.Order.LogExportRule.Kafka.Topic, k.Order.Request.String())
+		glog.Infof("[kafka][took %fs][%d_%d] upload %d bytes to topic `%s` for %s",
+			time.Since(start).Seconds(), pStart.Unix(), pEnd.Unix(), len(data), k.Order.LogExportRule.Kafka.Topic, chunk.Key())
 	}()
 
 	config, err := k.newConfig(k.Order.LogExportRule.Kafka)

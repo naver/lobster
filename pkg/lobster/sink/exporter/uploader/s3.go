@@ -86,8 +86,12 @@ func (s S3Uploader) Validate() v1.ValidationErrors {
 	return s.Order.LogExportRule.S3Bucket.Validate()
 }
 
-func (s S3Uploader) Upload(data []byte, dir, fileName string) error {
-	var start = time.Now()
+func (s S3Uploader) Upload(data []byte, chunk model.Chunk, pStart, pEnd time.Time) error {
+	var (
+		start    = time.Now()
+		fileName = s.FileName(pStart, pEnd)
+		dir      = s.Dir(chunk, pStart)
+	)
 
 	s3Session, err := session.NewSession(&aws.Config{
 		Endpoint:         aws.String(s.Order.LogExportRule.S3Bucket.Destination),
@@ -115,7 +119,8 @@ func (s S3Uploader) Upload(data []byte, dir, fileName string) error {
 	}
 
 	defer func() {
-		glog.Infof("[s3][took %fs] upload %d bytes to %s(%s) for %s", time.Since(start).Seconds(), len(data), *input.Bucket, *input.Key, s.Order.Request.String())
+		glog.Infof("[s3][took %fs][%d_%d] upload %d bytes to %s(%s) for %s",
+			time.Since(start).Seconds(), pStart.Unix(), pEnd.Unix(), len(data), *input.Bucket, *input.Key, chunk.Key())
 	}()
 
 	if _, err := s3manager.NewUploader(s3Session).Upload(input); err != nil {
