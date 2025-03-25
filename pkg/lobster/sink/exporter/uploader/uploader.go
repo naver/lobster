@@ -33,12 +33,10 @@ const (
 )
 
 type Uploader interface {
-	Upload([]byte, string, string) error
+	Upload([]byte, model.Chunk, time.Time, time.Time) error
 	Interval() time.Duration
 	Type() string
 	Name() string
-	Dir(model.Chunk, time.Time) string
-	FileName(time.Time, time.Time) string
 	Validate() v1.ValidationErrors
 }
 

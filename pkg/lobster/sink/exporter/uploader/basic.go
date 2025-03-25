@@ -100,8 +100,12 @@ func (b BasicUploader) Validate() v1.ValidationErrors {
 	return b.Order.LogExportRule.BasicBucket.Validate()
 }
 
-func (b BasicUploader) Upload(data []byte, dir, fileName string) error {
-	var start = time.Now()
+func (b BasicUploader) Upload(data []byte, chunk model.Chunk, pStart, pEnd time.Time) error {
+	var (
+		start    = time.Now()
+		fileName = b.FileName(pStart, pEnd)
+		dir      = b.Dir(chunk, pStart)
+	)
 
 	u, err := url.Parse(b.Order.LogExportRule.BasicBucket.Destination)
 	if err != nil {
@@ -123,7 +127,8 @@ func (b BasicUploader) Upload(data []byte, dir, fileName string) error {
 	}
 
 	defer func() {
-		glog.Infof("[basic][took %fs] upload %d bytes to %s", time.Since(start).Seconds(), len(data), u.String())
+		glog.Infof("[basic][took %fs][%d_%d] upload %d bytes to %s for %s",
+			time.Since(start).Seconds(), pStart.Unix(), pEnd.Unix(), len(data), u.String(), chunk.Key())
 	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
