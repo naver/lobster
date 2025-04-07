@@ -45,12 +45,12 @@ func RegisterExporterMetrics() {
 	prometheus.MustRegister(exporterHandleSeconds)
 }
 
-func AddSinkFailure(req query.Request, sinkNamespace, sinkName, sinkType, contentsName string) {
-	sinkFailure.Inc(exporterLabelValues(req, sinkNamespace, sinkName, sinkType, contentsName))
+func AddSinkFailure(req query.Request, sinkNamespace, sinkName, sinkType, ruleName string) {
+	sinkFailure.Inc(exporterLabelValues(req, sinkNamespace, sinkName, sinkType, ruleName))
 }
 
-func AddSinkLogBytes(req query.Request, sinkNamespace, sinkName, sinkType, contentsName string, bytes float64) {
-	sinkLogBytes.Add(exporterLabelValues(req, sinkNamespace, sinkName, sinkType, contentsName), bytes)
+func AddSinkLogBytes(req query.Request, sinkNamespace, sinkName, sinkType, ruleName string, bytes float64) {
+	sinkLogBytes.Add(exporterLabelValues(req, sinkNamespace, sinkName, sinkType, ruleName), bytes)
 }
 
 func ObserveExporterHandleSeconds(seconds float64) {
@@ -62,7 +62,7 @@ func ClearSinkMetrics() {
 	sinkFailure.ClearStaleMetrics()
 }
 
-func exporterLabelValues(req query.Request, sinkNamespace, sinkName, sinkType, contentsName string) prometheus.Labels {
+func exporterLabelValues(req query.Request, sinkNamespace, sinkName, sinkType, ruleName string) prometheus.Labels {
 	return prometheus.Labels{
 		labelTargetNamespace:  sinkNamespace,
 		labelLogNamespace:     req.Namespace,
@@ -70,7 +70,7 @@ func exporterLabelValues(req query.Request, sinkNamespace, sinkName, sinkType, c
 		labelLogContainer:     req.Container,
 		labelLogSourceType:    req.Source.Type,
 		labelLogSourcePath:    req.Source.Path,
-		labelSinkContentsName: contentsName,
+		labelSinkContentsName: ruleName,
 		labelSinkName:         sinkName,
 		labelSinkType:         sinkType,
 		labelSinkNamespace:    sinkNamespace,

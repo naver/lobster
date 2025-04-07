@@ -94,7 +94,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "sink contents; All contents in the array must be unique",
+                        "description": "sink rules; All rules in the array must be unique",
                         "name": "sink",
                         "in": "body",
                         "required": true,
@@ -138,7 +138,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Failed to get sink content",
+                        "description": "Failed to put sink rules",
                         "schema": {
                             "type": "string"
                         }
@@ -234,7 +234,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "sink contents; All contents in the array must be unique",
+                        "description": "sink rules; All rules in the array must be unique",
                         "name": "sink",
                         "in": "body",
                         "required": true,
@@ -278,7 +278,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Failed to get sink content",
+                        "description": "Failed to get sink rules",
                         "schema": {
                             "type": "string"
                         }
@@ -436,7 +436,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "filter": {
-                    "description": "Generate metrics from logs by specifying the target or log content",
+                    "description": "Generate metrics from logs using target or log-based rules",
                     "allOf": [
                         {
                             "$ref": "#/definitions/v1.Filter"
@@ -478,7 +478,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "filter": {
-                    "description": "Generate metrics from logs by specifying the target or log content",
+                    "description": "Generate metrics from logs using target or log-based rules",
                     "allOf": [
                         {
                             "$ref": "#/definitions/v1.Filter"

@@ -41,9 +41,9 @@ var (
 )
 
 type SinkController struct {
-	Client     client.Client
-	MaxContent int
-	Logger     logr.Logger
+	Client      client.Client
+	MaxSinkRule int
+	Logger      logr.Logger
 }
 
 func (c SinkController) List(namespace, name, sinkType string) ([]v1.Sink, error) {
@@ -117,14 +117,14 @@ func (c SinkController) Put(sink v1.Sink) (bool, error) {
 
 	switch result.Spec.SinkType {
 	case sinkV1.LogMetricRules:
-		rules := v1.MergeContent(result.Spec.LogMetricRules, sink.LogMetricRules).([]sinkV1.LogMetricRule)
-		if c.MaxContent < len(rules) {
+		rules := v1.MergeRules(result.Spec.LogMetricRules, sink.LogMetricRules).([]sinkV1.LogMetricRule)
+		if c.MaxSinkRule < len(rules) {
 			return false, ErrUnprocessableEntity
 		}
 		result.Spec.LogMetricRules = rules
 	case sinkV1.LogExportRules:
-		rules := v1.MergeContent(result.Spec.LogExportRules, sink.LogExportRules).([]sinkV1.LogExportRule)
-		if c.MaxContent < len(rules) {
+		rules := v1.MergeRules(result.Spec.LogExportRules, sink.LogExportRules).([]sinkV1.LogExportRule)
+		if c.MaxSinkRule < len(rules) {
 			return false, ErrUnprocessableEntity
 		}
 		result.Spec.LogExportRules = rules
@@ -161,7 +161,7 @@ func (c SinkController) Delete(namespace, name string) error {
 	})
 }
 
-func (c SinkController) DeleteContent(namespace, name, ruleName string) error {
+func (c SinkController) DeleteRule(namespace, name, ruleName string) error {
 	ctx, cancel := context.WithTimeout(context.TODO(), defaultTimeout)
 	defer cancel()
 
@@ -179,7 +179,7 @@ func (c SinkController) DeleteContent(namespace, name, ruleName string) error {
 
 	switch sink.Spec.SinkType {
 	case sinkV1.LogMetricRules:
-		index := v1.SearchContentToDelete(sink.Spec.LogMetricRules, ruleName)
+		index := v1.SearchRuleToDelete(sink.Spec.LogMetricRules, ruleName)
 		if index < 0 {
 			return ErrNotFound
 		}
@@ -189,7 +189,7 @@ func (c SinkController) DeleteContent(namespace, name, ruleName string) error {
 			return c.Delete(namespace, name)
 		}
 	case sinkV1.LogExportRules:
-		index := v1.SearchContentToDelete(sink.Spec.LogExportRules, ruleName)
+		index := v1.SearchRuleToDelete(sink.Spec.LogExportRules, ruleName)
 		if index < 0 {
 			return ErrNotFound
 		}

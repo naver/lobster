@@ -39,7 +39,7 @@ type LogExportRule struct {
 	S3Bucket *S3Bucket `json:"s3Bucket,omitempty"`
 	// Settings required to export logs to Kafka
 	Kafka *Kafka `json:"kafka,omitempty"`
-	// Generate metrics from logs by specifying the target or log content
+	// Generate metrics from logs using target or log-based rules
 	Filter Filter `json:"filter,omitempty"`
 	// Interval to export logs
 	Interval metav1.Duration `json:"interval,omitempty" swaggertype:"string" example:"time duration(e.g. 1m)"`

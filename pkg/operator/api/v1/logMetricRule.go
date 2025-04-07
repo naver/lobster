@@ -21,7 +21,7 @@ type LogMetricRule struct {
 	Name string `json:"name,omitempty"`
 	// Description of this rule
 	Description string `json:"description,omitempty"`
-	// Generate metrics from logs by specifying the target or log content
+	// Generate metrics from logs using target or log-based rules
 	Filter Filter `json:"filter,omitempty"`
 }
 

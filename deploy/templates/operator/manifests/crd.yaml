@@ -78,8 +78,8 @@ spec:
                       description: Description of this rule
                       type: string
                     filter:
-                      description: Generate metrics from logs by specifying the target
-                        or log content
+                      description: Generate metrics from logs using target or log-based
+                        rules
                       properties:
                         clusters:
                           description: Filter logs only for specific Clusters
@@ -272,8 +272,8 @@ spec:
                       description: Description of this rule
                       type: string
                     filter:
-                      description: Generate metrics from logs by specifying the target
-                        or log content
+                      description: Generate metrics from logs using target or log-based
+                        rules
                       properties:
                         clusters:
                           description: Filter logs only for specific Clusters
