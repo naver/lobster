@@ -46,8 +46,8 @@ type Chunk struct {
 	UpdatedAt           time.Time   `json:"updatedAt"`
 	DeletionMark        bool        `json:"-"`
 	DeletionMarkInBlock bool        `json:"-"`
-	Line                int64       `json:"line"`
-	Size                int64       `json:"size"`
+	Line                int64       `json:"line" format:"int64"`
+	Size                int64       `json:"size" format:"int64"`
 	CheckPoint          *CheckPoint `json:"-"`
 	StoreAddr           string      `json:"storeAddr"`
 	RelativePodDir      string      `json:"-"`

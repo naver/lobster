@@ -2,8 +2,10 @@ definitions:
   github_com_naver_lobster_pkg_lobster_model.Sample:
     properties:
       lines:
+        format: int64
         type: integer
       size:
+        format: uint64
         type: integer
       timestamp:
         type: string
@@ -19,6 +21,7 @@ definitions:
       labels:
         $ref: '#/definitions/model.Labels'
       line:
+        format: int64
         type: integer
       namespace:
         type: string
@@ -29,6 +32,7 @@ definitions:
       setName:
         type: string
       size:
+        format: int64
         type: integer
       source:
         $ref: '#/definitions/model.Source'
@@ -89,6 +93,7 @@ definitions:
       chunk_key:
         type: string
       lines:
+        format: int64
         type: integer
       name:
         type: string
@@ -97,6 +102,7 @@ definitions:
           $ref: '#/definitions/github_com_naver_lobster_pkg_lobster_model.Sample'
         type: array
       size:
+        format: uint64
         type: integer
     type: object
   model.Source:

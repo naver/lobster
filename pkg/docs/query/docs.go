@@ -294,10 +294,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "lines": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "size": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "uint64"
                 },
                 "timestamp": {
                     "type": "string"
@@ -320,7 +322,8 @@ const docTemplate = `{
                     "$ref": "#/definitions/model.Labels"
                 },
                 "line": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "namespace": {
                     "type": "string"
@@ -335,7 +338,8 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "size": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "source": {
                     "$ref": "#/definitions/model.Source"
@@ -425,7 +429,8 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "lines": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "name": {
                     "type": "string"
@@ -437,7 +442,8 @@ const docTemplate = `{
                     }
                 },
                 "size": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "uint64"
                 }
             }
         },
