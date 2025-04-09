@@ -64,7 +64,7 @@ func main() {
 	versionedRouter.Use(middleware.Inspector{}.Middleware)
 	versionedRouter.Handle(log.PathLogs, log.ListHandler{Querier: store})
 	versionedRouter.Handle(log.PathLogSeries, log.SeriesHandler{Querier: store})
-	versionedRouter.Handle(log.PathLogRange, limiter.Middleware(log.RangeHandler{Querier: store, ShouldResponseStringContentOnly: true}))
+	versionedRouter.Handle(log.PathLogRange, limiter.Middleware(log.RangeHandler{Querier: store, ShouldResponseStringContentsOnly: true}))
 
 	server := server.NewApiServer(router)
 	ep := server.GetLocalEndpoint()

@@ -31,11 +31,11 @@ const (
 )
 
 type RangeHandler struct {
-	Querier                         query.Queryable
-	ShouldResponseStringContentOnly bool
+	Querier                          query.Queryable
+	ShouldResponseStringContentsOnly bool
 }
 
-// ServeForStringContent
+// ServeForStringContents
 //
 //	@Summary		Get logs within range
 //	@Description	Get logs for conditions
@@ -50,7 +50,7 @@ type RangeHandler struct {
 //	@Failure		500		{string}	string	"Failed to read logs"
 //	@Failure		501		{string}	string	"Not supported version"
 //	@Router			/api/v1/logs/range [post]
-func (h RangeHandler) ServeForStringContent(req query.Request, w http.ResponseWriter, r *http.Request) {
+func (h RangeHandler) ServeForStringContents(req query.Request, w http.ResponseWriter, r *http.Request) {
 	if err := h.Querier.Validate(req); err != nil {
 		glog.Info(err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -62,7 +62,7 @@ func (h RangeHandler) ServeForStringContent(req query.Request, w http.ResponseWr
 		return
 	}
 
-	content, numOfChunk, pageInfo, err := h.Querier.GetBlocksWithinRange(req)
+	contents, numOfChunk, pageInfo, err := h.Querier.GetBlocksWithinRange(req)
 	if err != nil {
 		errors.HandleError(w, err)
 		glog.Error(err)
@@ -75,7 +75,7 @@ func (h RangeHandler) ServeForStringContent(req query.Request, w http.ResponseWr
 	}
 
 	data, err := json.Marshal(query.Response{
-		Contents: string(content),
+		Contents: string(contents),
 		PageInfo: &pageInfo,
 	})
 	if err != nil {
@@ -90,7 +90,7 @@ func (h RangeHandler) ServeForStringContent(req query.Request, w http.ResponseWr
 	}
 }
 
-// ServeForEntriesContent
+// ServeForEntriesContents
 //
 //	@Summary		Get logs within range
 //	@Description	Get logs for conditions
@@ -105,7 +105,7 @@ func (h RangeHandler) ServeForStringContent(req query.Request, w http.ResponseWr
 //	@Failure		500		{string}	string	"Failed to read logs"
 //	@Failure		501		{string}	string	"Not supported version"
 //	@Router			/api/v2/logs/range [post]
-func (h RangeHandler) ServeForEntriesContent(req query.Request, w http.ResponseWriter, r *http.Request) {
+func (h RangeHandler) ServeForEntriesContents(req query.Request, w http.ResponseWriter, r *http.Request) {
 	if err := h.Querier.Validate(req); err != nil {
 		glog.Info(err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -160,12 +160,12 @@ func (h RangeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch req.Version {
 	case ApiV1:
 		req.Source.Type = model.LogTypeStdStream
-		h.ServeForStringContent(req, w, r)
+		h.ServeForStringContents(req, w, r)
 	case ApiV2:
-		if h.ShouldResponseStringContentOnly {
-			h.ServeForStringContent(req, w, r)
+		if h.ShouldResponseStringContentsOnly {
+			h.ServeForStringContents(req, w, r)
 		} else {
-			h.ServeForEntriesContent(req, w, r)
+			h.ServeForEntriesContents(req, w, r)
 		}
 	default:
 		http.Error(w, "not implemented api version", http.StatusNotImplemented)

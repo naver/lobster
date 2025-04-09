@@ -56,6 +56,6 @@ func (h InternalSyncHandler) handleGet(w http.ResponseWriter) {
 	}
 
 	if _, err := w.Write(data); err != nil {
-		h.Logger.Error(err, "failed to write contents")
+		h.Logger.Error(err, "failed to write sinks")
 	}
 }

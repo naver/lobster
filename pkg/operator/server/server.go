@@ -87,7 +87,7 @@ func setupRouter(sinkClient client.Client, logger logr.Logger) *mux.Router {
 		httpSwagger.URL("/static/docs/swagger.json"),
 	))
 
-	ctrl := controller.SinkController{Client: sinkClient, MaxContent: conf.MaxContent, Logger: logger}
+	ctrl := controller.SinkController{Client: sinkClient, MaxSinkRule: conf.MaxSinkRule, Logger: logger}
 	router.Handle(handler.PathSync, handler.InternalSyncHandler{Ctrl: ctrl, Logger: logger})
 
 	routerV1 := router.PathPrefix(handler.PathApi).Subrouter()
@@ -95,7 +95,7 @@ func setupRouter(sinkClient client.Client, logger logr.Logger) *mux.Router {
 	routerV1.Handle(handler.PathSinks, handler.SinkHandler{Ctrl: ctrl, Logger: logger})
 	routerV1.Handle(handler.PathSpecificSink, handler.SinkHandler{Ctrl: ctrl, Logger: logger})
 	routerV1.Handle(handler.PathSpecificSinkValidation, handler.SinkHandler{Ctrl: ctrl, Logger: logger})
-	routerV1.Handle(handler.PathSinkContentsRule, handler.SinkHandler{Ctrl: ctrl, Logger: logger}).Methods(http.MethodDelete)
+	routerV1.Handle(handler.PathSinkRule, handler.SinkHandler{Ctrl: ctrl, Logger: logger}).Methods(http.MethodDelete)
 
 	return router
 }

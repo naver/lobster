@@ -132,13 +132,13 @@ func (r *Syncer) mapPreordersFromSinks(sinks []v1.Sink) map[string][]order.Order
 	preorderMap := map[string][]order.Order{}
 
 	for _, sink := range sinks {
-		contentsList := sink.ListSinkContents()
+		rules := sink.ListSinkRules()
 
-		for _, contents := range contentsList {
-			request := query.NewRequestFromFilter(contents.GetFilter())
-			targetNamespace := contents.GetNamespace()
+		for _, rule := range rules {
+			request := query.NewRequestFromFilter(rule.GetFilter())
+			targetNamespace := rule.GetNamespace()
 
-			preorderMap[targetNamespace] = append(preorderMap[targetNamespace], order.NewOrder(sink, contents, request))
+			preorderMap[targetNamespace] = append(preorderMap[targetNamespace], order.NewOrder(sink, rule, request))
 		}
 	}
 

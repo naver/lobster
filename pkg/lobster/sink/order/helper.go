@@ -48,8 +48,8 @@ func NewOrdersFromPreorders(preorders []Order, indexer indexer.ChunkIndexer, sta
 		preorder.Request.End = end
 		newOrders, err := newOrdersForChunks(preorder, indexer)
 		if err != nil {
-			glog.Error("Invalid order : %s : %s_%s_%s", err.Error(), preorder.SinkNamespace, preorder.SinkName, preorder.ContentsName)
-			metrics.AddInvalidRequestCount(preorder.SinkNamespace, preorder.SinkName, preorder.ContentsName)
+			glog.Error("Invalid order : %s : %s_%s_%s", err.Error(), preorder.SinkNamespace, preorder.SinkName, preorder.RuleName)
+			metrics.AddInvalidRequestCount(preorder.SinkNamespace, preorder.SinkName, preorder.RuleName)
 			continue
 		}
 
@@ -62,7 +62,7 @@ func NewOrdersFromPreorders(preorders []Order, indexer indexer.ChunkIndexer, sta
 func newOrdersForChunks(preorder Order, indexer indexer.ChunkIndexer) (Orders, error) {
 	orders := Orders{}
 	matcher := querier.NewChunkMatcher(preorder.Request)
-	chunks := indexer.GetChunks(preorder.ContentsNamespace)
+	chunks := indexer.GetChunks(preorder.RuleNamespace)
 
 	for _, chunk := range chunks {
 		if !matcher.IsRequestedChunk(chunk) {
