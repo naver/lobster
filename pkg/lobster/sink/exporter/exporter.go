@@ -228,7 +228,7 @@ func (e *LogExporter) export(current time.Time, uploader uploader.Uploader, orde
 	start, end := e.makeTimeRange(receipt.LogTime, current)
 	logTs, total, err := e.getAndExportLogs(uploader, order.Request, chunk, start, end)
 	if logTs.IsZero() {
-		logTs = current
+		logTs = start
 	}
 
 	if total > 0 {
