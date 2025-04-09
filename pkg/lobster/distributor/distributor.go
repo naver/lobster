@@ -150,7 +150,7 @@ func (d *Distributor) updateLabelsInChunks(podMap map[string]v1.Pod) {
 			return
 		}
 
-		if reflect.DeepEqual(chunk.Labels, pod.Labels) {
+		if reflect.DeepEqual(map[string]string(chunk.Labels), pod.Labels) {
 			return
 		}
 
