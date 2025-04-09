@@ -37,7 +37,7 @@ const (
 	PathSinks                  = "/namespaces/{namespace}/sinks"
 	PathSpecificSink           = "/namespaces/{namespace}/sinks/{name}"
 	PathSpecificSinkValidation = "/namespaces/{namespace}/sinks/{name}/validate"
-	PathSinkContentsRule       = "/namespaces/{namespace}/sinks/{name}/rules/{rule}"
+	PathSinkRule               = "/namespaces/{namespace}/sinks/{name}/rules/{rule}"
 )
 
 type sinkParam struct {
@@ -108,7 +108,7 @@ func (h SinkHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if _, err := w.Write(data); err != nil {
-		h.Logger.Error(err, "failed to write contents")
+		h.Logger.Error(err, "failed to get rules")
 	}
 }
 
@@ -119,13 +119,13 @@ func (h SinkHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 //	@Accept		json
 //	@Param		namespace	path		string				true	"namespace name"
 //	@Param		name		path		string				true	"sink name"
-//	@Param		sink		body		v1.Sink				true	"sink contents; All contents in the array must be unique"
+//	@Param		sink		body		v1.Sink				true	"sink rules; All rules in the array must be unique"
 //	@Success	200			{string}	string				""
 //	@Success	201			{string}	string				"Created successfully"
 //	@Failure	400			{object}	v1.ValidationErrors	"Invalid parameters"
 //	@Failure	422			{string}	string				"Restricted by limits"
 //	@Failure	405			{string}	string				"Method not allowed"
-//	@Failure	500			{string}	string				"Failed to get sink content"
+//	@Failure	500			{string}	string				"Failed to put sink rules"
 //	@Router		/api/v1/namespaces/{namespace}/sinks/{name} [put]
 func (h SinkHandler) handlePut(w http.ResponseWriter, r *http.Request) {
 	p, err := parseParam(r)
@@ -181,13 +181,13 @@ func (h SinkHandler) handlePut(w http.ResponseWriter, r *http.Request) {
 //	@Accept		json
 //	@Param		namespace	path		string				true	"namespace name"
 //	@Param		name		path		string				true	"sink name"
-//	@Param		sink		body		v1.Sink				true	"sink contents; All contents in the array must be unique"
+//	@Param		sink		body		v1.Sink				true	"sink rules; All rules in the array must be unique"
 //	@Success	200			{string}	string				""
 //	@Success	201			{string}	string				"Created successfully"
 //	@Failure	400			{object}	v1.ValidationErrors	"Invalid parameters"
 //	@Failure	422			{string}	string				"Restricted by limits"
 //	@Failure	405			{string}	string				"Method not allowed"
-//	@Failure	500			{string}	string				"Failed to get sink content"
+//	@Failure	500			{string}	string				"Failed to get sink rules"
 //	@Router		/api/v1/namespaces/{namespace}/sinks/{name}/validate [post]
 func (h SinkHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 	p, err := parseParam(r)
@@ -259,7 +259,7 @@ func (h SinkHandler) handleDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.Ctrl.DeleteContent(p.Namespace, p.Name, p.Rule); err != nil {
+	if err := h.Ctrl.DeleteRule(p.Namespace, p.Name, p.Rule); err != nil {
 		handleError(w, err)
 	}
 }

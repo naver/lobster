@@ -26,12 +26,12 @@ type config struct {
 	WriteTimeout time.Duration
 	ReadTimeout  time.Duration
 	IdleTimeout  time.Duration
-	MaxContent   int
+	MaxSinkRule  int
 }
 
 func Setup() {
 	flag.StringVar(&conf.Addr, "addr", ":8080", "server address")
-	flag.IntVar(&conf.MaxContent, "maxContent", 50, "maximum number of content in sink")
+	flag.IntVar(&conf.MaxSinkRule, "maxSinkRule", 50, "maximum number of sink rules")
 	flag.DurationVar(&conf.WriteTimeout, "writeTimeout", 10*time.Second, "server write timeout")
 	flag.DurationVar(&conf.ReadTimeout, "readTimeout", 10*time.Second, "server read timeout")
 	flag.DurationVar(&conf.IdleTimeout, "idleTimeout", 10*time.Second, "server idle timeout")

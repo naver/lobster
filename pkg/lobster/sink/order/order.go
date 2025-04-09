@@ -28,31 +28,31 @@ import (
 )
 
 type Order struct {
-	SinkNamespace     string               `json:"sinkNamespace"`
-	SinkName          string               `json:"sinkName"`
-	SinkType          string               `json:"sinkType"`
-	LogMetricRule     sinkV1.LogMetricRule `json:"logMetricRule"`
-	LogExportRule     sinkV1.LogExportRule `json:"logExportRule"`
-	ContentsNamespace string               `json:"contentsNamespace"`
-	ContentsName      string               `json:"contentsName"`
-	Request           query.Request        `json:"request"`
+	SinkNamespace string               `json:"sinkNamespace"`
+	SinkName      string               `json:"sinkName"`
+	SinkType      string               `json:"sinkType"`
+	LogMetricRule sinkV1.LogMetricRule `json:"logMetricRule"`
+	LogExportRule sinkV1.LogExportRule `json:"logExportRule"`
+	RuleNamespace string               `json:"ruleNamespace"`
+	RuleName      string               `json:"ruleName"`
+	Request       query.Request        `json:"request"`
 }
 
-func NewOrder(sink v1.Sink, sinkContent v1.SinkContents, request query.Request) Order {
+func NewOrder(sink v1.Sink, sinkRule v1.SinkRule, request query.Request) Order {
 	order := Order{
-		SinkNamespace:     sink.Namespace,
-		SinkName:          sink.Name,
-		SinkType:          sink.Type,
-		Request:           request,
-		ContentsName:      sinkContent.GetName(),
-		ContentsNamespace: sinkContent.GetNamespace(),
+		SinkNamespace: sink.Namespace,
+		SinkName:      sink.Name,
+		SinkType:      sink.Type,
+		Request:       request,
+		RuleName:      sinkRule.GetName(),
+		RuleNamespace: sinkRule.GetNamespace(),
 	}
 
 	switch sink.Type {
 	case sinkV1.LogMetricRules:
-		order.LogMetricRule = sinkContent.(sinkV1.LogMetricRule)
+		order.LogMetricRule = sinkRule.(sinkV1.LogMetricRule)
 	case sinkV1.LogExportRules:
-		order.LogExportRule = sinkContent.(sinkV1.LogExportRule)
+		order.LogExportRule = sinkRule.(sinkV1.LogExportRule)
 	}
 
 	return order
@@ -85,18 +85,18 @@ func (o *Order) Update(c model.Chunk) error {
 
 func (o Order) Path() string {
 	return fmt.Sprintf("%s/%s/%s/%s/%s",
-		o.ContentsNamespace,
+		o.RuleNamespace,
 		o.SinkName,
-		o.ContentsName,
+		o.RuleName,
 		o.Request.Pod,
 		o.Request.Container)
 }
 
 func (o Order) Key() string {
 	return fmt.Sprintf("%s_%s_%s_%s_%s_%s",
-		o.ContentsNamespace,
+		o.RuleNamespace,
 		o.SinkName,
-		o.ContentsName,
+		o.RuleName,
 		o.Request.Pod,
 		o.Request.Container,
 		o.Request.Source.String())

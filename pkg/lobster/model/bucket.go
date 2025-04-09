@@ -26,8 +26,8 @@ type Bucket struct {
 	BucketMetadata
 	Start time.Time `json:"start"`
 	End   time.Time `json:"end"`
-	Lines int64     `json:"lines"`
-	Size  uint64    `json:"size"`
+	Lines int64     `json:"lines" format:"int64"`
+	Size  uint64    `json:"size" format:"int64"`
 }
 
 type BucketMetadata struct {
@@ -36,7 +36,7 @@ type BucketMetadata struct {
 	Pod       string `json:"pod"`
 	Container string `json:"container"`
 	Source    Source `json:"source"`
-	FileNum   int64  `json:"file_num"`
+	FileNum   int64  `json:"file_num" format:"int64"`
 	ChunkKey  string `json:"chunk_key"`
 }
 

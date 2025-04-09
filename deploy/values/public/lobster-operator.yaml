@@ -29,4 +29,4 @@ operator:
     serverPort: 80
     probePort: 8081
     metricPort: 8082
-    maxContent: 50
+    maxSinkRule: 50

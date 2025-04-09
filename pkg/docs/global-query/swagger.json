@@ -286,10 +286,12 @@
             "type": "object",
             "properties": {
                 "lines": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "size": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "uint64"
                 },
                 "timestamp": {
                     "type": "string"
@@ -312,7 +314,8 @@
                     "$ref": "#/definitions/model.Labels"
                 },
                 "line": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "namespace": {
                     "type": "string"
@@ -327,7 +330,8 @@
                     "type": "string"
                 },
                 "size": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "source": {
                     "$ref": "#/definitions/model.Source"
@@ -417,7 +421,8 @@
                     "type": "string"
                 },
                 "lines": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "name": {
                     "type": "string"
@@ -429,7 +434,8 @@
                     }
                 },
                 "size": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "uint64"
                 }
             }
         },

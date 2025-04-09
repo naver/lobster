@@ -43,14 +43,14 @@ func (m *LogMatcher) Match(key, logLine string, logTs time.Time) {
 	for _, order := range orders {
 		result, err := filter.DoFilter(logLine, logTs, order.Request.Filterers...)
 		if err != nil {
-			metrics.AddMatchedLogsError(order.Request, order.SinkNamespace, order.SinkName, order.ContentsName)
+			metrics.AddMatchedLogsError(order.Request, order.SinkNamespace, order.SinkName, order.RuleName)
 		}
 
 		if result != filter.Read {
 			continue
 		}
 
-		metrics.AddMatchedLogs(order.Request, order.SinkNamespace, order.SinkName, order.ContentsName)
+		metrics.AddMatchedLogs(order.Request, order.SinkNamespace, order.SinkName, order.RuleName)
 	}
 }
 

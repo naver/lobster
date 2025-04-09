@@ -24,8 +24,8 @@ import (
 
 type Sample struct {
 	Timestamp time.Time `json:"timestamp"`
-	Lines     int64     `json:"lines"`
-	Size      uint64    `json:"size"`
+	Lines     int64     `json:"lines" format:"int64"`
+	Size      uint64    `json:"size" format:"uint64"`
 }
 
 // SeriesData
@@ -33,8 +33,8 @@ type Sample struct {
 type Series struct {
 	ChunkKey string   `json:"chunk_key"`
 	Name     string   `json:"name"`
-	Lines    int64    `json:"lines"`
-	Size     uint64   `json:"size"`
+	Lines    int64    `json:"lines" format:"int64"`
+	Size     uint64   `json:"size" format:"uint64"`
 	Samples  []Sample `json:"samples"`
 }
 

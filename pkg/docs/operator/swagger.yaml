@@ -104,7 +104,7 @@ definitions:
       filter:
         allOf:
         - $ref: '#/definitions/v1.Filter'
-        description: Generate metrics from logs by specifying the target or log content
+        description: Generate metrics from logs using target or log-based rules
       interval:
         description: Interval to export logs
         example: time duration(e.g. 1m)
@@ -129,7 +129,7 @@ definitions:
       filter:
         allOf:
         - $ref: '#/definitions/v1.Filter'
-        description: Generate metrics from logs by specifying the target or log content
+        description: Generate metrics from logs using target or log-based rules
       name:
         description: Rule name
         type: string
@@ -318,7 +318,7 @@ paths:
         name: name
         required: true
         type: string
-      - description: sink contents; All contents in the array must be unique
+      - description: sink rules; All rules in the array must be unique
         in: body
         name: sink
         required: true
@@ -348,7 +348,7 @@ paths:
           schema:
             type: string
         "500":
-          description: Failed to get sink content
+          description: Failed to put sink rules
           schema:
             type: string
       summary: Put log sink
@@ -411,7 +411,7 @@ paths:
         name: name
         required: true
         type: string
-      - description: sink contents; All contents in the array must be unique
+      - description: sink rules; All rules in the array must be unique
         in: body
         name: sink
         required: true
@@ -441,7 +441,7 @@ paths:
           schema:
             type: string
         "500":
-          description: Failed to get sink content
+          description: Failed to get sink rules
           schema:
             type: string
       summary: Validate log sink
