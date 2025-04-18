@@ -20,6 +20,7 @@ import (
 	"flag"
 	"fmt"
 	"strings"
+	"time"
 )
 
 const MaxBytes = 1024 * 1024 * 1024 // 1 gib
@@ -36,10 +37,12 @@ func (a *LobsterQueries) Set(addr string) error {
 }
 
 type config struct {
-	LobsterQueries *LobsterQueries
-	PageBurst      *int
-	ExportLimit    *int
-	ContentsLimit  *uint64
+	LobsterQueries             *LobsterQueries
+	PageBurst                  *int
+	ExportLimit                *int
+	ContentsLimit              *uint64
+	FetchTimeout               *time.Duration
+	FetchResponseHeaderTimeout *time.Duration
 }
 
 func setup() config {
@@ -48,11 +51,15 @@ func setup() config {
 	pageBurst := flag.Int("global.pageBurst", 1000, "Provide lines in and out of busrt per page")
 	limit := flag.Int("global.exportlLimit", MaxBytes, fmt.Sprintf("limit in bytes (0 < limit < %d)", MaxBytes))
 	contentsLimit := flag.Uint64("global.contentsLimit", 1000*1000*30, "Limit the amount of responsive content per page")
+	fetchTimeout := flag.Duration("global.fetchTimeout", 10*time.Second, "Response timeout for log requests")
+	fetchResponseHeaderTimeout := flag.Duration("global.fetchResponseHeaderTimeout", 10*time.Second, "Header response timeout for log requests; delays may occur during file reading")
 
 	return config{
-		LobsterQueries: lobsterQueries,
-		PageBurst:      pageBurst,
-		ExportLimit:    limit,
-		ContentsLimit:  contentsLimit,
+		LobsterQueries:             lobsterQueries,
+		PageBurst:                  pageBurst,
+		ExportLimit:                limit,
+		ContentsLimit:              contentsLimit,
+		FetchTimeout:               fetchTimeout,
+		FetchResponseHeaderTimeout: fetchResponseHeaderTimeout,
 	}
 }

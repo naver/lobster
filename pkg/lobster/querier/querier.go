@@ -47,6 +47,7 @@ type Querier struct {
 	storeMap sync.Map
 	buffer   chan pushedData
 	broker.Broker
+	Fetcher
 }
 
 func init() {
@@ -72,6 +73,7 @@ func NewQuerier() *Querier {
 		storeMap: sync.Map{},
 		buffer:   make(chan pushedData, 10000),
 		Broker:   broker.NewBroker(addrs),
+		Fetcher:  NewFetcher(*conf.FetchTimeout, *conf.FetchResponseHeaderTimeout),
 	}
 }
 
@@ -125,7 +127,7 @@ func (q *Querier) GetSeriesInBlocksWithinRange(req query.Request) (numOfChunk in
 	}
 
 	chunks = append(chunks, remoteChunks...)
-	results, err = Fetch(req, chunks, logHandler.PathLogSeries)
+	results, err = q.Fetch(req, chunks, logHandler.PathLogSeries)
 	if err != nil {
 		return
 	}
@@ -165,7 +167,7 @@ func (q *Querier) GetBlocksWithinRange(req query.Request) (data []byte, numOfChu
 	}
 
 	chunks = append(chunks, remoteChunks...)
-	results, pageInfo, err = FetchLogEntries(req, chunks, limit)
+	results, pageInfo, err = q.GetLogEntries(req, chunks, limit)
 	if err != nil {
 		return
 	}
@@ -211,7 +213,7 @@ func (q *Querier) GetEntriesWithinRange(req query.Request) (data []model.Entry, 
 	}
 
 	chunks = append(chunks, remoteChunks...)
-	results, pageInfo, err = FetchLogEntries(req, chunks, limit)
+	results, pageInfo, err = q.GetLogEntries(req, chunks, limit)
 	if err != nil {
 		return
 	}
