@@ -33,34 +33,40 @@ import (
 	logHandler "github.com/naver/lobster/pkg/lobster/server/handler/log"
 )
 
-var (
-	httpClient = &http.Client{
-		Timeout: 10 * time.Second,
-		Transport: &http.Transport{
-			IdleConnTimeout:     10 * time.Second,
-			MaxIdleConns:        100,
-			MaxConnsPerHost:     100,
-			MaxIdleConnsPerHost: 100,
-			Dial: (&net.Dialer{
-				Timeout:   10 * time.Second,
-				KeepAlive: 10 * time.Second,
-			}).Dial,
-			ResponseHeaderTimeout: 10 * time.Second,
-			TLSHandshakeTimeout:   10 * time.Second,
-			WriteBufferSize:       (1 << 20),
-			ReadBufferSize:        (1 << 20),
-		},
-	}
-)
-
 type FetchResult struct {
 	model.Chunk
 	response query.Response
 	err      error
 }
 
-func FetchLogEntries(req query.Request, chunks []model.Chunk, limit uint64) ([]FetchResult, model.PageInfo, error) {
-	results, err := Fetch(req, chunks, logHandler.PathLogSeries)
+type Fetcher struct {
+	client *http.Client
+}
+
+func NewFetcher(timeout, responseHeaderTimeout time.Duration) Fetcher {
+	return Fetcher{
+		&http.Client{
+			Timeout: timeout,
+			Transport: &http.Transport{
+				IdleConnTimeout:     10 * time.Second,
+				MaxIdleConns:        100,
+				MaxConnsPerHost:     100,
+				MaxIdleConnsPerHost: 100,
+				Dial: (&net.Dialer{
+					Timeout:   10 * time.Second,
+					KeepAlive: 10 * time.Second,
+				}).Dial,
+				ResponseHeaderTimeout: responseHeaderTimeout,
+				TLSHandshakeTimeout:   10 * time.Second,
+				WriteBufferSize:       (1 << 20),
+				ReadBufferSize:        (1 << 20),
+			},
+		},
+	}
+}
+
+func (f Fetcher) GetLogEntries(req query.Request, chunks []model.Chunk, limit uint64) ([]FetchResult, model.PageInfo, error) {
+	results, err := f.Fetch(req, chunks, logHandler.PathLogSeries)
 	if err != nil {
 		return results, model.PageInfo{}, err
 	}
@@ -84,7 +90,7 @@ func FetchLogEntries(req query.Request, chunks []model.Chunk, limit uint64) ([]F
 		chunksToFetch, pageInfo.IsPartialContents = limitChunksBySize(req, chunks, series, limit)
 	}
 
-	results, err = Fetch(subReq, chunksToFetch, logHandler.PathLogRange)
+	results, err = f.Fetch(subReq, chunksToFetch, logHandler.PathLogRange)
 	if err != nil {
 		return results, model.PageInfo{}, err
 	}
@@ -92,31 +98,7 @@ func FetchLogEntries(req query.Request, chunks []model.Chunk, limit uint64) ([]F
 	return results, pageInfo, nil
 }
 
-func limitChunksBySize(req query.Request, chunks []model.Chunk, seriesData model.SeriesData, limit uint64) ([]model.Chunk, bool) {
-	result := []model.Chunk{}
-	chunkMap := map[string]model.Chunk{}
-	total := uint64(0)
-
-	for _, chunk := range chunks {
-		chunkMap[chunk.Key()] = chunk
-	}
-
-	for _, series := range seriesData {
-		chunk, ok := chunkMap[series.ChunkKey]
-		if !ok {
-			continue
-		}
-		result = append(result, chunk)
-		total = total + series.SizeWithinRange(req.Start.Time, req.End.Time)
-		if total > limit {
-			return result, true
-		}
-	}
-
-	return result, false
-}
-
-func Fetch(req query.Request, chunks []model.Chunk, urlPath string) ([]FetchResult, error) {
+func (f Fetcher) Fetch(req query.Request, chunks []model.Chunk, urlPath string) ([]FetchResult, error) {
 	results := []FetchResult{}
 	channel := make(chan FetchResult)
 
@@ -138,7 +120,7 @@ func Fetch(req query.Request, chunks []model.Chunk, urlPath string) ([]FetchResu
 				channel <- *result
 			}(channel, &result)
 
-			resp, err := httpClient.Do(&http.Request{
+			resp, err := f.client.Do(&http.Request{
 				Method: http.MethodPost,
 				URL: &url.URL{
 					Scheme: logHandler.Scheme,
@@ -182,4 +164,28 @@ func Fetch(req query.Request, chunks []model.Chunk, urlPath string) ([]FetchResu
 	}
 
 	return results, lastError
+}
+
+func limitChunksBySize(req query.Request, chunks []model.Chunk, seriesData model.SeriesData, limit uint64) ([]model.Chunk, bool) {
+	result := []model.Chunk{}
+	chunkMap := map[string]model.Chunk{}
+	total := uint64(0)
+
+	for _, chunk := range chunks {
+		chunkMap[chunk.Key()] = chunk
+	}
+
+	for _, series := range seriesData {
+		chunk, ok := chunkMap[series.ChunkKey]
+		if !ok {
+			continue
+		}
+		result = append(result, chunk)
+		total = total + series.SizeWithinRange(req.Start.Time, req.End.Time)
+		if total > limit {
+			return result, true
+		}
+	}
+
+	return result, false
 }

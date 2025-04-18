@@ -22,14 +22,16 @@ import (
 )
 
 type config struct {
-	StatusCheckInteval  *time.Duration
-	ChunkRetentionTime  *time.Duration
-	StoreRetentionTime  *time.Duration
-	Id                  *int
-	Modulus             *uint64
-	LookupServicePrefix *string
-	PageBurst           *int
-	ContentsLimit       *uint64
+	StatusCheckInteval         *time.Duration
+	ChunkRetentionTime         *time.Duration
+	StoreRetentionTime         *time.Duration
+	Id                         *int
+	Modulus                    *uint64
+	LookupServicePrefix        *string
+	PageBurst                  *int
+	ContentsLimit              *uint64
+	FetchTimeout               *time.Duration
+	FetchResponseHeaderTimeout *time.Duration
 }
 
 func setup() config {
@@ -41,15 +43,19 @@ func setup() config {
 	lookupServicePrefix := flag.String("querier.member.lookup-service-prefix", "lobster-query-shard", "Prefix of service of lobster-querier")
 	pageBurst := flag.Int("querier.pageBurst", 1000, "Provide lines in and out of busrt per page")
 	contentsLimit := flag.Uint64("querier.contentsLimit", 1000*1000*30, "Limit the amount of responsive content per page")
+	fetchTimeout := flag.Duration("querier.fetchTimeout", 10*time.Second, "Response timeout for log requests")
+	fetchResponseHeaderTimeout := flag.Duration("querier.fetchResponseHeaderTimeout", 10*time.Second, "Header response timeout for log requests; delays may occur during file reading")
 
 	return config{
-		StatusCheckInteval:  statusCheckInteval,
-		ChunkRetentionTime:  chunkRetentionTime,
-		StoreRetentionTime:  storeRetentionTime,
-		Id:                  id,
-		Modulus:             modulus,
-		LookupServicePrefix: lookupServicePrefix,
-		PageBurst:           pageBurst,
-		ContentsLimit:       contentsLimit,
+		StatusCheckInteval:         statusCheckInteval,
+		ChunkRetentionTime:         chunkRetentionTime,
+		StoreRetentionTime:         storeRetentionTime,
+		Id:                         id,
+		Modulus:                    modulus,
+		LookupServicePrefix:        lookupServicePrefix,
+		PageBurst:                  pageBurst,
+		ContentsLimit:              contentsLimit,
+		FetchTimeout:               fetchTimeout,
+		FetchResponseHeaderTimeout: fetchResponseHeaderTimeout,
 	}
 }
