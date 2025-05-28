@@ -120,7 +120,7 @@ func (s S3Uploader) Upload(data []byte, chunk model.Chunk, pStart, pEnd time.Tim
 
 	defer func() {
 		glog.Infof("[s3][took %fs][%d_%d] upload %d bytes to %s(%s) for %s",
-			time.Since(start).Seconds(), pStart.Unix(), pEnd.Unix(), len(data), *input.Bucket, *input.Key, chunk.Key())
+			time.Since(start).Seconds(), pStart.UnixMilli(), pEnd.UnixMilli(), len(data), *input.Bucket, *input.Key, chunk.Key())
 	}()
 
 	if _, err := s3manager.NewUploader(s3Session).Upload(input); err != nil {

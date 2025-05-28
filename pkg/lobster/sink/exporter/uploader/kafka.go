@@ -79,7 +79,7 @@ func (k KafkaUploader) Upload(data []byte, chunk model.Chunk, pStart, pEnd time.
 
 	defer func() {
 		glog.Infof("[kafka][took %fs][%d_%d] upload %d bytes to topic `%s` for %s",
-			time.Since(start).Seconds(), pStart.Unix(), pEnd.Unix(), len(data), k.Order.LogExportRule.Kafka.Topic, chunk.Key())
+			time.Since(start).Seconds(), pStart.UnixMilli(), pEnd.UnixMilli(), len(data), k.Order.LogExportRule.Kafka.Topic, chunk.Key())
 	}()
 
 	config, err := k.newConfig(k.Order.LogExportRule.Kafka)
