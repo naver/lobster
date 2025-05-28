@@ -128,7 +128,7 @@ func (b BasicUploader) Upload(data []byte, chunk model.Chunk, pStart, pEnd time.
 
 	defer func() {
 		glog.Infof("[basic][took %fs][%d_%d] upload %d bytes to %s for %s",
-			time.Since(start).Seconds(), pStart.Unix(), pEnd.Unix(), len(data), u.String(), chunk.Key())
+			time.Since(start).Seconds(), pStart.UnixMilli(), pEnd.UnixMilli(), len(data), u.String(), chunk.Key())
 	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)

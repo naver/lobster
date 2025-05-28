@@ -247,7 +247,7 @@ func (e *LogExporter) makeTimeRange(logTime, current time.Time) (time.Time, time
 		return current.Add(-*conf.MaxLookback), current
 	}
 
-	return logTime.Add(time.Nanosecond), current
+	return logTime.Add(time.Millisecond), current
 }
 
 func (e *LogExporter) getAndExportLogs(uploader uploader.Uploader, request query.Request, chunk model.Chunk, start, end time.Time) (time.Time, int, error) {
