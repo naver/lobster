@@ -104,6 +104,9 @@ func (k KafkaUploader) newConfig(kafka *v1.Kafka) (*sarama.Config, error) {
 	config := sarama.NewConfig()
 	config.ClientID = defaultClientId
 	config.Producer.Return.Successes = true
+	config.Producer.Idempotent = true
+	config.Producer.RequiredAcks = sarama.WaitForAll
+	config.Net.MaxOpenRequests = 1
 	config.Net.DialTimeout = dialTimeout
 
 	if kafka.TLS.Enable {
