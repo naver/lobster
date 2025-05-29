@@ -390,6 +390,10 @@ const docTemplate = `{
                     "description": "An identifier to distinguish request; default ` + "`" + `lobster` + "`" + `",
                     "type": "string"
                 },
+                "idempotent": {
+                    "description": "the producer will ensure that exactly one",
+                    "type": "boolean"
+                },
                 "key": {
                     "description": "Target key to which logs will be exported (optional)",
                     "type": "string"
