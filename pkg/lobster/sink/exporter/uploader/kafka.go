@@ -29,6 +29,7 @@ import (
 	"github.com/naver/lobster/pkg/lobster/sink/order"
 	"github.com/naver/lobster/pkg/lobster/util"
 	v1 "github.com/naver/lobster/pkg/operator/api/v1"
+	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 )
@@ -94,6 +95,16 @@ func (k KafkaUploader) Upload(data []byte, chunk model.Chunk, pStart, pEnd time.
 	defer producer.Close()
 
 	if err := producer.SendMessages(newMessages(k.Order.LogExportRule.Kafka, data)); err != nil {
+		if producerErrors, ok := err.(sarama.ProducerErrors); ok {
+			newErr := errors.New("ProducerErrors")
+
+			for _, pe := range producerErrors {
+				newErr = errors.Wrap(newErr, pe.Err.Error())
+			}
+
+			return newErr
+		}
+
 		return err
 	}
 
