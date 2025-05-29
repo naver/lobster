@@ -82,6 +82,8 @@ type Kafka struct {
 	Partition int32 `json:"partition,omitempty"`
 	// Target key to which logs will be exported (optional)
 	Key string `json:"key,omitempty"`
+	// the producer will ensure that exactly one
+	Idempotent bool `json:"idempotent,omitempty"`
 }
 
 func (k Kafka) Validate() ValidationErrors {
