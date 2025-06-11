@@ -123,6 +123,14 @@ func (k KafkaUploader) newConfig(kafka *v1.Kafka) (*sarama.Config, error) {
 		config.Net.MaxOpenRequests = 1
 	}
 
+	if kafka.RetryMax > 0 {
+		config.Producer.Retry.Max = kafka.RetryMax
+	}
+
+	if kafka.RetryBackoff != nil {
+		config.Producer.Retry.Backoff = kafka.RetryBackoff.Duration
+	}
+
 	if kafka.TLS.Enable {
 		config.Net.TLS.Enable = true
 		config.Net.TLS.Config = &tls.Config{
