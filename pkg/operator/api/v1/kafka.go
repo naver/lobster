@@ -18,6 +18,7 @@ package v1
 
 import (
 	"github.com/IBM/sarama"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
@@ -82,8 +83,12 @@ type Kafka struct {
 	Partition int32 `json:"partition,omitempty"`
 	// Target key to which logs will be exported (optional)
 	Key string `json:"key,omitempty"`
-	// the producer will ensure that exactly one
+	// The producer will ensure that exactly one
 	Idempotent bool `json:"idempotent,omitempty"`
+	// The total number of times to retry sending a message
+	RetryMax int `json:"retryMax,omitempty"`
+	// How long to wait for the cluster to settle between retries
+	RetryBackoff *metav1.Duration `json:"retryBackoff,omitempty" swaggertype:"string" example:"time duration(e.g. 1m)"`
 }
 
 func (k Kafka) Validate() ValidationErrors {
@@ -131,6 +136,14 @@ func (k Kafka) Validate() ValidationErrors {
 
 	if k.Partition < PartitionAny {
 		validationErrors.AppendErrorWithFields("kafka.partition", "the partition value must not be less than PartitionAny(-1)")
+	}
+
+	if k.RetryMax < 0 {
+		validationErrors.AppendErrorWithFields("kafka.retryMax", "the retryMax value must not be less than 0")
+	}
+
+	if k.RetryBackoff != nil && k.RetryBackoff.Duration < 0 {
+		validationErrors.AppendErrorWithFields("kafka.retryBackoff", "the retryBackoff value must not be less than 0")
 	}
 
 	return validationErrors

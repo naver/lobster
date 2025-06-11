@@ -145,7 +145,7 @@ spec:
                             `lobster`
                           type: string
                         idempotent:
-                          description: the producer will ensure that exactly one
+                          description: The producer will ensure that exactly one
                           type: boolean
                         key:
                           description: Target key to which logs will be exported (optional)
@@ -154,6 +154,14 @@ spec:
                           description: Target partition to which logs will be exported
                             (optional)
                           format: int32
+                          type: integer
+                        retryBackoff:
+                          description: How long to wait for the cluster to settle
+                            between retries
+                          type: string
+                        retryMax:
+                          description: The total number of times to retry sending
+                            a message
                           type: integer
                         sasl:
                           description: SASL configuration
