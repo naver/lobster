@@ -391,7 +391,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "idempotent": {
-                    "description": "the producer will ensure that exactly one",
+                    "description": "The producer will ensure that exactly one",
                     "type": "boolean"
                 },
                 "key": {
@@ -400,6 +400,15 @@ const docTemplate = `{
                 },
                 "partition": {
                     "description": "Target partition to which logs will be exported (optional)",
+                    "type": "integer"
+                },
+                "retryBackoff": {
+                    "description": "How long to wait for the cluster to settle between retries",
+                    "type": "string",
+                    "example": "time duration(e.g. 1m)"
+                },
+                "retryMax": {
+                    "description": "The total number of times to retry sending a message",
                     "type": "integer"
                 },
                 "sasl": {
