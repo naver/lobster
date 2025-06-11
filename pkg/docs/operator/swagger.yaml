@@ -75,13 +75,20 @@ definitions:
         description: An identifier to distinguish request; default `lobster`
         type: string
       idempotent:
-        description: the producer will ensure that exactly one
+        description: The producer will ensure that exactly one
         type: boolean
       key:
         description: Target key to which logs will be exported (optional)
         type: string
       partition:
         description: Target partition to which logs will be exported (optional)
+        type: integer
+      retryBackoff:
+        description: How long to wait for the cluster to settle between retries
+        example: time duration(e.g. 1m)
+        type: string
+      retryMax:
+        description: The total number of times to retry sending a message
         type: integer
       sasl:
         allOf:
