@@ -26,6 +26,9 @@ spec:
           - --logtostderr={{ .Values.syncer.options.printLog }}
           - --server.port={{ .Values.syncer.options.serverPort }}
           - --syncer.lobsterSinkOperator={{ .Values.syncer.options.ruleStore }}
+          {{- if .Values.syncer.options.extraArgs }}
+          {{- .Values.syncer.options.extraArgs | toYaml | nindent 10 }}
+          {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.syncer.options.serverPort }}
