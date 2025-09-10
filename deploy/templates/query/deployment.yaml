@@ -37,8 +37,8 @@ spec:
           - --querier.member.modulus={{ $root.Values.query.options.modulus }}
           - --querier.member.lookup-service-prefix=lobster-query-shard
           - --logline.format={{ $root.Values.loglineFormat | default "text" }}
-          {{- if .Values.query.options.extraArgs }}
-          {{- .Values.query.options.extraArgs | toYaml | nindent 10 }}
+          {{- if $root.Values.query.options.extraArgs }}
+          {{- $root.Values.query.options.extraArgs | toYaml | nindent 10 }}
           {{- end }}
           ports:
             - name: http
