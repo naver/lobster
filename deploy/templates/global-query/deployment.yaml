@@ -33,6 +33,9 @@ spec:
           {{- range $i, $lobsterQuery := .Values.global_query.options.lobsterQueries }}
           - --global.lobsterQuery={{ $lobsterQuery }}
           {{- end }}
+          {{- if .Values.global_query.options.extraArgs }}
+          {{- .Values.global_query.options.extraArgs | toYaml | nindent 10 }}
+          {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.global_query.options.serverPort }}

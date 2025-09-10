@@ -29,6 +29,9 @@ spec:
           - --zap-log-level=info
           - --addr=:{{ .Values.operator.options.serverPort }}
           - --maxSinkRule={{ .Values.operator.options.maxSinkRule }}
+          {{- if .Values.operator.options.extraArgs }}
+          {{- .Values.operator.options.extraArgs | toYaml | nindent 10 }}
+          {{- end }}
           ports:
             - name: http-metrics
               containerPort: {{ .Values.operator.options.metricPort }}

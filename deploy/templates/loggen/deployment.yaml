@@ -29,6 +29,9 @@ spec:
           - --gen.size=100
           - --serverAddr=:{{ .Values.loggen.options.metricPort }}
           - --inspector.lobsterQueryEndpoint={{ .Values.loggen.options.lobsterQueryEndpoint }}
+          {{- if .Values.loggen.options.extraArgs }}
+          {{- .Values.loggen.options.extraArgs | toYaml | nindent 10 }}
+          {{- end }}
           ports:
             - name: http-metrics
               containerPort: {{ .Values.loggen.options.metricPort }}
