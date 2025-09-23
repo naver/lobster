@@ -1,4 +1,4 @@
-VERSION = v1.0.7
+VERSION = v1.0.8
 REGISTRY ?= 
 BASE_IMAGE ?= alpine
 
