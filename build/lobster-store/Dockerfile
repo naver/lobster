@@ -33,6 +33,6 @@ USER lobster
 COPY web/* /web
 COPY web/static/css/*.css /web/static/css
 COPY web/static/js/*.js /web/static/js
-COPY web/static/docs/*.json /web/static/docs
+COPY web/static/docs/query/*.json /web/static/docs
 
 ENTRYPOINT ["/bin/lobster"]

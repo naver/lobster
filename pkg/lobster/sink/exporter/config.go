@@ -29,6 +29,7 @@ type config struct {
 	MinGrpcConnectTimeout *time.Duration
 	StoreGrpcServerAddr   *string
 	StoreGrpcServerPort   *string
+	GrpcMaxCallMsgSize    *int
 }
 
 func setup() config {
@@ -38,6 +39,7 @@ func setup() config {
 	maxLookback := flag.Duration("sink.exporter.maxLookback", time.Hour, "Limits the time when getting old receipts")
 	minGrpcConnectTimeout := flag.Duration("sink.exporter.minGrpcConnectTimeout", time.Second, "Minimum timeout for retrying connection to the store")
 	storeGrpcServerAddr := flag.String("sink.exporter.storeGrpcServerAddress", ":11130", "grpc server address in the store")
+	grpcMaxCallMsgSize := flag.Int("sink.exporter.grpcMaxCallMsgSize", 10*1024*1024, "The maximum message size (in bytes) allowed for gRPC calls")
 
 	return config{
 		InspectInterval:       inspectInterval,
@@ -46,5 +48,6 @@ func setup() config {
 		MaxLookback:           maxLookback,
 		MinGrpcConnectTimeout: minGrpcConnectTimeout,
 		StoreGrpcServerAddr:   storeGrpcServerAddr,
+		GrpcMaxCallMsgSize:    grpcMaxCallMsgSize,
 	}
 }
