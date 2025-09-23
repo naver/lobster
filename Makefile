@@ -23,6 +23,8 @@ DOCKERFILE_LOBSTER_LOGGEN ?= build/loggen/Dockerfile
 TAG_LOBSTER_OPERATOR ?= $(REGISTRY)/lobster-operator:$(VERSION)
 DOCKERFILE_LOBSTER_OPERATOR ?= build/lobster-operator/Dockerfile
 
+BUILDER := docker
+
 ##@ Development
 
 .PHONY: fmt
@@ -83,6 +85,10 @@ OS := $(shell uname | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m)
 
 check_command = $(shell which $1 > /dev/null 2>&1 && echo "found" || echo "not found")
+
+ifeq ($(BUILDER), podman)
+	BUILDER_OPT = --format=docker
+endif
 
 .PHONY: protoc-gen-go
 protoc-gen-go: $(PROTOC_GEN_GO) ## Download protoc-gen-go locally if necessary.
@@ -164,54 +170,54 @@ gen-api-docs: gen-api-docs-query gen-api-docs-global-query gen-api-docs-operator
 
 .PHONY: image-store image-query image-global-query image-loggen image-exporter
 image-store: fmt vet
-	docker build  --build-arg BASE_IMAGE=${BASE_IMAGE} \
+	$(BUILDER) build $(BUILDER_OPT) --build-arg BASE_IMAGE=${BASE_IMAGE} \
 	-t $(TAG_LOBSTER_STORE) -f $(DOCKERFILE_LOBSTER_STORE) . 
 
 image-query: gen-swagger-docs-query
-	docker build --build-arg BASE_IMAGE=${BASE_IMAGE}  \
+	$(BUILDER) build $(BUILDER_OPT) --build-arg BASE_IMAGE=${BASE_IMAGE}  \
 	-t $(TAG_LOBSTER_QUERY) -f $(DOCKERFILE_LOBSTER_QUERY) . 
 
 image-global-query: gen-swagger-docs-global-query
-	docker build --build-arg BASE_IMAGE=${BASE_IMAGE}  \
+	$(BUILDER) build $(BUILDER_OPT) --build-arg BASE_IMAGE=${BASE_IMAGE}  \
 	-t $(TAG_LOBSTER_GLOBAL_QUERY) -f $(DOCKERFILE_LOBSTER_GLOBAL_QUERY) . 
 
 image-syncer: fmt vet
-	docker build --build-arg BASE_IMAGE=${BASE_IMAGE}  \
+	$(BUILDER) build $(BUILDER_OPT) --build-arg BASE_IMAGE=${BASE_IMAGE}  \
 	-t $(TAG_LOBSTER_SYNCER) -f $(DOCKERFILE_LOBSTER_SYNCER) . 
 
 image-loggen: fmt vet
-	docker build --build-arg BASE_IMAGE=${BASE_IMAGE}  \
+	$(BUILDER) build $(BUILDER_OPT) --build-arg BASE_IMAGE=${BASE_IMAGE}  \
 	-t $(TAG_LOBSTER_LOGGEN) -f $(DOCKERFILE_LOBSTER_LOGGEN) . 
 
 image-exporter: fmt vet
-	docker build --build-arg BASE_IMAGE=${BASE_IMAGE}  \
+	$(BUILDER) build $(BUILDER_OPT) --build-arg BASE_IMAGE=${BASE_IMAGE}  \
 	-t $(TAG_LOBSTER_EXPORTER) -f $(DOCKERFILE_LOBSTER_EXPORTER) . 
 
 image-operator: manifests generate fmt vet gen-swagger-docs-operator
-	docker build --build-arg BASE_IMAGE=${BASE_IMAGE}  \
+	$(BUILDER) build $(BUILDER_OPT) --build-arg BASE_IMAGE=${BASE_IMAGE}  \
 	-t ${TAG_LOBSTER_OPERATOR} -f $(DOCKERFILE_LOBSTER_OPERATOR) . 
 
 .PHONY: push-store push-query push-global-query push-loggen push-exporter push-operator
 push-store: image-store
-	docker push $(TAG_LOBSTER_STORE)
+	$(BUILDER) push $(TAG_LOBSTER_STORE)
 	
 push-query: image-query
-	docker push $(TAG_LOBSTER_QUERY)
+	$(BUILDER) push $(TAG_LOBSTER_QUERY)
 
 push-global-query: image-global-query
-	docker push $(TAG_LOBSTER_GLOBAL_QUERY)
+	$(BUILDER) push $(TAG_LOBSTER_GLOBAL_QUERY)
 
 push-syncer: image-syncer
-	docker push $(TAG_LOBSTER_SYNCER)
+	$(BUILDER) push $(TAG_LOBSTER_SYNCER)
 
 push-loggen: image-loggen
-	docker push $(TAG_LOBSTER_LOGGEN)
+	$(BUILDER) push $(TAG_LOBSTER_LOGGEN)
 
 push-exporter: image-exporter
-	docker push $(TAG_LOBSTER_EXPORTER)
+	$(BUILDER) push $(TAG_LOBSTER_EXPORTER)
 
 push-operator: image-operator
-	docker push $(TAG_LOBSTER_OPERATOR)
+	$(BUILDER) push $(TAG_LOBSTER_OPERATOR)
 
 .PHONY: push-all
 push-all: push-store push-query push-global-query push-syncer push-exporter push-loggen push-operator
