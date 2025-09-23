@@ -71,7 +71,12 @@ func NewLogExporter(store *store.Store) LogExporter {
 	conn, err := grpc.NewClient(
 		*conf.StoreGrpcServerAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithConnectParams(grpc.ConnectParams{MinConnectTimeout: time.Second}))
+		grpc.WithConnectParams(grpc.ConnectParams{MinConnectTimeout: time.Second}),
+		grpc.WithDefaultCallOptions(
+			grpc.MaxCallRecvMsgSize(*conf.GrpcMaxCallMsgSize),
+			grpc.MaxCallSendMsgSize(*conf.GrpcMaxCallMsgSize),
+		),
+	)
 	if err != nil {
 		glog.Fatal(err)
 	}

@@ -41,7 +41,7 @@ func (p *ProtoServer) Run(stopChan chan struct{}) {
 		glog.Fatal(err)
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpc.MaxRecvMsgSize(*conf.GrpcMaxRecvMsgSize))
 	RegisterChunkServiceServer(grpcServer, &p.Service)
 
 	go func() {

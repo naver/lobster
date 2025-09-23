@@ -21,13 +21,16 @@ import (
 )
 
 type config struct {
-	ServerAddr *string
+	ServerAddr         *string
+	GrpcMaxRecvMsgSize *int
 }
 
 func setup() config {
 	serverAddr := flag.String("grpc.server.addr", ":11130", "server address")
+	grpcMaxRecvMsgSize := flag.Int("sink.exporter.grpcMaxRecvMsgSize", 10*1024*1024, "The maximum size (in bytes) of a message that can be received")
 
 	return config{
-		ServerAddr: serverAddr,
+		ServerAddr:         serverAddr,
+		GrpcMaxRecvMsgSize: grpcMaxRecvMsgSize,
 	}
 }
