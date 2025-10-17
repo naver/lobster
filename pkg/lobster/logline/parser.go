@@ -180,7 +180,9 @@ func getTimestampInTextLogLine(str string) (time.Time, error) {
 	localOffsetStr := ""
 	count := 0
 
-	for index := 19; index < MaxTimestampLen; index++ {
+	maxLengh := int(math.Min(float64(len(str)), float64(MaxTimestampLen)))
+
+	for index := 19; index < maxLengh; index++ {
 		if str[index] == '.' {
 			continue
 		}
