@@ -14,12 +14,12 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/go-tomb/tomb"
 	"github.com/golang/glog"
 	"github.com/naver/lobster/pkg/lobster/tailer/tail/ratelimiter"
 	"github.com/naver/lobster/pkg/lobster/tailer/tail/util"
 	"github.com/naver/lobster/pkg/lobster/tailer/tail/watch"
 	"github.com/pkg/errors"
-	"gopkg.in/tomb.v1"
 )
 
 var (

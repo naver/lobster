@@ -3,7 +3,7 @@
 
 package watch
 
-import "gopkg.in/tomb.v1"
+import "github.com/go-tomb/tomb"
 
 // FileWatcher monitors file-level events.
 type FileWatcher interface {
