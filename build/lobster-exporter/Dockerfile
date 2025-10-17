@@ -1,6 +1,6 @@
 ARG BASE_IMAGE
 
-FROM golang:1.22.7 AS builder
+FROM golang:1.24.1 AS builder
 
 WORKDIR /workspace
 

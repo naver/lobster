@@ -1,7 +1,7 @@
 ARG BASE_IMAGE
 
 # Build the manager binary
-FROM golang:1.22.7 AS builder
+FROM golang:1.24.1 AS builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests

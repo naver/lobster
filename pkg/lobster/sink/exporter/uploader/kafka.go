@@ -189,7 +189,7 @@ func (k KafkaUploader) newConfig(kafka *v1.Kafka) (*sarama.Config, error) {
 			config.Net.SASL.TokenProvider = tokenProvider
 
 		default:
-			return nil, fmt.Errorf("Unsupported SASL mechanism: " + kafka.SASL.Mechanism)
+			return nil, fmt.Errorf("Unsupported SASL mechanism: %s", kafka.SASL.Mechanism)
 		}
 	}
 

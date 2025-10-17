@@ -288,7 +288,7 @@ func (tail *Tail) tailFileSync() {
 				msg := fmt.Sprintf(
 					"Too much log activity; waiting a second " +
 						"before resuming tailing")
-				tail.Lines <- &Line{msg, time.Now(), fmt.Errorf(msg)}
+				tail.Lines <- &Line{msg, time.Now(), errors.New(msg)}
 				select {
 				case <-time.After(time.Second):
 				case <-tail.Dying():
