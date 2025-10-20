@@ -1,4 +1,6 @@
 name: golang - linter for lobster
+permissions:
+  contents: read
 
 on:
   push:
