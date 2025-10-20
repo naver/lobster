@@ -281,7 +281,7 @@ func (d *Distributor) tailFiles(fileList []model.LogFile, stopChan chan struct{}
 		}
 
 		if _, ok := d.tailerCache.Load(key); ok {
-			glog.V(3).Infof("tailing already for %s", file.Path)
+			glog.V(3).Infof("tailing already for %s", key)
 			continue
 		}
 
