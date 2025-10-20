@@ -32,7 +32,6 @@ import (
 	"github.com/naver/lobster/pkg/lobster/sink/exporter/counter"
 	"github.com/naver/lobster/pkg/lobster/sink/exporter/uploader"
 	"github.com/naver/lobster/pkg/lobster/sink/exporter/uploader/auth"
-	"github.com/naver/lobster/pkg/lobster/sink/helper"
 	"github.com/naver/lobster/pkg/lobster/sink/manager"
 	"github.com/naver/lobster/pkg/lobster/sink/order"
 	"github.com/naver/lobster/pkg/lobster/store"
@@ -102,17 +101,12 @@ func (e *LogExporter) Run(stopChan chan struct{}) {
 			now := time.Now()
 			current := now.Truncate(time.Second)
 			newOrders := map[string]order.Order{}
-			podMap := e.client.GetPods()
-
-			if len(podMap) == 0 {
-				panic("no pods found")
-			}
 
 			if err := e.initStore(current); err != nil {
 				glog.Error(err)
 				continue
 			}
-			if err := e.sinkManager.Update(helper.FilterChunksByExistingPods(e.store.GetChunks(), podMap), current.Add(-*conf.InspectInterval), current); err != nil {
+			if err := e.sinkManager.Update(e.store.GetChunks(), current.Add(-*conf.InspectInterval), current); err != nil {
 				glog.Error(err)
 				continue
 			}
