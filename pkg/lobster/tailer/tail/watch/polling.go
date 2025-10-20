@@ -8,8 +8,8 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/go-tomb/tomb"
 	"github.com/naver/lobster/pkg/lobster/tailer/tail/util"
-	"gopkg.in/tomb.v1"
 )
 
 // PollingFileWatcher polls the file for changes.

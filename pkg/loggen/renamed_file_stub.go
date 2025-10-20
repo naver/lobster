@@ -41,7 +41,7 @@ func (r RenamedFileStub) GenerateLogs(conf Config, stopChan chan struct{}) {
 	if err != nil {
 		panic(err)
 	}
-	defer logFile.Close()
+	defer func() { _ = logFile.Close() }()
 
 	var (
 		logger    = log.New(logFile, "", 0)
@@ -60,7 +60,8 @@ func (r RenamedFileStub) GenerateLogs(conf Config, stopChan chan struct{}) {
 						panic(err)
 					}
 					logger.SetOutput(newLogFile)
-					logFile.Close()
+					_ = logFile.Close()
+
 					logFile = newLogFile
 					lastInode = currentInode
 				}

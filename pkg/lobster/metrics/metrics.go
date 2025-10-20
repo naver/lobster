@@ -24,6 +24,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/golang/glog"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -73,7 +74,9 @@ func Run(serverAddr string, stopChan chan struct{}) error {
 	go func() {
 		select {
 		case <-stopChan:
-			svr.Close()
+			if err := svr.Close(); err != nil {
+				glog.Error(err)
+			}
 			return
 		default:
 			if err := svr.ListenAndServe(); err != nil {

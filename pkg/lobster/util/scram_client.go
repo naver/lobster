@@ -15,9 +15,9 @@ var (
 
 // XDGSCRAMClient implements sarama.SCRAMClient.
 type XDGSCRAMClient struct {
-	*scram.Client
-	*scram.ClientConversation
-	scram.HashGeneratorFcn
+	Client             *scram.Client
+	ClientConversation *scram.ClientConversation
+	HashGeneratorFcn   scram.HashGeneratorFcn
 }
 
 func (x *XDGSCRAMClient) Begin(userName, password, authzID string) (err error) {

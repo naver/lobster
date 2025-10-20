@@ -10,8 +10,8 @@ import (
 
 	"github.com/naver/lobster/pkg/lobster/tailer/tail/util"
 
-	"gopkg.in/fsnotify/fsnotify.v1"
-	"gopkg.in/tomb.v1"
+	"github.com/fsnotify/fsnotify"
+	"github.com/go-tomb/tomb"
 )
 
 // InotifyFileWatcher uses inotify to monitor file changes.

@@ -92,7 +92,7 @@ func (k KafkaUploader) Upload(data []byte, chunk model.Chunk, pStart, pEnd time.
 	if err != nil {
 		return err
 	}
-	defer producer.Close()
+	defer func() { _ = producer.Close() }()
 
 	if err := producer.SendMessages(newMessages(k.Order.LogExportRule.Kafka, data)); err != nil {
 		if producerErrors, ok := err.(sarama.ProducerErrors); ok {
@@ -189,7 +189,7 @@ func (k KafkaUploader) newConfig(kafka *v1.Kafka) (*sarama.Config, error) {
 			config.Net.SASL.TokenProvider = tokenProvider
 
 		default:
-			return nil, fmt.Errorf("Unsupported SASL mechanism: " + kafka.SASL.Mechanism)
+			return nil, fmt.Errorf("unsupported SASL mechanism: %s", kafka.SASL.Mechanism)
 		}
 	}
 

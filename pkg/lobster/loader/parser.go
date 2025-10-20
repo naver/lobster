@@ -38,7 +38,7 @@ func ParseKubeLogFile(logType, path string, mTime time.Time, size int64, appeara
 		return nil, errors.New("failed to parse path : " + path)
 	}
 
-	number, err := strconv.ParseInt(strings.Replace(subPaths[len(subPaths)-1], LogExt, "", -1), 0, 64)
+	number, err := strconv.ParseInt(strings.ReplaceAll(subPaths[len(subPaths)-1], LogExt, ""), 0, 64)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +106,7 @@ func ParseStoredLogFile(logType, path string, mTime time.Time, size int64, appea
 		}, nil
 	}
 
-	parts := strings.Split(strings.Replace(fileName, LogExt, "", -1), "_")
+	parts := strings.Split(strings.ReplaceAll(fileName, LogExt, ""), "_")
 	number, err := strconv.ParseInt(parts[len(parts)-1], 0, 64)
 	if err != nil {
 		return nil, err
