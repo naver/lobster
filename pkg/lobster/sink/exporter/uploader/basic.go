@@ -120,7 +120,7 @@ func (b BasicUploader) Upload(data []byte, chunk model.Chunk, pStart, pEnd time.
 	if err != nil {
 		return err
 	}
-	defer writer.Close()
+	defer func() { _ = writer.Close() }()
 
 	if _, err := w.Write(data); err != nil {
 		return err
@@ -150,10 +150,10 @@ func (b BasicUploader) Upload(data []byte, chunk model.Chunk, pStart, pEnd time.
 
 	if resp != nil {
 		respBody, err = io.ReadAll(resp.Body)
-		resp.Body.Close()
 		if err != nil {
 			return err
 		}
+		_ = resp.Body.Close()
 	}
 
 	if resp.StatusCode != 200 {

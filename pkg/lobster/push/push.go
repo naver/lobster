@@ -140,10 +140,10 @@ func push(localAddr string, endpoints []string, data []byte) error {
 		}
 		if resp != nil {
 			_, err := io.Copy(io.Discard, resp.Body)
-			resp.Body.Close()
 			if err != nil {
 				return err
 			}
+			_ = resp.Body.Close()
 		}
 	}
 

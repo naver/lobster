@@ -341,7 +341,9 @@ func (s *Store) cleanChunks() {
 	s.chunkCache.Range(func(key, value interface{}) bool {
 		chunk := (value.(*model.Chunk))
 		if chunk.DeletionMark {
-			chunk.DeleteContainerFiles(*conf.StoreRootPath)
+			if err := chunk.DeleteContainerFiles(*conf.StoreRootPath); err != nil {
+				glog.Error(err)
+			}
 			s.chunkCache.Delete(key)
 			metrics.Delete(chunk.Namespace, chunk.Pod, chunk.Container, chunk.Source.Type, chunk.Source.Path)
 			metrics.DeleteMatchedLogs(chunk.Namespace, chunk.Pod, chunk.Container, chunk.Source.Type, chunk.Source.Path)
@@ -353,7 +355,9 @@ func (s *Store) cleanChunks() {
 			offset := 0
 			for i, block := range tmp {
 				if block.DeletionMark {
-					chunk.DeleteBlockAt(i-offset, *conf.StoreRootPath)
+					if err := chunk.DeleteBlockAt(i-offset, *conf.StoreRootPath); err != nil {
+						glog.Error(err)
+					}
 					offset = offset + 1
 					glog.V(3).Infof("delete block : %s | [%v ~ %v]\n", block.FileName(), block.StartedAt, block.EndedAt)
 				}
@@ -380,7 +384,9 @@ func (s *Store) cleanDirectoriesWithEmptyBlocks() {
 		if hasNoBlocks, err := hasNoBlocksInPodDirectory(podDir); err != nil {
 			glog.Error(err)
 		} else if hasNoBlocks {
-			os.RemoveAll(podDir)
+			if err := os.RemoveAll(podDir); err != nil {
+				glog.Error(err)
+			}
 		}
 	}
 }

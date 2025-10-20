@@ -133,7 +133,7 @@ func (f Fetcher) Fetch(req query.Request, chunks []model.Chunk, urlPath string) 
 				result.err = err
 				return
 			}
-			defer resp.Body.Close()
+			defer func() { _ = resp.Body.Close() }()
 
 			b, err := io.ReadAll(resp.Body)
 			if err != nil {

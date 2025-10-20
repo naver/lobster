@@ -22,6 +22,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/golang/glog"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -44,7 +45,9 @@ func RunServer(serverAddr string, stopChan chan struct{}) {
 	go func() {
 		select {
 		case <-stopChan:
-			svr.Close()
+			if err := svr.Close(); err != nil {
+				glog.Error(err)
+			}
 			return
 		default:
 			if err := svr.ListenAndServe(); err != nil {

@@ -92,7 +92,7 @@ func (k KafkaUploader) Upload(data []byte, chunk model.Chunk, pStart, pEnd time.
 	if err != nil {
 		return err
 	}
-	defer producer.Close()
+	defer func() { _ = producer.Close() }()
 
 	if err := producer.SendMessages(newMessages(k.Order.LogExportRule.Kafka, data)); err != nil {
 		if producerErrors, ok := err.(sarama.ProducerErrors); ok {
