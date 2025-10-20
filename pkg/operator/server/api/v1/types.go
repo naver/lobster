@@ -23,7 +23,6 @@ import (
 	"regexp"
 
 	sinkV1 "github.com/naver/lobster/pkg/operator/api/v1"
-	v1 "github.com/naver/lobster/pkg/operator/api/v1"
 )
 
 var invalidNameCharacter = regexp.MustCompile(`[<>:"/\\|?*]`)
@@ -32,7 +31,7 @@ type SinkRule interface {
 	GetNamespace() string
 	GetName() string
 	GetFilter() sinkV1.Filter
-	Validate() v1.ValidationErrors
+	Validate() sinkV1.ValidationErrors
 }
 
 type Sink struct {
@@ -58,15 +57,15 @@ func (s Sink) ListSinkRules() []SinkRule {
 	return rules
 }
 
-func (s Sink) Validate() v1.ValidationErrors {
-	var validationErrors v1.ValidationErrors
+func (s Sink) Validate() sinkV1.ValidationErrors {
+	var validationErrors sinkV1.ValidationErrors
 
 	if len(s.Namespace) == 0 {
-		validationErrors.AppendErrorWithFields("lobsterSink.namespace", v1.ErrorEmptyField)
+		validationErrors.AppendErrorWithFields("lobsterSink.namespace", sinkV1.ErrorEmptyField)
 	}
 
 	if len(s.Namespace) == 0 {
-		validationErrors.AppendErrorWithFields("lobsterSink.name", v1.ErrorEmptyField)
+		validationErrors.AppendErrorWithFields("lobsterSink.name", sinkV1.ErrorEmptyField)
 	}
 
 	switch s.Type {
@@ -86,7 +85,7 @@ func (s Sink) Validate() v1.ValidationErrors {
 	return validationErrors
 }
 
-func ValidateRules(rules interface{}) v1.ValidationErrors {
+func ValidateRules(rules interface{}) sinkV1.ValidationErrors {
 	existence := map[string]bool{}
 	v := reflect.ValueOf(rules)
 
@@ -98,11 +97,11 @@ func ValidateRules(rules interface{}) v1.ValidationErrors {
 		}
 
 		if _, ok := existence[name]; ok {
-			return v1.ValidationErrors{v1.NewValidationError("{logMetricRules|logExportRules}.name", fmt.Sprintf("duplicated name is not allowed '%s'", name))}
+			return sinkV1.ValidationErrors{sinkV1.NewValidationError("{logMetricRules|logExportRules}.name", fmt.Sprintf("duplicated name is not allowed '%s'", name))}
 		}
 
 		if err := hasValidName(name); err != nil {
-			return v1.ValidationErrors{v1.NewValidationError("{logMetricRules|logExportRules}.name", err.Error())}
+			return sinkV1.ValidationErrors{sinkV1.NewValidationError("{logMetricRules|logExportRules}.name", err.Error())}
 		}
 
 		existence[name] = true

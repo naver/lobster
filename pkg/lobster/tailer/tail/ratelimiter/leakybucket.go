@@ -41,7 +41,7 @@ func (b *LeakyBucket) updateFill() {
 func (b *LeakyBucket) Pour(amount uint16) bool {
 	b.updateFill()
 
-	var newfill float64 = b.Fill + float64(amount)
+	var newfill = b.Fill + float64(amount)
 
 	if newfill > float64(b.Size) {
 		return false

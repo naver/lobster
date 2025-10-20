@@ -97,7 +97,7 @@ func loadBlocks(files []model.LogFile, conf config, blockFileFunc func(block mod
 }
 
 func fileToBlock(file model.LogFile) (*model.Block, error) {
-	tokens := strings.Split(strings.Replace(file.FileName, BlockExt, "", -1), "_")
+	tokens := strings.Split(strings.ReplaceAll(file.FileName, BlockExt, ""), "_")
 
 	start, err := time.Parse(time.RFC3339Nano, tokens[0])
 	if err != nil {
@@ -218,7 +218,7 @@ func readBlocks(chunk model.Chunk, storeRootkDir string, onlySeries bool, start 
 	}
 
 	for _, block := range blocks {
-		if !(block.StartTime().Before(end) && block.EndTime().After(start)) {
+		if !block.StartTime().Before(end) || !block.EndTime().After(start) {
 			continue
 		}
 

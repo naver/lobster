@@ -165,8 +165,12 @@ func getLogMessageInJsonLogLine(str string) (string, error) {
 }
 
 func getTimestampInTextLogLine(str string) (time.Time, error) {
-	if len(str) < MinTimestampLen || !(str[4] == '-' && str[7] == '-' && str[10] == 'T' && str[13] == ':' && str[16] == ':') {
-		return time.Time{}, fmt.Errorf("could not parse improper input %s", str)
+	if len(str) < MinTimestampLen {
+		return time.Time{}, fmt.Errorf("could not parse improper length for %s (<%d)", str, MinTimestampLen)
+	}
+
+	if str[4] != '-' || str[7] != '-' || str[10] != 'T' || str[13] != ':' || str[16] != ':' {
+		return time.Time{}, fmt.Errorf("could not parse improper format for %s", str)
 	}
 
 	year := (((int(str[0])-'0')*10+int(str[1])-'0')*10+int(str[2])-'0')*10 + int(str[3]) - '0'
