@@ -87,7 +87,7 @@ ARCH := $(shell uname -m)
 check_command = $(shell which $1 > /dev/null 2>&1 && echo "found" || echo "not found")
 
 ifeq ($(BUILDER), podman)
-	BUILDER_OPT = $(BUILDER_OPT) --format=docker
+	BUILDER_OPT := $(BUILDER_OPT) --format=docker
 endif
 
 .PHONY: protoc-gen-go
