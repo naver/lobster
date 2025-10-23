@@ -1,7 +1,7 @@
 name: lobster-syncer
 home: https://github.com/naver/lobster
 version: 1.0.0
-appVersion: v1.0.8
+appVersion: v1.0.9
 description: lobster
 sources:
 - https://github.com/naver/lobster
