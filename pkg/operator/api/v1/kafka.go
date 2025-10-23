@@ -156,7 +156,7 @@ func (k Kafka) Validate() ValidationErrors {
 		validationErrors.AppendErrorWithFields("kafka.retryBackoff", "the retryBackoff value must not be less than 0")
 	}
 
-	if _, ok := SupportedCompressionCodecs[k.Compression]; !ok {
+	if _, ok := SupportedCompressionCodecs[k.Compression]; len(k.Compression) > 0 && !ok {
 		validationErrors.AppendErrorWithFields("kafka.compression", "unsupported compression codec type; supported types are none, gzip, snappy, lz4 and zstd")
 	}
 
