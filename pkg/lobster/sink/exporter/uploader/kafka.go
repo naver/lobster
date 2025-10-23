@@ -131,6 +131,10 @@ func (k KafkaUploader) newConfig(kafka *v1.Kafka) (*sarama.Config, error) {
 		config.Producer.Retry.Backoff = kafka.RetryBackoff.Duration
 	}
 
+	if codec, ok := v1.SupportedCompressionCodecs[kafka.Compression]; ok {
+		config.Producer.Compression = codec
+	}
+
 	if kafka.TLS.Enable {
 		config.Net.TLS.Enable = true
 		config.Net.TLS.Config = &tls.Config{

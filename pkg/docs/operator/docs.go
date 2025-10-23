@@ -390,6 +390,10 @@ const docTemplate = `{
                     "description": "An identifier to distinguish request; default ` + "`" + `lobster` + "`" + `",
                     "type": "string"
                 },
+                "compression": {
+                    "description": "Compression codec specifying the compression type",
+                    "type": "string"
+                },
                 "idempotent": {
                     "description": "The producer will ensure that exactly one",
                     "type": "boolean"

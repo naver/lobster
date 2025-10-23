@@ -28,6 +28,14 @@ const (
 	OAuthTypeAuthenzPrincipal    = "AuthenzPrincipal"
 )
 
+var SupportedCompressionCodecs = map[string]sarama.CompressionCodec{
+	"none":   sarama.CompressionNone,
+	"gzip":   sarama.CompressionGZIP,
+	"snappy": sarama.CompressionSnappy,
+	"lz4":    sarama.CompressionLZ4,
+	"zstd":   sarama.CompressionZSTD,
+}
+
 type OAuthType string
 
 type TLS struct {
@@ -89,6 +97,8 @@ type Kafka struct {
 	RetryMax int `json:"retryMax,omitempty"`
 	// How long to wait for the cluster to settle between retries
 	RetryBackoff *metav1.Duration `json:"retryBackoff,omitempty" swaggertype:"string" example:"time duration(e.g. 1m)"`
+	// Compression codec specifying the compression type
+	Compression string `json:"compression,omitempty"`
 }
 
 func (k Kafka) Validate() ValidationErrors {
@@ -144,6 +154,10 @@ func (k Kafka) Validate() ValidationErrors {
 
 	if k.RetryBackoff != nil && k.RetryBackoff.Duration < 0 {
 		validationErrors.AppendErrorWithFields("kafka.retryBackoff", "the retryBackoff value must not be less than 0")
+	}
+
+	if _, ok := SupportedCompressionCodecs[k.Compression]; !ok {
+		validationErrors.AppendErrorWithFields("kafka.compression", "unsupported compression codec type; supported types are none, gzip, snappy, lz4 and zstd")
 	}
 
 	return validationErrors
