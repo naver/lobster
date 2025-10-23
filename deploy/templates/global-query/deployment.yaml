@@ -18,7 +18,11 @@ spec:
         app: lobster-global-query
       annotations: {{ (default dict .Values.global_query.pod.annotations) | toYaml | nindent 8 }}
     spec:
+      {{- if .Values.global_query.pod.priorityClassName }}
+      priorityClassName: {{ .Values.global_query.pod.priorityClassName }}
+      {{- else if .Values.priorityClassName }}
       priorityClassName: {{ .Values.priorityClassName }}
+      {{- end }}
       serviceAccountName: default
       affinity: {{ (default dict .Values.global_query.pod.affinity) | toYaml | nindent 8 }}
       containers:

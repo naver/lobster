@@ -18,7 +18,11 @@ spec:
         purpose: logging
       annotations: {{ (default dict .Values.loggen.pod.annotations) | toYaml | nindent 8 }}
     spec:
+      {{- if .Values.loggen.pod.priorityClassName }}
+      priorityClassName: {{ .Values.loggen.pod.priorityClassName }}
+      {{- else if .Values.priorityClassName }}
       priorityClassName: {{ .Values.priorityClassName }}
+      {{- end }}
       affinity: {{ (default dict .Values.loggen.pod.affinity) | toYaml | nindent 8 }}
       serviceAccountName: default
       containers:
