@@ -120,7 +120,7 @@ func (b *EntryBuilder) Merge(fn ParseFunc) *EntryBuilder {
 			reader := bufio.NewReader(strings.NewReader(r.response.Contents))
 			entries := []model.Entry{}
 
-			for b.total.Load() > b.limit {
+			for b.total.Load() < b.limit {
 				line, err := reader.ReadString('\n')
 				if err != nil {
 					if err != io.EOF {
