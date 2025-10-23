@@ -18,7 +18,11 @@ spec:
         app: lobster-operator
       annotations: {{ (default dict .Values.operator.pod.annotations) | toYaml | nindent 8 }}
     spec:
+      {{- if .Values.operator.pod.priorityClassName }}
+      priorityClassName: {{ .Values.operator.pod.priorityClassName }}
+      {{- else if .Values.priorityClassName }}
       priorityClassName: {{ .Values.priorityClassName }}
+      {{- end }}
       affinity: {{ (default dict .Values.operator.pod.affinity) | toYaml | nindent 8 }}
       serviceAccountName: lobster-operator
       containers:

@@ -23,7 +23,11 @@ spec:
       annotations:
         {{ (default dict $root.Values.query.pod.annotations) | toYaml | nindent 8 }}
     spec:
+      {{- if $root.Values.query.pod.priorityClassName }}
+      priorityClassName: {{ $root.Values.query.pod.priorityClassName }}
+      {{- else if $root.Values.priorityClassName }}
       priorityClassName: {{ $root.Values.priorityClassName }}
+      {{- end }}
       affinity: {{ (default dict $root.Values.query.pod.affinity) | toYaml | nindent 8 }}
       containers:
         - name: query

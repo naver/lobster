@@ -16,7 +16,11 @@ spec:
         purpose: logging
         app: lobster-syncer
     spec:
+      {{- if .Values.syncer.pod.priorityClassName }}
+      priorityClassName: {{ .Values.syncer.pod.priorityClassName }}
+      {{- else if .Values.priorityClassName }}
       priorityClassName: {{ .Values.priorityClassName }}
+      {{- end }}
       affinity: {{ (default dict .Values.syncer.pod.affinity) | toYaml | nindent 8 }}
       containers:
         - name: syncer

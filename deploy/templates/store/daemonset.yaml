@@ -31,7 +31,11 @@ spec:
       securityContext:
         runAsGroup: 0
         runAsUser: 0
+      {{- if .Values.store.pod.priorityClassName }}
+      priorityClassName: {{ .Values.store.pod.priorityClassName }}
+      {{- else if .Values.priorityClassName }}
       priorityClassName: {{ .Values.priorityClassName }}
+      {{- end }}
       containers:
         - name: store
           image: {{ required "this value is required" .Values.registry }}/lobster-store:{{ .Chart.AppVersion }}
