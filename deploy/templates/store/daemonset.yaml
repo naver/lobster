@@ -98,6 +98,9 @@ spec:
           - --logline.format={{ .Values.loglineFormat | default "text" }}
           - --sink.exporter.dataPath={{ .Values.store.options.storeHostPath }}
           - --sink.exporter.inspectInterval={{ .Values.exporter.options.inspectInterval }}
+          {{- if .Values.exporter.options.extraArgs }}
+          {{- .Values.exporter.options.extraArgs | toYaml | nindent 10 }}
+          {{- end }}
           env:
           - name: NODE_NAME
             valueFrom:
