@@ -25,7 +25,7 @@ USER root
 RUN mkdir -p /web/static/css
 RUN mkdir -p /web/static/js
 RUN mkdir -p /web/static/docs
-RUN apk upgrade && apk add --no-cache libc6-compat git tcpdump bash vim iptables curl tzdata libcap iproute2 && cp /usr/share/zoneinfo/Asia/Seoul /etc/localtime && echo "Asia/Seoul" > /etc/timezone
+RUN apk update && apk upgrade && apk add --no-cache libc6-compat git tcpdump bash vim iptables curl tzdata libcap iproute2 && cp /usr/share/zoneinfo/Asia/Seoul /etc/localtime && echo "Asia/Seoul" > /etc/timezone
 RUN /usr/sbin/setcap cap_net_bind_service=+ep /bin/lobster
 RUN addgroup -g 10001 lobster && adduser -u 10001 -S lobster -G lobster
 USER lobster
