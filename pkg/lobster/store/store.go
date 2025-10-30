@@ -355,9 +355,7 @@ func (s *Store) cleanChunks() {
 			offset := 0
 			for i, block := range tmp {
 				if block.DeletionMark {
-					if err := chunk.DeleteBlockAt(i-offset, *conf.StoreRootPath); err != nil {
-						glog.Error(err)
-					}
+					chunk.DeleteBlockAt(i-offset, *conf.StoreRootPath)
 					offset = offset + 1
 					glog.V(3).Infof("delete block : %s | [%v ~ %v]\n", block.FileName(), block.StartedAt, block.EndedAt)
 				}
