@@ -20,7 +20,6 @@ import (
 	"log"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/golang/glog"
 	"github.com/naver/lobster/pkg/lobster/client"
@@ -29,7 +28,6 @@ import (
 	"github.com/naver/lobster/pkg/lobster/sink/indexer"
 	"github.com/naver/lobster/pkg/lobster/sink/order"
 	orderSync "github.com/naver/lobster/pkg/lobster/sink/sync"
-	"github.com/naver/lobster/pkg/lobster/util"
 )
 
 var (
@@ -77,12 +75,8 @@ func (m *SinkManager) Range(receiver func(string, order.Order)) {
 	})
 }
 
-func (m *SinkManager) Update(chunks []model.Chunk, start, end time.Time) error {
-	var (
-		tStart    = util.Timestamp{Time: start}
-		tEnd      = util.Timestamp{Time: end}
-		preorders []order.Order
-	)
+func (m *SinkManager) Update(chunks []model.Chunk) error {
+	var preorders []order.Order
 
 	indexer := indexer.New(chunks)
 
@@ -96,7 +90,7 @@ func (m *SinkManager) Update(chunks []model.Chunk, start, end time.Time) error {
 	glog.V(3).Infof("Requests preorders for [%s] | got %d preorders", strings.Join(indexer.GetNamespaces(), ","), len(preorders))
 	metrics.SetReceivingPreorders(float64(len(preorders)))
 
-	orders := order.NewOrdersFromPreorders(preorders, indexer, tStart, tEnd)
+	orders := order.NewOrdersFromPreorders(preorders, indexer)
 	glog.V(3).Infof("%+v", orders)
 
 	m.update(orders)
