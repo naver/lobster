@@ -21,7 +21,6 @@ import (
 	"github.com/naver/lobster/pkg/lobster/metrics"
 	"github.com/naver/lobster/pkg/lobster/querier"
 	"github.com/naver/lobster/pkg/lobster/sink/indexer"
-	"github.com/naver/lobster/pkg/lobster/util"
 )
 
 type Orders map[string][]Order
@@ -40,12 +39,10 @@ func (orders Orders) Append(input Orders) {
 	}
 }
 
-func NewOrdersFromPreorders(preorders []Order, indexer indexer.ChunkIndexer, start, end util.Timestamp) Orders {
+func NewOrdersFromPreorders(preorders []Order, indexer indexer.ChunkIndexer) Orders {
 	orders := Orders{}
 
 	for _, preorder := range preorders {
-		preorder.Request.Start = start
-		preorder.Request.End = end
 		newOrders, err := newOrdersForChunks(preorder, indexer)
 		if err != nil {
 			glog.Error("Invalid order : %s : %s_%s_%s", err.Error(), preorder.SinkNamespace, preorder.SinkName, preorder.RuleName)

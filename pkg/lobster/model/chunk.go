@@ -168,18 +168,16 @@ func (c Chunk) DeleteContainerFiles(blockPath string) error {
 }
 
 func (c *Chunk) DeleteBlockAt(i int, rootPath string) error {
-	if err := os.Remove(fmt.Sprintf("%s/%s/%s", rootPath, c.RelativeBlockDir, c.Blocks[i].FileName())); err != nil {
-		return err
-	}
+	defer func() {
+		if i == 0 && len(c.Blocks) > 1 {
+			c.StartedAt = c.Blocks[1].StartedAt
+		}
+		c.Line = c.Line - c.Blocks[i].Line
+		c.Size = c.Size - c.Blocks[i].Size
+		c.Blocks = append(c.Blocks[:i], c.Blocks[i+1:]...)
+	}()
 
-	if i == 0 && len(c.Blocks) > 1 {
-		c.StartedAt = c.Blocks[1].StartedAt
-	}
-	c.Line = c.Line - c.Blocks[i].Line
-	c.Size = c.Size - c.Blocks[i].Size
-	c.Blocks = append(c.Blocks[:i], c.Blocks[i+1:]...)
-
-	return nil
+	return os.Remove(fmt.Sprintf("%s/%s/%s", rootPath, c.RelativeBlockDir, c.Blocks[i].FileName()))
 }
 
 func (c Chunk) IsOutdated(retentionTime time.Duration) bool {

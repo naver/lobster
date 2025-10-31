@@ -8,6 +8,7 @@ require (
 	github.com/IBM/sarama v1.43.3
 	github.com/aws/aws-sdk-go v1.55.5
 	github.com/cespare/xxhash/v2 v2.3.0
+	github.com/charlievieth/fastwalk v1.0.14
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/go-logr/logr v1.4.2
 	github.com/go-tomb/tomb v0.0.0-20141024135613-dd632973f1e7
