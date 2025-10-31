@@ -104,8 +104,7 @@ func (d *Distributor) Run(stopChan chan struct{}) {
 				tailList := d.extractTailList(fileMap, *conf.TailFileMaxStale)
 
 				if *conf.ShouldUpdateLogMatcher {
-					now := time.Now()
-					if err := d.matcher.Update(helper.FilterChunksByExistingPods(d.store.GetChunks(), podMap), now.Add(-*conf.FileInspectInterval), now); err != nil {
+					if err := d.matcher.Update(helper.FilterChunksByExistingPods(d.store.GetChunks(), podMap)); err != nil {
 						glog.Error(err)
 					}
 				}

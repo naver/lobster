@@ -104,7 +104,7 @@ func (e *LogExporter) Run(stopChan chan struct{}) {
 				glog.Error(err)
 				continue
 			}
-			if err := e.sinkManager.Update(e.store.GetChunks(), current.Add(-*conf.InspectInterval), current); err != nil {
+			if err := e.sinkManager.Update(e.store.GetChunks()); err != nil {
 				glog.Error(err)
 				continue
 			}

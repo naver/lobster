@@ -54,6 +54,6 @@ func (m *LogMatcher) Match(key, logLine string, logTs time.Time) {
 	}
 }
 
-func (m *LogMatcher) Update(chunks []model.Chunk, start, end time.Time) error {
-	return m.sinkManager.Update(chunks, start, end)
+func (m *LogMatcher) Update(chunks []model.Chunk) error {
+	return m.sinkManager.Update(chunks)
 }
