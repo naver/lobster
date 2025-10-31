@@ -93,14 +93,12 @@ func NewLogExporter(store *store.Store) LogExporter {
 
 func (e *LogExporter) Run(stopChan chan struct{}) {
 	inspectTicker := time.NewTicker(*conf.InspectInterval)
-	recentOrders := map[string]order.Order{}
 
 	for {
 		select {
 		case <-inspectTicker.C:
 			now := time.Now()
 			current := now.Truncate(time.Second)
-			newOrders := map[string]order.Order{}
 
 			if err := e.initStore(current); err != nil {
 				glog.Error(err)
@@ -112,27 +110,22 @@ func (e *LogExporter) Run(stopChan chan struct{}) {
 			}
 
 			e.sinkManager.Range(func(key string, order order.Order) {
-				recentOrders[order.Key()] = order
-				newOrders[order.Key()] = order
-			})
-
-			for _, order := range recentOrders {
 				uploader, err := uploader.New(order, e.tokenManager)
 				if err != nil {
 					glog.Error(err)
-					continue
+					return
 				}
 
 				if errList := uploader.Validate(); !errList.IsEmpty() {
 					glog.Error(errList.String())
 					metrics.AddSinkFailure(order.Request, order.SinkNamespace, order.SinkName, uploader.Type(), uploader.Name())
-					continue
+					return
 				}
 
 				chunk, err := e.loadAndStoreChunkIfExist(order.Request.Source, order.Request.PodUid, order.Request.Container)
 				if err != nil {
 					glog.Error(err)
-					continue
+					return
 				}
 
 				exportedBytes, err := e.export(current, uploader, order, *chunk)
@@ -142,9 +135,8 @@ func (e *LogExporter) Run(stopChan chan struct{}) {
 				}
 
 				metrics.AddSinkLogBytes(order.Request, order.SinkNamespace, order.SinkName, uploader.Type(), uploader.Name(), float64(exportedBytes))
-			}
+			})
 
-			recentOrders = copyOrders(newOrders)
 			metrics.ClearSinkMetrics()
 			e.store.Clear()
 			e.counter.Clean(current)
@@ -331,14 +323,4 @@ func parseEnd(data []byte) (time.Time, error) {
 	}
 
 	return logline.ParseTimestamp(string(data[index+1:]))
-}
-
-func copyOrders(orders map[string]order.Order) map[string]order.Order {
-	ret := map[string]order.Order{}
-
-	for k, v := range orders {
-		ret[k] = v
-	}
-
-	return ret
 }
