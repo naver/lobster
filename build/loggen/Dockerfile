@@ -21,4 +21,9 @@ FROM ${BASE_IMAGE}
 WORKDIR /
 COPY --from=builder /workspace/loggen /bin
 
+USER root
+RUN apk update && apk upgrade && apk add --no-cache libc6-compat git tcpdump bash vim iptables curl tzdata libcap iproute2 && cp /usr/share/zoneinfo/Asia/Seoul /etc/localtime && echo "Asia/Seoul" > /etc/timezone
+RUN addgroup -g 10000 lobster && adduser -u 10000 -S lobster -G lobster
+USER lobster
+
 ENTRYPOINT ["/bin/loggen"]
