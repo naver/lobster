@@ -106,7 +106,6 @@ func (e *LogExporter) Run(stopChan chan struct{}) {
 			}
 			if err := e.sinkManager.Update(e.store.GetChunks()); err != nil {
 				glog.Error(err)
-				continue
 			}
 
 			e.sinkManager.Range(func(key string, order order.Order) {
