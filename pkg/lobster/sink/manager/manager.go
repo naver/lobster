@@ -76,9 +76,10 @@ func (m *SinkManager) Range(receiver func(string, order.Order)) {
 }
 
 func (m *SinkManager) Update(chunks []model.Chunk) error {
-	var preorders []order.Order
-
-	indexer := indexer.New(chunks)
+	var (
+		preorders []order.Order
+		indexer   = indexer.New(chunks)
+	)
 
 	receivedPreOrders, err := orderSync.Request(*conf.SyncerAddress, m.sinkType, indexer.GetNamespaces())
 	if err != nil {
