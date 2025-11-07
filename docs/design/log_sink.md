@@ -48,7 +48,7 @@ spec:
 Below is an example of creating a `LobsterSink` called `export` in the `log-test` namespace.
 - The rule named `include-error-for-tc-container` sends logs containing `error` from the logs produced by `tc-container` among the pods labeled `app=sampleA` in the `log-test` namespace to `{bucket destination}` every minute. If the bucket supports path configuration, the root path can be `/`.
 - The rule named `exclude-GET` sends logs except `GET` from the logs produced by all containers of the pods labeled `app=sampleB` in the `log-test` namespace of `clusterA and clusterB` to `{bucket destination}` every hour. If the bucket supports path configuration, the root path can be `/`.
-- `logMetricRules` supports `basicBucket`(multi-part upload) and `s3Bucket`
+- `logMetricRules` supports `basicBucket`(multi-part upload) , `s3Bucket` and `kafka`
 
 ```yaml
 apiVersion: lobster.io/v1
@@ -94,7 +94,39 @@ spec:
       Tags: # supports multiple tags
         {label1}: {value1}
         {label2}: {value2}
-        ...
+  - name: kafka-test
+    interval: 5s
+    filter:
+      include: "error”
+      labels:
+      - app: sampleA
+      namespace: log-test
+      container: tc-container
+    kafka:
+      topic: logs
+      brokers:
+      - kafka-brocker:1234
+      clientId: lobster
+      idempotent: false               # Recommended to transfer first rather than follow strict sequences for kafka messages
+      partition: -1
+      retryBackoff: 100ms
+      retryMax: 100
+      sasl:
+        enable: true                  # Fill out the fields below if true
+        clientId: "..."
+        clientSecret: "..."
+        handshake: true
+        mechanism: "OAUTHBEARER"      # PLAIN, SCRAM-SHA-256, SCRAM-SHA-512, OAUTHBEARER
+        oAuthType: "AuthenzPrincipal" # AuthenzPrincipal, UnencodedCredential, etc
+        scopes:
+        - "xxx:domain"
+        tokenUrl: "https://xxx/token"
+        version: 1
+      tls:
+        enable: true                  # fill out the fields below if true
+        caCertificate: "..."
+        insecureSkipVerify: false
+      ...
 ```
 
 ### Architecture

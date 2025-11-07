@@ -22,7 +22,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 
 	"github.com/charlievieth/fastwalk"
 	"github.com/golang/glog"
@@ -170,12 +169,9 @@ func LoadPodEmptyDir(root string, podMap map[string]v1.Pod) []model.LogFile {
 }
 
 func findLogFiles(root string) map[string]os.FileInfo {
-	var (
-		mutex = sync.Mutex{}
-		files = map[string]os.FileInfo{}
-	)
+	var files = map[string]os.FileInfo{}
 
-	if err := fastwalk.Walk(&fastwalk.Config{}, root, func(path string, dirEntry fs.DirEntry, err error) error {
+	if err := fastwalk.Walk(&fastwalk.Config{NumWorkers: 1}, root, func(path string, dirEntry fs.DirEntry, err error) error {
 		if err != nil {
 			return nil
 		}
@@ -188,9 +184,6 @@ func findLogFiles(root string) map[string]os.FileInfo {
 		if err != nil {
 			return nil
 		}
-
-		mutex.Lock()
-		defer mutex.Unlock()
 
 		files[path] = fileInfo
 
