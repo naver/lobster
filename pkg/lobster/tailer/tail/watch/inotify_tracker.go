@@ -4,12 +4,14 @@
 package watch
 
 import (
+	"errors"
 	"log"
 	"os"
 	"path/filepath"
 	"sync"
 	"syscall"
 
+	"github.com/golang/glog"
 	"github.com/naver/lobster/pkg/lobster/tailer/tail/util"
 
 	"github.com/fsnotify/fsnotify"
@@ -116,8 +118,9 @@ func remove(winfo *watchInfo) {
 	}
 	shared.watchNums[fname]--
 	watchNum := shared.watchNums[fname]
-	if watchNum == 0 {
+	if watchNum <= 0 {
 		delete(shared.watchNums, fname)
+		watchNum = 0
 	}
 	shared.mux.Unlock()
 
@@ -125,8 +128,12 @@ func remove(winfo *watchInfo) {
 	// This needs to happen after releasing the lock because fsnotify waits
 	// synchronously for the kernel to acknowledge the removal of the watch
 	// for this file, which causes us to deadlock if we still held the lock.
-	if watchNum == 0 {
-		_ = shared.watcher.Remove(fname)
+	if watchNum == 0 && shared.watcher != nil {
+		if err := shared.watcher.Remove(fname); err != nil {
+			if !errors.Is(err, fsnotify.ErrNonExistentWatch) {
+				glog.Error(err)
+			}
+		}
 	}
 	shared.remove <- winfo
 }
