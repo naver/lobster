@@ -239,6 +239,8 @@ func (shared *InotifyTracker) run() {
 	}
 	shared.watcher = watcher
 
+	defer util.Fatal("inotify tracker is closed")
+
 	for {
 		select {
 		case winfo := <-shared.watch:
