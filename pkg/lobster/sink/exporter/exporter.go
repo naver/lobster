@@ -17,14 +17,12 @@
 package exporter
 
 import (
-	"bytes"
 	"context"
 	"log"
 	"time"
 
 	"github.com/golang/glog"
 	"github.com/naver/lobster/pkg/lobster/client"
-	"github.com/naver/lobster/pkg/lobster/logline"
 	"github.com/naver/lobster/pkg/lobster/metrics"
 	"github.com/naver/lobster/pkg/lobster/model"
 	"github.com/naver/lobster/pkg/lobster/proto"
@@ -264,23 +262,13 @@ func (e *LogExporter) getAndExportLogs(uploader uploader.Uploader, request query
 			return time.Time{}, 0, err
 		}
 
-		data, _, _, err := e.store.GetBlocksWithinRange(subReq)
+		data, pStart, pEnd, _, _, err := e.store.GetBlocksWithinRange(subReq)
 		if err != nil {
 			return time.Time{}, 0, err
 		}
 
 		if len(data) == 0 {
 			return time.Time{}, 0, nil
-		}
-
-		pStart, err := parseStart(data)
-		if err != nil {
-			return time.Time{}, 0, err
-		}
-
-		pEnd, err := parseEnd(data)
-		if err != nil {
-			return time.Time{}, 0, err
 		}
 
 		if err := uploader.Upload(data, chunk, pStart, pEnd); err != nil {
@@ -294,32 +282,4 @@ func (e *LogExporter) getAndExportLogs(uploader uploader.Uploader, request query
 	}
 
 	return ts, total, nil
-}
-
-func parseStart(data []byte) (time.Time, error) {
-	index := bytes.IndexAny(data, "\n")
-	if index < 0 {
-		t, err := logline.ParseTimestamp(string(data))
-		if err != nil {
-			return time.Time{}, errors.Wrap(err, "failed to parse start")
-		}
-
-		return t, nil
-	}
-
-	return logline.ParseTimestamp(string(data[:index]))
-}
-
-func parseEnd(data []byte) (time.Time, error) {
-	index := bytes.LastIndexAny(data[:len(data)-2], "\n")
-	if index < 0 {
-		t, err := logline.ParseTimestamp(string(data))
-		if err != nil {
-			return time.Time{}, errors.Wrap(err, "failed to parse end")
-		}
-
-		return t, nil
-	}
-
-	return logline.ParseTimestamp(string(data[index+1:]))
 }

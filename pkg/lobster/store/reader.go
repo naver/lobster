@@ -54,6 +54,26 @@ var (
 	largeBlockBufferSize int64 = 30 * 1024 * 1024 // 30mb
 )
 
+type ReadBuffer struct {
+	start, end time.Time
+	buf        *bytes.Buffer
+}
+
+func NewReadBuffer() *ReadBuffer {
+	return &ReadBuffer{
+		buf: &bytes.Buffer{},
+	}
+}
+
+func (rb *ReadBuffer) Write(ts time.Time, data []byte) (int, error) {
+	if rb.start.IsZero() {
+		rb.start = ts
+	}
+
+	rb.end = ts
+	return rb.buf.Write(data)
+}
+
 type blockReader struct {
 	reader *bufio.Reader
 	block  []byte
@@ -208,8 +228,8 @@ func loadTempBlock(filePath string, fileNum int64) (*model.TempBlock, error) {
 	return &model.TempBlock{StartedAt: start, EndedAt: end, Line: line, Size: size, FileNum: fileNum}, nil
 }
 
-func readBlocks(chunk model.Chunk, storeRootkDir string, onlySeries bool, start time.Time, end time.Time, filterers ...filter.Filterer) ([]byte, []model.Bucket, error) {
-	buffer := &bytes.Buffer{}
+func readBlocks(chunk model.Chunk, storeRootkDir string, onlySeries bool, start time.Time, end time.Time, filterers ...filter.Filterer) (*ReadBuffer, []model.Bucket, error) {
+	buffer := NewReadBuffer()
 	blocks := chunk.GetBlocksAfterTime(start)
 	bucketBuilder := model.NewBucketBuilder(start, chunk)
 
@@ -233,10 +253,10 @@ func readBlocks(chunk model.Chunk, storeRootkDir string, onlySeries bool, start 
 
 	bucketBuilder.Save()
 
-	return buffer.Bytes(), bucketBuilder.Build(), nil
+	return buffer, bucketBuilder.Build(), nil
 }
 
-func readBlock(sourceType string, block model.ReadableBlock, blockPath string, onlySeries bool, buffer *bytes.Buffer, bucketBuilder *model.BucketBuilder, start, end time.Time, filterers ...filter.Filterer) (bool, error) {
+func readBlock(sourceType string, block model.ReadableBlock, blockPath string, onlySeries bool, buffer *ReadBuffer, bucketBuilder *model.BucketBuilder, start, end time.Time, filterers ...filter.Filterer) (bool, error) {
 	var (
 		blkReader    *blockReader
 		isStartFound bool
@@ -338,7 +358,7 @@ func readBlock(sourceType string, block model.ReadableBlock, blockPath string, o
 			continue
 		}
 
-		buffer.Write(readBuffer)
+		buffer.Write(ts, readBuffer)
 	}
 
 	return false, nil

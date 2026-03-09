@@ -16,12 +16,16 @@
 
 package query
 
-import "github.com/naver/lobster/pkg/lobster/model"
+import (
+	"time"
+
+	"github.com/naver/lobster/pkg/lobster/model"
+)
 
 type Queryable interface {
 	GetChunksWithinRange(Request) ([]model.Chunk, error)
 	GetSeriesInBlocksWithinRange(Request) (int, model.SeriesData, error)
-	GetBlocksWithinRange(Request) ([]byte, int, model.PageInfo, error)
+	GetBlocksWithinRange(Request) ([]byte, time.Time, time.Time, int, model.PageInfo, error)
 	GetEntriesWithinRange(Request) ([]model.Entry, int, model.PageInfo, error)
 	Validate(Request) error
 }

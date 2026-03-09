@@ -21,6 +21,7 @@ import (
 	"log"
 	"net"
 	"strings"
+	"time"
 
 	"github.com/golang/glog"
 	"github.com/naver/lobster/pkg/lobster/metrics"
@@ -107,7 +108,7 @@ func (q *Querier) GetSeriesInBlocksWithinRange(req query.Request) (numOfChunk in
 	return
 }
 
-func (q *Querier) GetBlocksWithinRange(req query.Request) (data []byte, numOfChunk int, pageInfo model.PageInfo, err error) {
+func (q *Querier) GetBlocksWithinRange(req query.Request) (data []byte, _, _ time.Time, numOfChunk int, pageInfo model.PageInfo, err error) {
 	var (
 		chunks           []model.Chunk
 		results          []querier.FetchResult
