@@ -452,6 +452,10 @@ const docTemplate = `{
                     "description": "Description of this rule",
                     "type": "string"
                 },
+                "enableLogEntryFormat": {
+                    "description": "Enable structured messages to include chunk metadata",
+                    "type": "boolean"
+                },
                 "filter": {
                     "description": "Generate metrics from logs using target or log-based rules",
                     "allOf": [

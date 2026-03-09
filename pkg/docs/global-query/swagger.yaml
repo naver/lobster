@@ -59,6 +59,8 @@ definitions:
         type: string
       pod:
         type: string
+      podUid:
+        type: string
       sourcePath:
         type: string
       sourceType:
@@ -134,6 +136,9 @@ definitions:
         items:
           type: string
         type: array
+      enableLogEntryFormat:
+        default: false
+        type: boolean
       end:
         description: End time for query
         type: string
