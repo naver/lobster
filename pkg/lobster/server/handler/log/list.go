@@ -60,6 +60,8 @@ func (h ListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	glog.Infof("ListHandler handling request: %s", req.String())
+
 	chunks, err := h.Querier.GetChunksWithinRange(req)
 	if err != nil {
 		glog.Error(err)

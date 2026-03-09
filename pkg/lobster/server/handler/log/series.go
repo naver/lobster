@@ -67,6 +67,8 @@ func (h SeriesHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	glog.Infof("SeriesHandler handling request: %s", req.String())
+
 	numOfChunk, seriesData, err := h.Querier.GetSeriesInBlocksWithinRange(req)
 	if err != nil {
 		errors.HandleError(w, err)
