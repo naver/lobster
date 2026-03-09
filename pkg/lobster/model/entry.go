@@ -24,13 +24,13 @@ type Entry struct {
 	Timestamp  time.Time         `json:"time"`
 	SourceType string            `json:"sourceType"`
 	SourcePath string            `json:"sourcePath"`
-	Stream     string            `json:"stream"`
-	Tag        string            `json:"tag"`
+	Stream     string            `json:"stream,omitempty"`
+	Tag        string            `json:"tag,omitempty"`
 	Cluster    string            `json:"cluster"`
 	Namespace  string            `json:"namespace"`
 	Labels     map[string]string `json:"labels"`
 	Pod        string            `json:"pod"`
-	PodUid     string            `json:"podUid"`
+	PodUid     string            `json:"podUid,omitempty"`
 	Container  string            `json:"container"`
 	Message    string            `json:"message"`
 }
