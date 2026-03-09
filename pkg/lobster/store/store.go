@@ -118,7 +118,7 @@ func (s *Store) GetSeriesInBlocksWithinRange(req query.Request) (numOfChunk int,
 		return
 	}
 
-	_, buckets, err = readBlocks(*chunk, *conf.StoreRootPath, true, req.Start.Time, req.End.Time, req.Filterers...)
+	_, buckets, err = readBlocks(*chunk, *conf.StoreRootPath, true, req)
 	if err != nil {
 		glog.Error(err)
 	}
@@ -145,7 +145,7 @@ func (s *Store) GetBlocksWithinRange(req query.Request) (data []byte, start, end
 		return
 	}
 
-	readBuffer, buckets, err = readBlocks(*chunk, *conf.StoreRootPath, false, req.Start.Time, req.End.Time, req.Filterers...)
+	readBuffer, buckets, err = readBlocks(*chunk, *conf.StoreRootPath, false, req)
 	if err != nil {
 		glog.Error(err)
 	}

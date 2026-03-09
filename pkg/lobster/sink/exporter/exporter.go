@@ -213,6 +213,7 @@ func (e *LogExporter) export(current time.Time, uploader uploader.Uploader, orde
 		return 0, nil
 	}
 
+	order.Request.EnableLogEntryFormat = order.LogExportRule.EnableLogEntryFormat
 	start, end := e.makeTimeRange(receipt.LogTime, current)
 	logTs, total, err := e.getAndExportLogs(uploader, order.Request, chunk, start, end)
 	if logTs.IsZero() {

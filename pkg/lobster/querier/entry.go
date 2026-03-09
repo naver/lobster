@@ -34,7 +34,7 @@ type ParseFunc func(string, model.Chunk) (model.Entry, error)
 
 func ParseEntry(line string, chunk model.Chunk) (model.Entry, error) {
 	var (
-		e   = model.NewEntry(chunk)
+		e   = model.NewEntryFromChunk(chunk)
 		err error
 	)
 
@@ -69,7 +69,7 @@ func ParseEntry(line string, chunk model.Chunk) (model.Entry, error) {
 
 func ParseEntryRaw(line string, chunk model.Chunk) (model.Entry, error) {
 	var (
-		e   = model.NewEntry(chunk)
+		e   = model.NewEntryFromChunk(chunk)
 		err error
 	)
 
