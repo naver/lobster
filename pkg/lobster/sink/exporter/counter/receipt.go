@@ -39,3 +39,11 @@ func (r *Receipt) Update(exportBytes int, exportTime time.Time, interval time.Du
 func (r Receipt) IsStale(t time.Time) bool {
 	return t.Sub(r.ExportTime).Seconds() > liveFactor*r.ExportInterval.Seconds()
 }
+
+func SafeLookback(interval, maxLookback time.Duration) time.Duration {
+	safeLookback := liveFactor * interval
+	if maxLookback < safeLookback {
+		return maxLookback
+	}
+	return safeLookback
+}
