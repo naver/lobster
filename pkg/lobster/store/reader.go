@@ -367,9 +367,13 @@ func readBlock(chunk model.Chunk, block model.ReadableBlock, blockPath string, o
 				continue
 			}
 
-			buffer.Write(ts, append(data, '\n'))
+			if _, err := buffer.Write(ts, append(data, '\n')); err != nil {
+				return false, err
+			}
 		} else {
-			buffer.Write(ts, readBuffer)
+			if _, err := buffer.Write(ts, readBuffer); err != nil {
+				return false, err
+			}
 		}
 	}
 
