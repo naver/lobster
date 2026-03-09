@@ -58,7 +58,7 @@ func (h WebHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				glog.Error(err)
 			}
 
-			contents, _, pageInfo, err := h.Querier.GetBlocksWithinRange(req)
+			contents, _, _, _, pageInfo, err := h.Querier.GetBlocksWithinRange(req)
 			if err != nil {
 				glog.Error(err)
 			}

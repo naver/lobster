@@ -130,8 +130,11 @@ func (s *Store) GetSeriesInBlocksWithinRange(req query.Request) (numOfChunk int,
 	return
 }
 
-func (s *Store) GetBlocksWithinRange(req query.Request) (data []byte, numOfChunk int, pageInfo model.PageInfo, err error) {
-	var buckets []model.Bucket
+func (s *Store) GetBlocksWithinRange(req query.Request) (data []byte, start, end time.Time, numOfChunk int, pageInfo model.PageInfo, err error) {
+	var (
+		buckets    []model.Bucket
+		readBuffer *ReadBuffer
+	)
 
 	s.lock.RLock()
 	defer s.lock.RUnlock()
@@ -142,10 +145,14 @@ func (s *Store) GetBlocksWithinRange(req query.Request) (data []byte, numOfChunk
 		return
 	}
 
-	data, buckets, err = readBlocks(*chunk, *conf.StoreRootPath, false, req.Start.Time, req.End.Time, req.Filterers...)
+	readBuffer, buckets, err = readBlocks(*chunk, *conf.StoreRootPath, false, req.Start.Time, req.End.Time, req.Filterers...)
 	if err != nil {
 		glog.Error(err)
 	}
+
+	data = readBuffer.buf.Bytes()
+	start = readBuffer.start
+	end = readBuffer.end
 
 	totalLines := int64(0)
 
