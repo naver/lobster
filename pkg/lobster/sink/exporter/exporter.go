@@ -202,7 +202,7 @@ func (e *LogExporter) export(current time.Time, uploader uploader.Uploader, orde
 		glog.Error(err)
 	}
 	if !ok {
-		receipt = e.counter.Produce(0, current.Add(-interval), interval, current.Add(-interval))
+		receipt = e.counter.Produce(0, current.Add(-interval), interval, current.Add(-counter.SafeLookback(interval, *conf.MaxLookback)))
 	}
 
 	defer func(key string, receipt *counter.Receipt) {
