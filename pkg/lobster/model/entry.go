@@ -24,26 +24,36 @@ type Entry struct {
 	Timestamp  time.Time         `json:"time"`
 	SourceType string            `json:"sourceType"`
 	SourcePath string            `json:"sourcePath"`
-	Stream     string            `json:"stream"`
-	Tag        string            `json:"tag"`
+	Stream     string            `json:"stream,omitempty"`
+	Tag        string            `json:"tag,omitempty"`
 	Cluster    string            `json:"cluster"`
 	Namespace  string            `json:"namespace"`
 	Labels     map[string]string `json:"labels"`
 	Pod        string            `json:"pod"`
+	PodUid     string            `json:"podUid,omitempty"`
 	Container  string            `json:"container"`
 	Message    string            `json:"message"`
 }
 
-func NewEntry(c Chunk) Entry {
+func NewEntryFromChunk(c Chunk) Entry {
 	return Entry{
 		SourceType: c.Source.Type,
 		SourcePath: c.Source.Path,
 		Cluster:    c.Cluster,
 		Namespace:  c.Namespace,
 		Pod:        c.Pod,
+		PodUid:     c.PodUid,
 		Container:  c.Container,
 		Labels:     c.Labels,
 	}
+}
+
+func NewEntry(ts time.Time, c Chunk, message string) Entry {
+	e := NewEntryFromChunk(c)
+	e.Timestamp = ts
+	e.Message = message
+
+	return e
 }
 
 func (e Entry) String() string {

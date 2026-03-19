@@ -72,10 +72,11 @@ type Request struct {
 	FilterExcludeExpr string            `json:"exclude,omitempty"`
 	Filterers         []filter.Filterer `json:"-"`
 	// Use internally
-	Local         bool   `json:"local,omitempty" default:"false"`
-	Attachment    bool   `json:"attachment,omitempty" default:"false"`
-	Version       string `json:"-"`
-	ContentsLimit uint64 `json:"-"`
+	Local                bool   `json:"local,omitempty" default:"false"`
+	Attachment           bool   `json:"attachment,omitempty" default:"false"`
+	Version              string `json:"-"`
+	ContentsLimit        uint64 `json:"-"`
+	EnableLogEntryFormat bool   `json:"enableLogEntryFormat,omitempty" default:"false"`
 }
 
 func ParseRequestWithBody(body []byte) (Request, error) {

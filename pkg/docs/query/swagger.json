@@ -371,6 +371,9 @@
                 "pod": {
                     "type": "string"
                 },
+                "podUid": {
+                    "type": "string"
+                },
                 "sourcePath": {
                     "type": "string"
                 },
@@ -478,6 +481,10 @@
                     "items": {
                         "type": "string"
                     }
+                },
+                "enableLogEntryFormat": {
+                    "type": "boolean",
+                    "default": false
                 },
                 "end": {
                     "description": "End time for query",

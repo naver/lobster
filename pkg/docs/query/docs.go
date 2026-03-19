@@ -379,6 +379,9 @@ const docTemplate = `{
                 "pod": {
                     "type": "string"
                 },
+                "podUid": {
+                    "type": "string"
+                },
                 "sourcePath": {
                     "type": "string"
                 },
@@ -486,6 +489,10 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "enableLogEntryFormat": {
+                    "type": "boolean",
+                    "default": false
                 },
                 "end": {
                     "description": "End time for query",
