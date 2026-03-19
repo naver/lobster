@@ -28,9 +28,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/goccy/go-json"
 	"github.com/golang/glog"
 	"github.com/naver/lobster/pkg/lobster/logline"
 	"github.com/naver/lobster/pkg/lobster/model"
+	"github.com/naver/lobster/pkg/lobster/query"
 	"github.com/naver/lobster/pkg/lobster/query/filter"
 	"github.com/naver/lobster/pkg/lobster/util"
 	"github.com/ncw/directio"
@@ -53,6 +55,26 @@ var (
 	blockBufferSize      int64 = 4 * 1024 * 1024  // 4mb
 	largeBlockBufferSize int64 = 30 * 1024 * 1024 // 30mb
 )
+
+type ReadBuffer struct {
+	start, end time.Time
+	buf        *bytes.Buffer
+}
+
+func NewReadBuffer() *ReadBuffer {
+	return &ReadBuffer{
+		buf: &bytes.Buffer{},
+	}
+}
+
+func (rb *ReadBuffer) Write(ts time.Time, data []byte) (int, error) {
+	if rb.start.IsZero() {
+		rb.start = ts
+	}
+
+	rb.end = ts
+	return rb.buf.Write(data)
+}
 
 type blockReader struct {
 	reader *bufio.Reader
@@ -208,21 +230,21 @@ func loadTempBlock(filePath string, fileNum int64) (*model.TempBlock, error) {
 	return &model.TempBlock{StartedAt: start, EndedAt: end, Line: line, Size: size, FileNum: fileNum}, nil
 }
 
-func readBlocks(chunk model.Chunk, storeRootkDir string, onlySeries bool, start time.Time, end time.Time, filterers ...filter.Filterer) ([]byte, []model.Bucket, error) {
-	buffer := &bytes.Buffer{}
-	blocks := chunk.GetBlocksAfterTime(start)
-	bucketBuilder := model.NewBucketBuilder(start, chunk)
+func readBlocks(chunk model.Chunk, storeRootkDir string, onlySeries bool, req query.Request) (*ReadBuffer, []model.Bucket, error) {
+	buffer := NewReadBuffer()
+	blocks := chunk.GetBlocksAfterTime(req.Start.Time)
+	bucketBuilder := model.NewBucketBuilder(req.Start.Time, chunk)
 
-	if start.IsZero() || end.IsZero() {
+	if req.Start.Time.IsZero() || req.End.Time.IsZero() {
 		return nil, []model.Bucket{}, errors.New("invalid range")
 	}
 
 	for _, block := range blocks {
-		if !block.StartTime().Before(end) || !block.EndTime().After(start) {
+		if !block.StartTime().Before(req.End.Time) || !block.EndTime().After(req.Start.Time) {
 			continue
 		}
 
-		skip, err := readBlock(chunk.Source.Type, block, fmt.Sprintf("%s/%s/%s", storeRootkDir, chunk.RelativeBlockDir, block.FileName()), onlySeries, buffer, bucketBuilder, start, end, filterers...)
+		skip, err := readBlock(chunk, block, fmt.Sprintf("%s/%s/%s", storeRootkDir, chunk.RelativeBlockDir, block.FileName()), onlySeries, buffer, bucketBuilder, req)
 		if skip {
 			continue
 		}
@@ -233,10 +255,10 @@ func readBlocks(chunk model.Chunk, storeRootkDir string, onlySeries bool, start 
 
 	bucketBuilder.Save()
 
-	return buffer.Bytes(), bucketBuilder.Build(), nil
+	return buffer, bucketBuilder.Build(), nil
 }
 
-func readBlock(sourceType string, block model.ReadableBlock, blockPath string, onlySeries bool, buffer *bytes.Buffer, bucketBuilder *model.BucketBuilder, start, end time.Time, filterers ...filter.Filterer) (bool, error) {
+func readBlock(chunk model.Chunk, block model.ReadableBlock, blockPath string, onlySeries bool, buffer *ReadBuffer, bucketBuilder *model.BucketBuilder, req query.Request) (bool, error) {
 	var (
 		blkReader    *blockReader
 		isStartFound bool
@@ -295,24 +317,24 @@ func readBlock(sourceType string, block model.ReadableBlock, blockPath string, o
 			continue
 		}
 
-		if !isStartFound && ts.Before(start) {
+		if !isStartFound && ts.Before(req.Start.Time) {
 			continue
 		}
 		isStartFound = true
 
-		if ts.After(end) {
+		if ts.After(req.End.Time) {
 			break
 		}
 
 		var msg string
 
-		msg, err = logline.ParseLogMessageBySource(sourceType, util.BytesToString(readBuffer))
+		msg, err = logline.ParseLogMessageBySource(chunk.Source.Type, util.BytesToString(readBuffer))
 		if err != nil {
 			glog.Error(err)
 			continue
 		}
 
-		result, err := filter.DoFilter(msg, ts, filterers...)
+		result, err := filter.DoFilter(msg, ts, req.Filterers...)
 		if err != nil {
 			return false, err
 		}
@@ -338,7 +360,21 @@ func readBlock(sourceType string, block model.ReadableBlock, blockPath string, o
 			continue
 		}
 
-		buffer.Write(readBuffer)
+		if req.EnableLogEntryFormat {
+			data, err := json.Marshal(model.NewEntry(ts, chunk, string(readBuffer)))
+			if err != nil {
+				glog.Error(err)
+				continue
+			}
+
+			if _, err := buffer.Write(ts, append(data, '\n')); err != nil {
+				return false, err
+			}
+		} else {
+			if _, err := buffer.Write(ts, readBuffer); err != nil {
+				return false, err
+			}
+		}
 	}
 
 	return false, nil

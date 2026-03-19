@@ -62,7 +62,7 @@ func (h RangeHandler) ServeForStringContents(req query.Request, w http.ResponseW
 		return
 	}
 
-	contents, numOfChunk, pageInfo, err := h.Querier.GetBlocksWithinRange(req)
+	contents, _, _, numOfChunk, pageInfo, err := h.Querier.GetBlocksWithinRange(req)
 	if err != nil {
 		errors.HandleError(w, err)
 		glog.Error(err)

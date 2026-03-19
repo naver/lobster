@@ -62,6 +62,7 @@ spec:
   logMetricRules:
   - name: include-error-for-tc-container
     interval: 1m
+    enableLogEntryFormat: false
     filter:
       include: "error”
       labels:
@@ -75,6 +76,7 @@ spec:
       pathTemplate: "/path/{{TimeLayout \"20060102\"}}"
   - name: exclude-GET
     interval: 1h
+    enableLogEntryFormat: false
     filter:
       clusters:
       - clusterA
@@ -96,6 +98,7 @@ spec:
         {label2}: {value2}
   - name: kafka-test
     interval: 5s
+    enableLogEntryFormat: false       # Enable this option to include cluster and pod label metadata in the log message as JSON
     filter:
       include: "error”
       labels:

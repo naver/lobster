@@ -43,6 +43,8 @@ type LogExportRule struct {
 	Filter Filter `json:"filter,omitempty"`
 	// Interval to export logs
 	Interval metav1.Duration `json:"interval,omitempty" swaggertype:"string" example:"time duration(e.g. 1m)"`
+	// Enable structured messages to include chunk metadata
+	EnableLogEntryFormat bool `json:"enableLogEntryFormat,omitempty"`
 }
 
 func (r LogExportRule) Validate() ValidationErrors {
