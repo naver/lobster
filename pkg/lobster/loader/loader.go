@@ -140,6 +140,10 @@ func LoadPodEmptyDir(root string, podMap map[string]v1.Pod) []model.LogFile {
 		files := findLogFiles(empyDirPath)
 
 		for path, file := range files {
+			if !file.Mode().IsRegular() {
+				continue
+			}
+
 			logfile := model.LogFile{
 				Namespace: pod.Namespace,
 				Labels:    pod.Labels,
