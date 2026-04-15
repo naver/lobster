@@ -40,22 +40,22 @@ type OAuthType string
 
 type TLS struct {
 	// Whether or not to use TLS
-	Enable bool `json:"enable,omitempty"`
+	Enable *bool `json:"enable,omitempty"`
 	// Whether or not to skip verification of CA certificate in client
-	InsecureSkipVerify bool `json:"insecureSkipVerify,omitempty"`
+	InsecureSkipVerify *bool `json:"insecureSkipVerify,omitempty"`
 	// CA certificate for TLS
 	CaCertificate string `json:"caCertificate,omitempty"`
 }
 
 type SASL struct {
 	// Whether or not to use SASL authentication
-	Enable bool `json:"enable,omitempty"`
+	Enable *bool `json:"enable,omitempty"`
 	// Enabled SASL mechanism
 	Mechanism string `json:"mechanism,omitempty"`
 	// SASL Protocol Version
 	Version int16 `json:"version,omitempty"`
 	// Kafka SASL handshake
-	Handshake bool `json:"handshake,omitempty"`
+	Handshake *bool `json:"handshake,omitempty"`
 
 	// SASL/PLAIN or SASL/SCRAM authentication
 	User string `json:"user,omitempty"`
@@ -92,7 +92,7 @@ type Kafka struct {
 	// Target key to which logs will be exported (optional)
 	Key string `json:"key,omitempty"`
 	// The producer will ensure that exactly one
-	Idempotent bool `json:"idempotent,omitempty"`
+	Idempotent *bool `json:"idempotent,omitempty"`
 	// The total number of times to retry sending a message
 	RetryMax int `json:"retryMax,omitempty"`
 	// How long to wait for the cluster to settle between retries
@@ -108,11 +108,11 @@ func (k Kafka) Validate() ValidationErrors {
 		validationErrors.AppendErrorWithFields("kafka.brokers", ErrorEmptyField)
 	}
 
-	if k.TLS.Enable && !k.TLS.InsecureSkipVerify && len(k.TLS.CaCertificate) == 0 {
+	if k.TLS.Enable != nil && *k.TLS.Enable && (k.TLS.InsecureSkipVerify == nil || !*k.TLS.InsecureSkipVerify) && len(k.TLS.CaCertificate) == 0 {
 		validationErrors.AppendErrorWithFields("kafka.tls.caCertificate", ErrorEmptyField)
 	}
 
-	if k.SASL.Enable {
+	if k.SASL.Enable != nil && *k.SASL.Enable {
 		switch k.SASL.Mechanism {
 		case sarama.SASLTypeOAuth:
 			if len(k.SASL.ClientID) == 0 {

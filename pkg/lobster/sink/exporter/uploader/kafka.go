@@ -117,7 +117,7 @@ func (k KafkaUploader) newConfig(kafka *v1.Kafka) (*sarama.Config, error) {
 	config.Producer.Return.Successes = true
 	config.Net.DialTimeout = dialTimeout
 
-	if kafka.Idempotent {
+	if kafka.Idempotent != nil && *kafka.Idempotent {
 		config.Producer.Idempotent = true
 		config.Producer.RequiredAcks = sarama.WaitForAll
 		config.Net.MaxOpenRequests = 1
@@ -135,10 +135,10 @@ func (k KafkaUploader) newConfig(kafka *v1.Kafka) (*sarama.Config, error) {
 		config.Producer.Compression = codec
 	}
 
-	if kafka.TLS.Enable {
+	if kafka.TLS.Enable != nil && *kafka.TLS.Enable {
 		config.Net.TLS.Enable = true
 		config.Net.TLS.Config = &tls.Config{
-			InsecureSkipVerify: kafka.TLS.InsecureSkipVerify,
+			InsecureSkipVerify: kafka.TLS.InsecureSkipVerify != nil && *kafka.TLS.InsecureSkipVerify,
 		}
 
 		if len(kafka.TLS.CaCertificate) > 0 {
@@ -151,10 +151,10 @@ func (k KafkaUploader) newConfig(kafka *v1.Kafka) (*sarama.Config, error) {
 		}
 	}
 
-	if kafka.SASL.Enable {
+	if kafka.SASL.Enable != nil && *kafka.SASL.Enable {
 		config.Net.SASL.Enable = true
 		config.Net.SASL.Version = kafka.SASL.Version
-		config.Net.SASL.Handshake = kafka.SASL.Handshake
+		config.Net.SASL.Handshake = kafka.SASL.Handshake != nil && *kafka.SASL.Handshake
 		config.Net.SASL.Mechanism = sarama.SASLMechanism(kafka.SASL.Mechanism)
 
 		switch config.Net.SASL.Mechanism {

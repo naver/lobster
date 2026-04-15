@@ -56,7 +56,7 @@ type S3Bucket struct {
 	// Tags for objects to be stored
 	Tags Tags `json:"tags,omitempty"`
 	// Provide an option to convert '+' to '%2B' to address issues in certain web environments where '+' is misinterpreted
-	ShouldEncodeFileName bool `json:"shouldEncodeFileName,omitempty"`
+	ShouldEncodeFileName *bool `json:"shouldEncodeFileName,omitempty"`
 	// Path constructed from log metadata for exporting logs
 	PathTemplate string `json:"pathTemplate,omitempty"`
 }
