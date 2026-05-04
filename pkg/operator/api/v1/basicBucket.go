@@ -28,7 +28,7 @@ type BasicBucket struct {
 	// Deprecated; An option(default `2006-01`) that sets the name of the sub-directory following `{Root path}` to a time-based layout
 	TimeLayoutOfSubDirectory string `json:"timeLayoutOfSubDirectory,omitempty" default:"2006-01"`
 	// Provide an option to convert '+' to '%2B' to address issues in certain web environments where '+' is misinterpreted
-	ShouldEncodeFileName bool `json:"shouldEncodeFileName,omitempty"`
+	ShouldEncodeFileName *bool `json:"shouldEncodeFileName,omitempty"`
 	// Path constructed from log metadata for exporting logs
 	PathTemplate string `json:"pathTemplate,omitempty"`
 }

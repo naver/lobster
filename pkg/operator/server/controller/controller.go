@@ -20,10 +20,10 @@ import (
 	"fmt"
 	"time"
 
+	"context"
 	"github.com/go-logr/logr"
 	sinkV1 "github.com/naver/lobster/pkg/operator/api/v1"
 	v1 "github.com/naver/lobster/pkg/operator/server/api/v1"
-	"context"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
