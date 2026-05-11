@@ -19,6 +19,7 @@ package exporter
 import (
 	"context"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/golang/glog"
@@ -127,7 +128,7 @@ func (e *LogExporter) Run(stopChan chan struct{}) {
 
 				exportedBytes, err := e.export(current, uploader, order, *chunk)
 				if err != nil {
-					glog.Errorf("%s : %v", err.Error(), order.Request)
+					glog.Errorf("%v | %s", order.Request, strings.ReplaceAll(err.Error(), "\n", " "))
 					metrics.AddSinkFailure(order.Request, order.SinkNamespace, order.SinkName, uploader.Type(), uploader.Name())
 				}
 
@@ -213,7 +214,7 @@ func (e *LogExporter) export(current time.Time, uploader uploader.Uploader, orde
 		return 0, nil
 	}
 
-	order.Request.EnableLogEntryFormat = order.LogExportRule.EnableLogEntryFormat
+	order.Request.EnableLogEntryFormat = order.LogExportRule.EnableLogEntryFormat != nil && *order.LogExportRule.EnableLogEntryFormat
 	start, end := e.makeTimeRange(receipt.LogTime, current)
 	logTs, total, err := e.getAndExportLogs(uploader, order.Request, chunk, start, end)
 	if logTs.IsZero() {

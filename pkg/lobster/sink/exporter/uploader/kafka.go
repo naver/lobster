@@ -20,6 +20,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/IBM/sarama"
@@ -29,7 +30,6 @@ import (
 	"github.com/naver/lobster/pkg/lobster/sink/order"
 	"github.com/naver/lobster/pkg/lobster/util"
 	v1 "github.com/naver/lobster/pkg/operator/api/v1"
-	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 )
@@ -96,13 +96,7 @@ func (k KafkaUploader) Upload(data []byte, chunk model.Chunk, pStart, pEnd time.
 
 	if err := producer.SendMessages(newMessages(k.Order.LogExportRule.Kafka, data)); err != nil {
 		if producerErrors, ok := err.(sarama.ProducerErrors); ok {
-			newErr := errors.New("ProducerErrors")
-
-			for _, pe := range producerErrors {
-				newErr = errors.Wrap(newErr, pe.Err.Error())
-			}
-
-			return newErr
+			return formatProducerErrors(producerErrors)
 		}
 
 		return err
@@ -117,7 +111,7 @@ func (k KafkaUploader) newConfig(kafka *v1.Kafka) (*sarama.Config, error) {
 	config.Producer.Return.Successes = true
 	config.Net.DialTimeout = dialTimeout
 
-	if kafka.Idempotent {
+	if kafka.Idempotent != nil && *kafka.Idempotent {
 		config.Producer.Idempotent = true
 		config.Producer.RequiredAcks = sarama.WaitForAll
 		config.Net.MaxOpenRequests = 1
@@ -135,10 +129,10 @@ func (k KafkaUploader) newConfig(kafka *v1.Kafka) (*sarama.Config, error) {
 		config.Producer.Compression = codec
 	}
 
-	if kafka.TLS.Enable {
+	if kafka.TLS.Enable != nil && *kafka.TLS.Enable {
 		config.Net.TLS.Enable = true
 		config.Net.TLS.Config = &tls.Config{
-			InsecureSkipVerify: kafka.TLS.InsecureSkipVerify,
+			InsecureSkipVerify: kafka.TLS.InsecureSkipVerify != nil && *kafka.TLS.InsecureSkipVerify,
 		}
 
 		if len(kafka.TLS.CaCertificate) > 0 {
@@ -151,10 +145,10 @@ func (k KafkaUploader) newConfig(kafka *v1.Kafka) (*sarama.Config, error) {
 		}
 	}
 
-	if kafka.SASL.Enable {
+	if kafka.SASL.Enable != nil && *kafka.SASL.Enable {
 		config.Net.SASL.Enable = true
 		config.Net.SASL.Version = kafka.SASL.Version
-		config.Net.SASL.Handshake = kafka.SASL.Handshake
+		config.Net.SASL.Handshake = kafka.SASL.Handshake != nil && *kafka.SASL.Handshake
 		config.Net.SASL.Mechanism = sarama.SASLMechanism(kafka.SASL.Mechanism)
 
 		switch config.Net.SASL.Mechanism {
@@ -236,4 +230,17 @@ func newMessage(kafka *v1.Kafka, data []byte) *sarama.ProducerMessage {
 	}
 
 	return message
+}
+
+func formatProducerErrors(producerErrors sarama.ProducerErrors) error {
+	seen := make(map[string]struct{})
+	var uniqueErrs []string
+	for _, pe := range producerErrors {
+		msg := pe.Err.Error()
+		if _, ok := seen[msg]; !ok {
+			seen[msg] = struct{}{}
+			uniqueErrs = append(uniqueErrs, msg)
+		}
+	}
+	return fmt.Errorf("ProducerErrors(%d): %s", len(producerErrors), strings.Join(uniqueErrs, "; "))
 }

@@ -17,6 +17,7 @@
 package v1
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -85,7 +86,7 @@ func (s Sink) Validate() sinkV1.ValidationErrors {
 	return validationErrors
 }
 
-func ValidateRules(rules interface{}) sinkV1.ValidationErrors {
+func ValidateRules(rules any) sinkV1.ValidationErrors {
 	existence := map[string]bool{}
 	v := reflect.ValueOf(rules)
 
@@ -110,30 +111,48 @@ func ValidateRules(rules interface{}) sinkV1.ValidationErrors {
 	return nil
 }
 
-func MergeRules(origin, new interface{}) interface{} {
-	existence := map[string]bool{}
+func MergeRules(origin, new any) any {
 	originRules := reflect.ValueOf(origin)
 	merged := reflect.ValueOf(new)
 
+	originByName := make(map[string]any, originRules.Len())
+	for i := 0; i < originRules.Len(); i++ {
+		rule := originRules.Index(i).Interface()
+		originByName[rule.(SinkRule).GetName()] = rule
+	}
+
+	inNew := make(map[string]bool, merged.Len())
 	for i := 0; i < merged.Len(); i++ {
-		existence[merged.Index(i).Interface().(SinkRule).GetName()] = true
+		newRule := merged.Index(i).Interface()
+		name := newRule.(SinkRule).GetName()
+		inNew[name] = true
+		if orig, ok := originByName[name]; ok {
+			merged.Index(i).Set(reflect.ValueOf(overlayFields(orig, newRule)))
+		}
 	}
 
 	for i := 0; i < originRules.Len(); i++ {
 		item := originRules.Index(i)
-		ct := item.Interface().(SinkRule)
-
-		if _, ok := existence[ct.GetName()]; ok {
-			continue
+		if !inNew[item.Interface().(SinkRule).GetName()] {
+			merged = reflect.Append(merged, item)
 		}
-
-		merged = reflect.Append(merged, item)
 	}
 
 	return merged.Interface()
 }
 
-func SearchRuleToDelete(rule interface{}, targetName string) int {
+// overlayFields returns a copy of origin with non-zero fields from new applied on top.
+// It relies on omitempty JSON tags: marshaling new omits zero-value fields,
+// so only explicitly set fields in new overwrite the corresponding fields in origin.
+func overlayFields(origin, new any) any {
+	b, _ := json.Marshal(new)
+	result := reflect.New(reflect.TypeOf(origin))
+	result.Elem().Set(reflect.ValueOf(origin))
+	_ = json.Unmarshal(b, result.Interface())
+	return result.Elem().Interface()
+}
+
+func SearchRuleToDelete(rule any, targetName string) int {
 	v := reflect.ValueOf(rule)
 
 	for i := 0; i < v.Len(); i++ {

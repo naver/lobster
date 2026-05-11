@@ -89,7 +89,7 @@ func (b BasicUploader) Dir(chunk model.Chunk, date time.Time) string {
 func (b BasicUploader) FileName(start, end time.Time) string {
 	fileName := fmt.Sprintf("%s_%s.log", start.Format(layoutFileName), end.Format(layoutFileName))
 
-	if b.Order.LogExportRule.BasicBucket.ShouldEncodeFileName {
+	if b.Order.LogExportRule.BasicBucket.ShouldEncodeFileName != nil && *b.Order.LogExportRule.BasicBucket.ShouldEncodeFileName {
 		return strings.ReplaceAll(fileName, "+", "%2B")
 	}
 
