@@ -156,11 +156,16 @@ func (b BasicUploader) Upload(data []byte, chunk model.Chunk, pStart, pEnd time.
 		_ = resp.Body.Close()
 	}
 
-	if resp.StatusCode != 200 {
+	switch resp.StatusCode {
+	case http.StatusOK:
+	case http.StatusConflict:
+		glog.Warningf("[basic][%d_%d] skip conflicted upload of %d bytes to %s for %s: %s",
+			pStart.UnixMilli(), pEnd.UnixMilli(), len(data), u.String(), chunk.Key(), string(respBody))
+	default:
 		return fmt.Errorf("unexpected status code %d: %s", resp.StatusCode, string(respBody))
 	}
 
-	return err
+	return nil
 }
 
 func (b BasicUploader) defaultDir(chunk model.Chunk, date time.Time) string {
