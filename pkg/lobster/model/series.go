@@ -99,6 +99,19 @@ func (d SeriesData) Lines() (lines int64) {
 	return
 }
 
+func (d SeriesData) MeasureWithinRange(start, end time.Time) (lines int64, size uint64) {
+	for _, series := range d {
+		for _, sample := range series.Samples {
+			if sample.Timestamp.Before(start) || !sample.Timestamp.Before(end) {
+				continue
+			}
+			lines = lines + sample.Lines
+			size = size + sample.Size
+		}
+	}
+	return
+}
+
 func (d SeriesData) MergedSamples() []Sample {
 	samples := []Sample{}
 	sampleMap := map[time.Time]*Sample{}
