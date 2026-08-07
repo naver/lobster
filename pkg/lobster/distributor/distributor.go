@@ -88,7 +88,7 @@ func (d *Distributor) Run(stopChan chan struct{}) {
 					panic("no pods found")
 				}
 
-				d.updateLabelsInChunks(podMap)
+				d.updateChunksByPods(podMap)
 
 				logfiles, err := d.loadLogFiles(podMap)
 				if err != nil {
@@ -141,9 +141,11 @@ func (d *Distributor) Run(stopChan chan struct{}) {
 	}(stopChan)
 }
 
-func (d *Distributor) updateLabelsInChunks(podMap map[string]v1.Pod) {
+func (d *Distributor) updateChunksByPods(podMap map[string]v1.Pod) {
 	d.store.UpdateChunks(func(chunk *model.Chunk) {
 		pod, ok := podMap[chunk.PodUid]
+
+		chunk.PodDeleted = !ok
 
 		if !ok {
 			return
