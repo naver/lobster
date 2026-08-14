@@ -20,12 +20,46 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/naver/lobster/pkg/lobster/metrics"
 	"github.com/naver/lobster/pkg/lobster/model"
+	"github.com/naver/lobster/pkg/lobster/query"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 // Chunk.MetricsCleared flips exactly when metrics.Delete is called, so these tests assert on the
 // flag instead of reaching into the metrics package.
 // The deletion itself is covered by pkg/lobster/metrics/store_test.go.
+
+var registerMatcherMetricsOnce sync.Once
+
+// countSeries reads the default registry, which is what /metrics scrapes, and counts the
+// series of one metric family belonging to a single pod.
+func countSeries(t *testing.T, familyName, pod string) int {
+	t.Helper()
+
+	families, err := prometheus.DefaultGatherer.Gather()
+	if err != nil {
+		t.Fatalf("gather: %v", err)
+	}
+
+	count := 0
+
+	for _, family := range families {
+		if family.GetName() != familyName {
+			continue
+		}
+
+		for _, metric := range family.GetMetric() {
+			for _, label := range metric.GetLabel() {
+				if label.GetName() == "log_pod" && label.GetValue() == pod {
+					count++
+				}
+			}
+		}
+	}
+
+	return count
+}
 
 func newTestStore() *Store {
 	return &Store{chunkCache: sync.Map{}}
@@ -136,5 +170,61 @@ func TestCleanMetricsClearsDeletedPodOfDistinctName(t *testing.T) {
 	}
 	if alive.MetricsCleared {
 		t.Error("expected metrics of the existing pod to be kept")
+	}
+}
+
+// cleanMetrics releases every series keyed by the chunk, not just the ones behind
+// metrics.Delete. Matched-log series carry the same pod label and used to be released only by
+// retention, so they outlived the pod by up to store.retentionTime.
+func TestCleanMetricsClearsMatchedLogsOfDeletedPod(t *testing.T) {
+	registerMatcherMetricsOnce.Do(metrics.RegisterMatcherMetrics)
+
+	s := newTestStore()
+	chunk := newTestChunk("pod-matched", "uid-matched", true)
+	s.storeTestChunk(chunk)
+
+	req := query.Request{
+		Namespace: chunk.Namespace,
+		Pod:       chunk.Pod,
+		Container: chunk.Container,
+		Source:    chunk.Source,
+	}
+	metrics.AddMatchedLogs(req, "sink-ns", "sink-a", "rule-a")
+	metrics.AddMatchedLogsError(req, "sink-ns", "sink-a", "rule-a")
+
+	if count := countSeries(t, "lobster_log_metric_matched_logs_total", chunk.Pod); count != 1 {
+		t.Fatalf("expected 1 matched-logs series before cleaning, got %d", count)
+	}
+
+	s.cleanMetrics()
+
+	for _, name := range []string{
+		"lobster_log_metric_matched_logs_total",
+		"lobster_log_metric_matched_logs_error_total",
+	} {
+		if count := countSeries(t, name, chunk.Pod); count != 0 {
+			t.Errorf("%s: expected the deleted pod's series to be released, got %d", name, count)
+		}
+	}
+}
+
+func TestCleanMetricsKeepsMatchedLogsOfExistingPod(t *testing.T) {
+	registerMatcherMetricsOnce.Do(metrics.RegisterMatcherMetrics)
+
+	s := newTestStore()
+	chunk := newTestChunk("pod-matched-live", "uid-matched-live", false)
+	s.storeTestChunk(chunk)
+
+	metrics.AddMatchedLogs(query.Request{
+		Namespace: chunk.Namespace,
+		Pod:       chunk.Pod,
+		Container: chunk.Container,
+		Source:    chunk.Source,
+	}, "sink-ns", "sink-a", "rule-a")
+
+	s.cleanMetrics()
+
+	if count := countSeries(t, "lobster_log_metric_matched_logs_total", chunk.Pod); count != 1 {
+		t.Errorf("expected the live pod's series to survive, got %d", count)
 	}
 }

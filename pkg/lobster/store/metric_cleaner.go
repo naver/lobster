@@ -63,6 +63,7 @@ func (s *Store) cleanMetrics() {
 		}
 
 		metrics.Delete(chunk.Namespace, chunk.Pod, chunk.Container, chunk.Source.Type, chunk.Source.Path)
+		metrics.DeleteMatchedLogs(chunk.Namespace, chunk.Pod, chunk.Container, chunk.Source.Type, chunk.Source.Path)
 		chunk.MetricsCleared = true
 		glog.V(3).Infof("clear metrics of deleted pod : %s\n", chunk.Id)
 	}
