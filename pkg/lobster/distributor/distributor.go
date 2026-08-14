@@ -321,9 +321,18 @@ func (d *Distributor) storeTailedLogs(file model.LogFile, chunk *model.Chunk, ke
 }
 
 func (d *Distributor) updateMetrics() {
+	staleSize := float64(0)
+
 	for _, chunk := range d.store.GetChunks() {
+		if chunk.PodDeleted {
+			staleSize = staleSize + float64(chunk.Size)
+			continue
+		}
+
 		metrics.SetSizeOfBlocksInChunk(chunk.Namespace, chunk.Pod, chunk.Container, chunk.Source.Type, chunk.Source.Path, float64(chunk.Size))
 	}
+
+	metrics.SetSizeOfStaleBlocks(staleSize)
 
 	limits := d.store.GetLimits()
 	for _, limit := range limits {

@@ -29,6 +29,11 @@ var (
 		Help: "A blocks total.",
 	}, chunkKeys)
 
+	staleBlockTotal = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "lobster_stale_blocks",
+		Help: "A blocks total of chunks whose pod no longer exists.",
+	}, []string{})
+
 	tailedBytes = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "lobster_tailed_bytes_total",
 		Help: "A bytes of lines tailed.",
@@ -77,6 +82,7 @@ var (
 
 func RegisterStoreMetrics() {
 	prometheus.MustRegister(blockTotal)
+	prometheus.MustRegister(staleBlockTotal)
 	prometheus.MustRegister(tailedBytes)
 	prometheus.MustRegister(tailedLines)
 	prometheus.MustRegister(overloaded)
@@ -105,6 +111,10 @@ func emptyChunkLabelValues() prometheus.Labels {
 
 func SetSizeOfBlocksInChunk(namespace, pod, container, sourceType, sourcePath string, size float64) {
 	blockTotal.With(chunkLabelValues(namespace, pod, container, sourceType, sourcePath)).Set(size)
+}
+
+func SetSizeOfStaleBlocks(size float64) {
+	staleBlockTotal.WithLabelValues().Set(size)
 }
 
 func AddTailedBytes(namespace, pod, container, sourceType, sourcePath string, bytesLength float64) {

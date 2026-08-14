@@ -53,6 +53,7 @@ const (
 
 func resetStoreMetrics() {
 	blockTotal.Reset()
+	staleBlockTotal.Reset()
 	tailedBytes.Reset()
 	tailedLines.Reset()
 	overloaded.Reset()
@@ -195,5 +196,42 @@ func TestDeleteOnlyMatchingChunk(t *testing.T) {
 		if count != 1 {
 			t.Errorf("%s: expected the other chunk's series to survive, got %d", name, count)
 		}
+	}
+}
+
+// lobster_stale_blocks stands in for the per-chunk series of pods that are gone, so it must
+// carry no chunk dimension at all and must not be swept up by a chunk deletion.
+func TestStaleBlocksIsUnlabeledAndSurvivesDelete(t *testing.T) {
+	resetStoreMetrics()
+	defer resetStoreMetrics()
+
+	addChunkMetrics(testNamespace, testPod, testContainer, testSourceType, testSourcePath)
+	SetSizeOfStaleBlocks(4096)
+
+	if count := collectAndCount(staleBlockTotal); count != 1 {
+		t.Fatalf("lobster_stale_blocks: expected 1 series, got %d", count)
+	}
+
+	Delete(testNamespace, testPod, testContainer, testSourceType, testSourcePath)
+
+	if count := collectAndCount(blockTotal); count != 0 {
+		t.Errorf("lobster_blocks: expected 0 series after delete, got %d", count)
+	}
+	if count := collectAndCount(staleBlockTotal); count != 1 {
+		t.Errorf("lobster_stale_blocks: expected the aggregate to survive, got %d series", count)
+	}
+}
+
+// The aggregate is a gauge that is rewritten every round, so reporting zero must keep the
+// series present rather than leaving the previous total behind.
+func TestStaleBlocksKeepsSeriesAtZero(t *testing.T) {
+	resetStoreMetrics()
+	defer resetStoreMetrics()
+
+	SetSizeOfStaleBlocks(4096)
+	SetSizeOfStaleBlocks(0)
+
+	if count := collectAndCount(staleBlockTotal); count != 1 {
+		t.Errorf("lobster_stale_blocks: expected the series to stay at zero, got %d", count)
 	}
 }
