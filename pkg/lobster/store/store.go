@@ -340,6 +340,7 @@ func (s *Store) markByRetention() {
 func (s *Store) Clean() {
 	s.lock.Lock()
 	defer s.lock.Unlock()
+	s.cleanMetrics()
 	s.cleanChunks()
 	s.cleanDirectoriesWithEmptyBlocks()
 }

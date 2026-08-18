@@ -264,6 +264,14 @@ func (e *LogExporter) getAndExportLogs(uploader uploader.Uploader, request query
 			return time.Time{}, 0, err
 		}
 
+		expectedLines, expectedBytes := series.MeasureWithinRange(subReq.Start.Time, subReq.End.Time)
+		glog.Infof("[exporter][%d_%d][%s/%s] load %d/%d page | %d lines | %d bytes | %s",
+			subReq.Start.Time.UnixMilli(), subReq.End.Time.UnixMilli(),
+			uploader.Type(), uploader.Name(), pageInfo.Current, pageInfo.Total,
+			expectedLines, expectedBytes,
+			chunk.Key())
+		glog.Flush()
+
 		data, pStart, pEnd, _, _, err := e.store.GetBlocksWithinRange(subReq)
 		if err != nil {
 			return time.Time{}, 0, err
