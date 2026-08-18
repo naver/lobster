@@ -38,6 +38,12 @@ var conf config
 type Querier struct {
 	broker.Broker
 	querier.Fetcher
+	remotes []remote
+}
+
+type remote struct {
+	broker.RemoteAddr
+	Registered bool
 }
 
 func init() {
@@ -46,30 +52,52 @@ func init() {
 }
 
 func NewQuerier() *Querier {
+	remotes := parseRemotes()
 	remoteAddrs := []broker.RemoteAddr{}
 	clusters := []string{}
 
-	for _, info := range *conf.LobsterQueries {
-		part := strings.Split(info, "|")
-		splited := strings.Split(part[1], ":")
-
-		if _, err := net.LookupHost(splited[0]); err != nil {
-			glog.Infof("skip host %s.", part[1])
+	for _, r := range remotes {
+		if !r.Registered {
 			continue
 		}
 
-		remoteAddrs = append(remoteAddrs, broker.RemoteAddr{
-			Cluster: part[0],
-			Address: part[1],
-		})
-		clusters = append(clusters, part[0])
+		remoteAddrs = append(remoteAddrs, r.RemoteAddr)
+		clusters = append(clusters, r.Cluster)
 	}
 
 	glog.Infof("actual clusters after host lookup: %s", strings.Join(clusters, ","))
 	return &Querier{
 		Broker:  broker.NewBroker(remoteAddrs),
 		Fetcher: querier.NewFetcher(*conf.FetchTimeout, *conf.FetchResponseHeaderTimeout),
+		remotes: remotes,
 	}
+}
+
+// parseRemotes keeps every configured entry, so that a host missing at startup
+// stays visible instead of disappearing from the configuration.
+func parseRemotes() []remote {
+	remotes := []remote{}
+
+	for _, info := range *conf.LobsterQueries {
+		part := strings.Split(info, "|")
+		splited := strings.Split(part[1], ":")
+		registered := true
+
+		if _, err := net.LookupHost(splited[0]); err != nil {
+			glog.Infof("skip host %s.", part[1])
+			registered = false
+		}
+
+		remotes = append(remotes, remote{
+			RemoteAddr: broker.RemoteAddr{
+				Cluster: part[0],
+				Address: part[1],
+			},
+			Registered: registered,
+		})
+	}
+
+	return remotes
 }
 
 func (q *Querier) GetChunksWithinRange(req query.Request) (chunks []model.Chunk, err error) {

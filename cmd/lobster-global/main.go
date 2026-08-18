@@ -49,6 +49,8 @@ func main() {
 
 	router := server.Router()
 
+	router.Path(global.PathStatus).Handler(global.StatusHandler{Querier: querier})
+
 	webHandler := web.WebHandler{Querier: querier}
 	router.Handle("/", webHandler)
 
