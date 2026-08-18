@@ -21,25 +21,33 @@ import (
 )
 
 var (
+	chunkKeys          = promLabelsKeys(emptyChunkLabelValues())
+	chunkKeysWithLimit = append(promLabelsKeys(emptyChunkLabelValues()), labelLimit)
+
 	blockTotal = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "lobster_blocks",
 		Help: "A blocks total.",
-	}, []string{labelTargetNamespace, labelLogPod, labelLogContainer, labelLogSourceType, labelLogSourcePath})
+	}, chunkKeys)
+
+	staleBlockTotal = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "lobster_stale_blocks",
+		Help: "A blocks total of chunks whose pod no longer exists.",
+	}, []string{})
 
 	tailedBytes = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "lobster_tailed_bytes_total",
 		Help: "A bytes of lines tailed.",
-	}, []string{labelTargetNamespace, labelLogPod, labelLogContainer, labelLogSourceType, labelLogSourcePath})
+	}, chunkKeys)
 
 	tailedLines = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "lobster_tailed_lines_total",
 		Help: "A number of lines tailed.",
-	}, []string{labelTargetNamespace, labelLogPod, labelLogContainer, labelLogSourceType, labelLogSourcePath})
+	}, chunkKeys)
 
 	overloaded = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "lobster_overloaded_target_total",
 		Help: "A Number of stoping due to overloaded logs.",
-	}, []string{labelTargetNamespace, labelLogPod, labelLogContainer, labelLogSourceType, labelLogSourcePath, labelLimit})
+	}, chunkKeysWithLimit)
 
 	pushError = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "lobster_push_errors_total",
@@ -74,6 +82,7 @@ var (
 
 func RegisterStoreMetrics() {
 	prometheus.MustRegister(blockTotal)
+	prometheus.MustRegister(staleBlockTotal)
 	prometheus.MustRegister(tailedBytes)
 	prometheus.MustRegister(tailedLines)
 	prometheus.MustRegister(overloaded)
@@ -85,20 +94,42 @@ func RegisterStoreMetrics() {
 	prometheus.MustRegister(rootDiskLimit)
 }
 
+func chunkLabelValues(namespace, pod, container, sourceType, sourcePath string) prometheus.Labels {
+	return prometheus.Labels{
+		labelTargetNamespace: namespace,
+		labelLogNamespace:    namespace,
+		labelLogPod:          pod,
+		labelLogContainer:    container,
+		labelLogSourceType:   sourceType,
+		labelLogSourcePath:   sourcePath,
+	}
+}
+
+func emptyChunkLabelValues() prometheus.Labels {
+	return chunkLabelValues("", "", "", "", "")
+}
+
 func SetSizeOfBlocksInChunk(namespace, pod, container, sourceType, sourcePath string, size float64) {
-	blockTotal.WithLabelValues(namespace, pod, container, sourceType, sourcePath).Set(size)
+	blockTotal.With(chunkLabelValues(namespace, pod, container, sourceType, sourcePath)).Set(size)
+}
+
+func SetSizeOfStaleBlocks(size float64) {
+	staleBlockTotal.WithLabelValues().Set(size)
 }
 
 func AddTailedBytes(namespace, pod, container, sourceType, sourcePath string, bytesLength float64) {
-	tailedBytes.WithLabelValues(namespace, pod, container, sourceType, sourcePath).Add(bytesLength)
+	tailedBytes.With(chunkLabelValues(namespace, pod, container, sourceType, sourcePath)).Add(bytesLength)
 }
 
 func AddTailedLines(namespace, pod, container, sourceType, sourcePath string, lines float64) {
-	tailedLines.WithLabelValues(namespace, pod, container, sourceType, sourcePath).Add(lines)
+	tailedLines.With(chunkLabelValues(namespace, pod, container, sourceType, sourcePath)).Add(lines)
 }
 
 func AddOverloadedCount(namespace, pod, container, sourceType, sourcePath, limit string) {
-	overloaded.WithLabelValues(namespace, pod, container, sourceType, sourcePath, limit).Add(1)
+	labels := chunkLabelValues(namespace, pod, container, sourceType, sourcePath)
+	labels[labelLimit] = limit
+
+	overloaded.With(labels).Add(1)
 }
 
 func AddPushError() {
@@ -133,16 +164,9 @@ func Delete(namespace, pod, container, sourceType, sourcePath string) {
 		labelLogSourceType: sourceType,
 		labelLogSourcePath: sourcePath,
 	}
-	blockTotal.Delete(labelChunk)
-	tailedBytes.Delete(labelChunk)
-	tailedLines.Delete(labelChunk)
+	blockTotal.DeletePartialMatch(labelChunk)
+	tailedBytes.DeletePartialMatch(labelChunk)
+	tailedLines.DeletePartialMatch(labelChunk)
 	overloaded.DeletePartialMatch(labelChunk)
-	flushSeconds.Delete(labelChunk)
-
-	labelNamespace := prometheus.Labels{
-		labelLogNamespace: namespace,
-	}
-	handleSeconds.Delete(labelNamespace)
-	responseBytes.Delete(labelNamespace)
-	responseCodes.Delete(labelNamespace)
+	flushSeconds.DeletePartialMatch(labelChunk)
 }

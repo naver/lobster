@@ -17,6 +17,7 @@
 package metrics
 
 import (
+	"sort"
 	"strings"
 	"time"
 
@@ -69,13 +70,15 @@ func (e expiringMetric) refresh(labels prometheus.Labels) {
 }
 
 func (e expiringMetric) key(labels prometheus.Labels) string {
-	values := []string{}
+	pairs := make([]string, 0, len(labels))
 
-	for _, value := range labels {
-		values = append(values, string(value))
+	for name, value := range labels {
+		pairs = append(pairs, name+"="+value)
 	}
 
-	return strings.Join(values, "")
+	sort.Strings(pairs)
+
+	return strings.Join(pairs, ",")
 }
 
 func (e *expiringMetric) ClearStaleMetrics() {

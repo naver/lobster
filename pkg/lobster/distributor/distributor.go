@@ -30,14 +30,12 @@ import (
 	"github.com/naver/lobster/pkg/lobster/logline"
 	"github.com/naver/lobster/pkg/lobster/metrics"
 	"github.com/naver/lobster/pkg/lobster/model"
-	"github.com/naver/lobster/pkg/lobster/query"
 	v1 "k8s.io/api/core/v1"
 
 	"github.com/naver/lobster/pkg/lobster/sink/helper"
 	"github.com/naver/lobster/pkg/lobster/sink/matcher"
 	"github.com/naver/lobster/pkg/lobster/store"
 	"github.com/naver/lobster/pkg/lobster/tailer"
-	"github.com/naver/lobster/pkg/lobster/util"
 )
 
 var (
@@ -88,7 +86,7 @@ func (d *Distributor) Run(stopChan chan struct{}) {
 					panic("no pods found")
 				}
 
-				d.updateLabelsInChunks(podMap)
+				d.updateChunksByPods(podMap)
 
 				logfiles, err := d.loadLogFiles(podMap)
 				if err != nil {
@@ -131,8 +129,7 @@ func (d *Distributor) Run(stopChan chan struct{}) {
 		for {
 			select {
 			case <-metricsTicker.C:
-				end := time.Now()
-				d.updateMetrics(end.Add(-*conf.MetricsInterval), end)
+				d.updateMetrics()
 			case <-stopChan:
 				glog.Info("stop metrics production")
 				return
@@ -141,9 +138,11 @@ func (d *Distributor) Run(stopChan chan struct{}) {
 	}(stopChan)
 }
 
-func (d *Distributor) updateLabelsInChunks(podMap map[string]v1.Pod) {
+func (d *Distributor) updateChunksByPods(podMap map[string]v1.Pod) {
 	d.store.UpdateChunks(func(chunk *model.Chunk) {
 		pod, ok := podMap[chunk.PodUid]
+
+		chunk.PodDeleted = !ok
 
 		if !ok {
 			return
@@ -321,15 +320,19 @@ func (d *Distributor) storeTailedLogs(file model.LogFile, chunk *model.Chunk, ke
 	}
 }
 
-func (d *Distributor) updateMetrics(start, end time.Time) {
-	chunks, _ := d.store.GetChunksWithinRange(query.Request{
-		Start: util.Timestamp{Time: start},
-		End:   util.Timestamp{Time: end},
-	})
+func (d *Distributor) updateMetrics() {
+	staleSize := float64(0)
 
-	for _, chunk := range chunks {
+	for _, chunk := range d.store.GetChunks() {
+		if chunk.PodDeleted {
+			staleSize = staleSize + float64(chunk.Size)
+			continue
+		}
+
 		metrics.SetSizeOfBlocksInChunk(chunk.Namespace, chunk.Pod, chunk.Container, chunk.Source.Type, chunk.Source.Path, float64(chunk.Size))
 	}
+
+	metrics.SetSizeOfStaleBlocks(staleSize)
 
 	limits := d.store.GetLimits()
 	for _, limit := range limits {
