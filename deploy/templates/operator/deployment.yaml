@@ -1,4 +1,9 @@
 {{- if .Values.operator }}
+{{- $authToken := .Values.operator.options.authToken }}
+{{- $annotations := default dict .Values.operator.pod.annotations }}
+{{- if $authToken }}
+{{- $annotations = merge (dict "checksum/auth-token" ($authToken | sha256sum)) $annotations }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -16,7 +21,7 @@ spec:
       labels:
         purpose: logging
         app: lobster-operator
-      annotations: {{ (default dict .Values.operator.pod.annotations) | toYaml | nindent 8 }}
+      annotations: {{ $annotations | toYaml | nindent 8 }}
     spec:
       {{- if .Values.operator.pod.priorityClassName }}
       priorityClassName: {{ .Values.operator.pod.priorityClassName }}
@@ -33,8 +38,17 @@ spec:
           - --zap-log-level=info
           - --addr=:{{ .Values.operator.options.serverPort }}
           - --maxSinkRule={{ .Values.operator.options.maxSinkRule }}
+          {{- if $authToken }}
+          - --sync.authTokenFile=/etc/lobster/auth-token/token
+          {{- end }}
           {{- if .Values.operator.options.extraArgs }}
           {{- .Values.operator.options.extraArgs | toYaml | nindent 10 }}
+          {{- end }}
+          {{- if $authToken }}
+          volumeMounts:
+            - name: auth-token
+              mountPath: /etc/lobster/auth-token
+              readOnly: true
           {{- end }}
           ports:
             - name: http-metrics
@@ -48,4 +62,10 @@ spec:
               protocol: TCP
           resources: {{ (default dict .Values.operator.container.resources) | toYaml | nindent 12 }}
       tolerations: {{ (default list .Values.operator.pod.tolerations) | toYaml | nindent 8 }}
+      {{- if $authToken }}
+      volumes:
+        - name: auth-token
+          secret:
+            secretName: lobster-operator-auth-token
+      {{- end }}
 {{- end }}
