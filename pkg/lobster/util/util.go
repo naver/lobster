@@ -62,7 +62,7 @@ func LookupEndpoints(domain string) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		endpoints[fmt.Sprintf("%s:%d", ips[0], addr.Port)] = struct{}{}
+		endpoints[net.JoinHostPort(ips[0].String(), strconv.Itoa(int(addr.Port)))] = struct{}{}
 	}
 
 	results := []string{}
