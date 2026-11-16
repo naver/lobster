@@ -23,15 +23,18 @@ import (
 
 type config struct {
 	LobsterSinkOperator *string
+	AuthTokenFile       *string
 	SyncInterval        *time.Duration
 }
 
 func setup() config {
 	lobsterSinkOperator := flag.String("syncer.lobsterSinkOperator", "lobster-operator:80", "host to get log metric/export info")
+	authTokenFile := flag.String("syncer.authTokenFile", "", "file holding the auth token sent to lobster operator; empty sends none")
 	syncInterval := flag.Duration("syncer.syncInterval", 30*time.Second, "sync interval")
 
 	return config{
 		LobsterSinkOperator: lobsterSinkOperator,
+		AuthTokenFile:       authTokenFile,
 		SyncInterval:        syncInterval,
 	}
 }

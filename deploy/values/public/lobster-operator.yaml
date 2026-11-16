@@ -30,3 +30,4 @@ operator:
     probePort: 8081
     metricPort: 8082
     maxSinkRule: 50
+    authToken: "" # replaced during deployment

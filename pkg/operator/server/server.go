@@ -32,6 +32,7 @@ import (
 
 	httpSwagger "github.com/swaggo/http-swagger"
 
+	"github.com/naver/lobster/pkg/lobster/authtoken"
 	"github.com/naver/lobster/pkg/lobster/server/middleware"
 	"github.com/naver/lobster/pkg/operator/server/controller"
 	"github.com/naver/lobster/pkg/operator/server/handler"
@@ -53,12 +54,22 @@ func Run(sinkClient client.Client, logger logr.Logger) {
 
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
+	var authTokens authtoken.Tokens
+	if conf.AuthTokenFile != "" {
+		tokens, err := authtoken.LoadTokens(conf.AuthTokenFile)
+		if err != nil {
+			logger.Error(err, "failed to load auth tokens")
+			os.Exit(1)
+		}
+		authTokens = tokens
+	}
+
 	server := &http.Server{
 		Addr:         conf.Addr,
 		WriteTimeout: conf.WriteTimeout,
 		ReadTimeout:  conf.ReadTimeout,
 		IdleTimeout:  conf.IdleTimeout,
-		Handler:      setupRouter(sinkClient, logger),
+		Handler:      setupRouter(sinkClient, logger, authTokens),
 		ErrorLog:     log.New(os.Stdout, "[SVR_ERR]", log.LstdFlags),
 	}
 
@@ -76,7 +87,7 @@ func Run(sinkClient client.Client, logger logr.Logger) {
 	}
 }
 
-func setupRouter(sinkClient client.Client, logger logr.Logger) *mux.Router {
+func setupRouter(sinkClient client.Client, logger logr.Logger, authTokens authtoken.Tokens) *mux.Router {
 	router := mux.NewRouter()
 	router.Path("/health").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write([]byte("ok"))
@@ -88,7 +99,11 @@ func setupRouter(sinkClient client.Client, logger logr.Logger) *mux.Router {
 	))
 
 	ctrl := controller.SinkController{Client: sinkClient, MaxSinkRule: conf.MaxSinkRule, Logger: logger}
-	router.Handle(handler.PathSync, handler.InternalSyncHandler{Ctrl: ctrl, Logger: logger})
+	var syncHandler http.Handler = handler.InternalSyncHandler{Ctrl: ctrl, Logger: logger}
+	if authTokens != nil {
+		syncHandler = authtoken.Require(authTokens, syncHandler)
+	}
+	router.Handle(handler.PathSync, syncHandler)
 
 	routerV1 := router.PathPrefix(handler.PathApi).Subrouter()
 	routerV1.Use(middleware.Inspector{}.Middleware)

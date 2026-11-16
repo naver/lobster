@@ -83,6 +83,7 @@ syncer:
   options:
     printLog: true
     ruleStore: lobster-operator:80
+    authToken: "" # replaced during deployment
     serverPort: 80
     metricPort: 8081
 
