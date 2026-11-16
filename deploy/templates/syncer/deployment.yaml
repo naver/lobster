@@ -30,8 +30,17 @@ spec:
           - --logtostderr={{ .Values.syncer.options.printLog }}
           - --server.port={{ .Values.syncer.options.serverPort }}
           - --syncer.lobsterSinkOperator={{ .Values.syncer.options.ruleStore }}
+          {{- if .Values.syncer.options.authToken }}
+          - --syncer.authTokenFile=/etc/lobster/auth-token/token
+          {{- end }}
           {{- if .Values.syncer.options.extraArgs }}
           {{- .Values.syncer.options.extraArgs | toYaml | nindent 10 }}
+          {{- end }}
+          {{- if .Values.syncer.options.authToken }}
+          volumeMounts:
+            - name: auth-token
+              mountPath: /etc/lobster/auth-token
+              readOnly: true
           {{- end }}
           ports:
             - name: http
@@ -39,4 +48,10 @@ spec:
               protocol: TCP
           resources: {{ (default dict .Values.syncer.container.resources) | toYaml | nindent 12 }}
       tolerations: {{ (default list .Values.syncer.pod.tolerations) | toYaml | nindent 8 }}
+      {{- if .Values.syncer.options.authToken }}
+      volumes:
+        - name: auth-token
+          secret:
+            secretName: lobster-auth-token
+      {{- end }}
 {{- end }}

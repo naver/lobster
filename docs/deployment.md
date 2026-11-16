@@ -48,6 +48,7 @@ helm upgrade --install --debug lobster_cluster -f ./deploy/values/public/lobster
 
 - `Log metrics` can be scraped by [prometheus](https://github.com/prometheus/prometheus), where service discovery is performed based on `prometheus.io/scrape: "true"` annotations in kubernetes
 - For more details about prometheus & service discovery, please refer to  https://prometheus.io/docs/prometheus/latest/configuration/configuration/#kubernetes_sd_config
+- The sync requests from `lobster-syncer` to `lobster-operator` can require an auth token. Please refer to [Auth token](../deploy/README.md#auth-token)
 
 ```bash
 helm upgrade --install --debug lobster_cluster -f ./deploy/values/public/lobster-cluster_logsink-extension.yaml 

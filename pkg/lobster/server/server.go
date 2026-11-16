@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -31,6 +32,8 @@ import (
 	"github.com/naver/lobster/pkg/lobster/metrics"
 	"github.com/naver/lobster/pkg/lobster/util"
 )
+
+const envPodIP = "POD_IP"
 
 var conf config
 
@@ -85,5 +88,15 @@ func (s *ApiServer) Run(doShutdown func()) {
 }
 
 func (s ApiServer) GetLocalEndpoint() string {
-	return fmt.Sprintf("%s:%s", util.GetLocalAddress(), *conf.ServerPort)
+	return net.JoinHostPort(localAddress(), *conf.ServerPort)
+}
+
+func localAddress() string {
+	if ip := os.Getenv(envPodIP); ip != "" {
+		if net.ParseIP(ip) != nil {
+			return ip
+		}
+		glog.Warningf("invalid %s %q, falling back to interface lookup", envPodIP, ip)
+	}
+	return util.GetLocalAddress()
 }

@@ -27,6 +27,8 @@ type config struct {
 	ReadTimeout  time.Duration
 	IdleTimeout  time.Duration
 	MaxSinkRule  int
+
+	AuthTokenFile string
 }
 
 func Setup() {
@@ -35,4 +37,5 @@ func Setup() {
 	flag.DurationVar(&conf.WriteTimeout, "writeTimeout", 10*time.Second, "server write timeout")
 	flag.DurationVar(&conf.ReadTimeout, "readTimeout", 10*time.Second, "server read timeout")
 	flag.DurationVar(&conf.IdleTimeout, "idleTimeout", 10*time.Second, "server idle timeout")
+	flag.StringVar(&conf.AuthTokenFile, "sync.authTokenFile", "", "file holding the auth tokens accepted from lobster syncers, separated by whitespace; empty accepts any request")
 }

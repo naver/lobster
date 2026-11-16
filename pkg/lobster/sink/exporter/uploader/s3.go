@@ -19,6 +19,8 @@ package uploader
 import (
 	"bytes"
 	"fmt"
+	"net"
+	"net/http"
 	"path"
 	"strings"
 	"time"
@@ -35,16 +37,43 @@ import (
 	"github.com/pkg/errors"
 )
 
-var defaultRegion = aws.String("US")
+const (
+	s3DialTimeout           = 5 * time.Second
+	s3KeepAlive             = 30 * time.Second
+	s3TLSHandshakeTimeout   = 5 * time.Second
+	s3ResponseHeaderTimeout = 30 * time.Second
+)
+
+var (
+	defaultRegion = aws.String("US")
+	// shared by all uploads so that connections are reused
+	s3HTTPClient = newS3HTTPClient()
+)
 
 type S3Uploader struct {
-	Order order.Order
+	httpClient *http.Client
+	Order      order.Order
 }
 
 func NewS3Uploader(order order.Order) S3Uploader {
 	return S3Uploader{
-		Order: order,
+		httpClient: s3HTTPClient,
+		Order:      order,
 	}
+}
+
+// newS3HTTPClient bounds each request attempt.
+// The SDK default client has no timeout, so a stalled response would block every export on the node.
+func newS3HTTPClient() *http.Client {
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.DialContext = (&net.Dialer{
+		Timeout:   s3DialTimeout,
+		KeepAlive: s3KeepAlive,
+	}).DialContext
+	transport.TLSHandshakeTimeout = s3TLSHandshakeTimeout
+	transport.ResponseHeaderTimeout = s3ResponseHeaderTimeout
+
+	return &http.Client{Transport: transport}
 }
 
 func (s S3Uploader) Type() string {
@@ -94,6 +123,7 @@ func (s S3Uploader) Upload(data []byte, chunk model.Chunk, pStart, pEnd time.Tim
 	)
 
 	s3Session, err := session.NewSession(&aws.Config{
+		HTTPClient:       s.httpClient,
 		Endpoint:         aws.String(s.Order.LogExportRule.S3Bucket.Destination),
 		Credentials:      credentials.NewStaticCredentials(s.Order.LogExportRule.S3Bucket.AccessKey, s.Order.LogExportRule.S3Bucket.SecretKey, ""),
 		DisableSSL:       aws.Bool(true),

@@ -27,6 +27,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/naver/lobster/pkg/lobster/authtoken"
 	"github.com/naver/lobster/pkg/lobster/query"
 	"github.com/naver/lobster/pkg/lobster/sink/order"
 	sinkV1 "github.com/naver/lobster/pkg/operator/api/v1"
@@ -148,6 +149,13 @@ func (r *Syncer) mapPreordersFromSinks(sinks []v1.Sink) map[string][]order.Order
 func (r *Syncer) requestSinks() ([]v1.Sink, error) {
 	data := []v1.Sink{}
 
+	header := http.Header{
+		"Content-Type": []string{"application/json"},
+	}
+	if err := authtoken.SetHeader(header, *conf.AuthTokenFile); err != nil {
+		return data, err
+	}
+
 	resp, err := http.DefaultClient.Do(&http.Request{
 		Method: http.MethodGet,
 		URL: &url.URL{
@@ -155,9 +163,7 @@ func (r *Syncer) requestSinks() ([]v1.Sink, error) {
 			Host:   *conf.LobsterSinkOperator,
 			Path:   pathSync,
 		},
-		Header: http.Header{
-			"Content-Type": []string{"application/json"},
-		},
+		Header: header,
 	})
 	if err != nil {
 		return data, err

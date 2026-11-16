@@ -61,6 +61,10 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
           volumeMounts:
             {{- if .Values.store.options.dockerLogPath }}
             - name: host-docker-container-logs
