@@ -92,27 +92,27 @@ endif
 
 .PHONY: protoc-gen-go
 protoc-gen-go: $(PROTOC_GEN_GO) ## Download protoc-gen-go locally if necessary.
-$(PROTOC_GEN_GO): $(LOCALBIN)
+$(PROTOC_GEN_GO): | $(LOCALBIN)
 	@GOBIN=$(LOCALBIN) go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.5
 
 .PHONY: protoc-gen-go-grpc
 protoc-gen-go-grpc: $(PROTOC_GEN_GO_GRPC) ## Download protoc-gen-go-grpc locally if necessary.
-$(PROTOC_GEN_GO_GRPC): $(LOCALBIN)
+$(PROTOC_GEN_GO_GRPC): | $(LOCALBIN)
 	@GOBIN=$(LOCALBIN) go install  google.golang.org/grpc/cmd/protoc-gen-go-grpc@1.5.1
 
 .PHONY: controller-gen
 controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
-$(CONTROLLER_GEN): $(LOCALBIN)
+$(CONTROLLER_GEN): | $(LOCALBIN)
 	@GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_TOOLS_VERSION)
 
 .PHONY: golangci-linter
 golangci-linter: $(GOLANGCI_LINTER) ## Download golangci-linter locally if necessary.
-$(GOLANGCI_LINTER): $(LOCALBIN)
+$(GOLANGCI_LINTER): | $(LOCALBIN)
 	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(LOCALBIN) $(GOLANGCI_LINT_TOOLS_VERSION)
 
 .PHONY: swag
 swag: $(SWAG) ## Install swag if necessary.
-$(SWAG): $(LOCALBIN)
+$(SWAG): | $(LOCALBIN)
 	@GOBIN=$(LOCALBIN) go install github.com/swaggo/swag/cmd/swag@$(SWAG_VERSION)
 
 .PHONY: widdershins
