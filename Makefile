@@ -71,13 +71,13 @@ $(LOCALBIN):
 PROTOC_GEN_GO ?= $(LOCALBIN)/protoc-gen-go
 PROTOC_GEN_GO_GRPC ?= $(LOCALBIN)/protoc-gen-go-grpc
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
-GOLANGCI_LINTER ?= $(LOCALBIN)/golangci-lint
+GOLANGCI_LINTER ?= $(LOCALBIN)/golangci-lint-$(GOLANGCI_LINT_TOOLS_VERSION)
 SWAG ?= $(LOCALBIN)/swag
 WIDDERSHINS ?= widdershins
 
 ## Tool Versions
 CONTROLLER_TOOLS_VERSION ?= v0.14.0
-GOLANGCI_LINT_TOOLS_VERSION ?= v2.9.0 
+GOLANGCI_LINT_TOOLS_VERSION ?= v2.9.0
 SWAG_VERSION := v1.16.3
 WIDDERSHINS_TOOLS_VERSION ?= 4.0.1
 
@@ -109,6 +109,7 @@ $(CONTROLLER_GEN): | $(LOCALBIN)
 golangci-linter: $(GOLANGCI_LINTER) ## Download golangci-linter locally if necessary.
 $(GOLANGCI_LINTER): | $(LOCALBIN)
 	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(LOCALBIN) $(GOLANGCI_LINT_TOOLS_VERSION)
+	@mv $(LOCALBIN)/golangci-lint $@
 
 .PHONY: swag
 swag: $(SWAG) ## Install swag if necessary.
